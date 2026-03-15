@@ -110,11 +110,11 @@ const UPGRADE_PRIORITY: UpgradeId[] = [
 ]
 
 const RESEARCH_PRIORITY: ResearchTechId[] = [
-  'juniorScientists',
-  'seniorScientists',
   'propDeskOperations',
   'algorithmicTrading',
   'powerSystemsEngineering',
+  'juniorScientists',
+  'seniorScientists',
   'regulatoryAffairs',
   'institutionalDesks',
   'hedgeFundStrategies',
@@ -131,10 +131,6 @@ const REPEATABLE_PRIORITY: RepeatableUpgradeId[] = [
   'patronageMachine',
   'automationSubsidies',
   'infrastructureGrants',
-  'internDeskTraining',
-  'internPlaybooks',
-  'internLabTraining',
-  'internResearchNotes',
   'juniorTraderTraining',
   'behavioralModeling',
   'juniorLabProtocols',
@@ -143,6 +139,10 @@ const REPEATABLE_PRIORITY: RepeatableUpgradeId[] = [
   'decisionSystems',
   'propDeskScaling',
   'propDeskResearch',
+  'internDeskTraining',
+  'internPlaybooks',
+  'internLabTraining',
+  'internResearchNotes',
   'institutionalDeskCoordination',
   'institutionalAnalytics',
   'hedgeFundExecution',
@@ -167,12 +167,8 @@ const REPEATABLE_PRIORITY: RepeatableUpgradeId[] = [
 
 const UNIT_PRIORITY: UnitId[] = [
   'intern',
-  'internResearchScientist',
   'juniorTrader',
-  'juniorResearchScientist',
-  'seniorResearchScientist',
   'seniorTrader',
-  'juniorPolitician',
   'propDesk',
   'institutionalDesk',
   'hedgeFund',
@@ -440,6 +436,28 @@ function buyBestPowerInfrastructure(state: GameState): boolean {
   return bestCandidate ? buyPowerInfrastructure(state, bestCandidate.id) : false
 }
 
+function buyMinimumSupportUnits(state: GameState): boolean {
+  let changed = false
+
+  if (state.purchasedUpgrades.juniorHiringProgram && state.internResearchScientistCount < 1) {
+    changed = buyUnit(state, 'internResearchScientist') || changed
+  }
+
+  if (state.purchasedResearchTech.juniorScientists && state.juniorResearchScientistCount < 1) {
+    changed = buyUnit(state, 'juniorResearchScientist') || changed
+  }
+
+  if (state.purchasedResearchTech.seniorScientists && state.seniorResearchScientistCount < 1) {
+    changed = buyUnit(state, 'seniorResearchScientist') || changed
+  }
+
+  if (state.purchasedResearchTech.regulatoryAffairs && state.juniorPoliticianCount < 1) {
+    changed = buyUnit(state, 'juniorPolitician') || changed
+  }
+
+  return changed
+}
+
 function buyLobbyingPolicy(state: GameState, policyId: LobbyingPolicyId): boolean {
   const policy = getLobbyingPolicyDefinition(policyId)
 
@@ -460,26 +478,28 @@ function performPurchases(state: GameState, config: SimulationConfig): void {
   while (true) {
     let changed = false
 
-    for (const upgradeId of config.upgradePriority) {
-      changed = buyUpgrade(state, upgradeId) || changed
-    }
-
     for (const unitId of config.unitPriority) {
       while (buyUnit(state, unitId)) {
         changed = true
       }
     }
 
+    for (const upgradeId of config.upgradePriority) {
+      changed = buyUpgrade(state, upgradeId) || changed
+    }
+
     for (const techId of config.researchPriority) {
       changed = buyResearchTech(state, techId) || changed
     }
 
-    for (const repeatableId of config.repeatablePriority) {
-      changed = buyRepeatableUpgrade(state, repeatableId) || changed
-    }
+    changed = buyMinimumSupportUnits(state) || changed
 
     while (getPowerUsage(state) > getPowerCapacity(state) && buyBestPowerInfrastructure(state)) {
       changed = true
+    }
+
+    for (const repeatableId of config.repeatablePriority) {
+      changed = buyRepeatableUpgrade(state, repeatableId) || changed
     }
 
     for (const policyId of config.policyPriority) {

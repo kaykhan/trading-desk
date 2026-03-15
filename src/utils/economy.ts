@@ -201,6 +201,10 @@ export function getInternIncome(state: GameState): number {
     value *= 1.1
   }
 
+  if (state.purchasedUpgrades.premiumDataFeed) {
+    value *= 1.2
+  }
+
   if (state.purchasedUpgrades.firmwideDeskStandards) {
     value *= 1.15
   }
@@ -213,6 +217,10 @@ export function getJuniorTraderIncome(state: GameState): number {
 
   if (state.purchasedUpgrades.marketScanner) {
     value *= 1.1
+  }
+
+  if (state.purchasedUpgrades.premiumDataFeed) {
+    value *= 1.2
   }
 
   if (state.purchasedUpgrades.juniorAnalystProgram) {
@@ -231,6 +239,10 @@ export function getSeniorTraderIncome(state: GameState): number {
 
   if (state.purchasedPolicies.executiveCompensationReform) {
     value *= 1.15
+  }
+
+  if (state.purchasedUpgrades.premiumDataFeed) {
+    value *= 1.1
   }
 
   if (state.purchasedUpgrades.marketScanner) {

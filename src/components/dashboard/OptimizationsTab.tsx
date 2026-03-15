@@ -37,14 +37,14 @@ function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state
       return 'Requires Better Terminal first.'
     case 'internDeskTraining':
     case 'internPlaybooks':
-      return state.purchasedUpgrades.juniorHiringProgram === true
+      return state.purchasedUpgrades.juniorTraderProgram === true
         ? `Requires at least 1 Intern (${state.internCount}/1).`
-        : 'Requires Recruiter first.'
+        : 'Requires Junior Trader Program first.'
     case 'internLabTraining':
     case 'internResearchNotes':
-      return state.purchasedUpgrades.juniorHiringProgram === true
+      return state.purchasedResearchTech.juniorScientists === true
         ? `Requires at least 1 Intern Scientist (${state.internResearchScientistCount}/1).`
-        : 'Requires Recruiter first.'
+        : 'Requires Junior Scientists research first.'
     case 'politicalNetworking':
     case 'constituencyResearch':
     case 'talentHeadhunters':
