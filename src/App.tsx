@@ -1,13 +1,6 @@
 import { useEffect } from 'react'
-import './App.css'
-import { FooterBar } from './components/FooterBar'
-import { IncomeBreakdownPanel } from './components/IncomeBreakdownPanel'
+import { GameShell } from '@/components/GameShell'
 import { ModalLayer } from './components/ModalLayer'
-import { PrestigePanel } from './components/PrestigePanel'
-import { ShopPanel } from './components/ShopPanel'
-import { StatsPanel } from './components/StatsPanel'
-import { TopBar } from './components/TopBar'
-import { TradePanel } from './components/TradePanel'
 import { useGameStore } from './store/gameStore'
 
 function App() {
@@ -70,25 +63,10 @@ function App() {
   }, [setAppInfo])
 
   return (
-    <main className="app-shell">
-      <TopBar />
-
-      <section className="dashboard-grid">
-        <div className="dashboard-main">
-          <TradePanel />
-          <ShopPanel />
-        </div>
-
-        <aside className="dashboard-side">
-          <StatsPanel />
-          <IncomeBreakdownPanel />
-          <PrestigePanel />
-        </aside>
-      </section>
-
-      <FooterBar />
+    <>
+      <GameShell />
       <ModalLayer />
-    </main>
+    </>
   )
 }
 

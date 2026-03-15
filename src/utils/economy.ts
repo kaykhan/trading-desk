@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS } from '../data/constants'
 import { UNITS } from '../data/units'
-import type { GameState } from '../types/game'
+import type { BuyMode, GameState, UnitId } from '../types/game'
 import { getLifetimeReputation } from './prestige'
 
 export function getScaledCost(baseCost: number, scaling: number, owned: number): number {
@@ -63,7 +63,7 @@ export function getJuniorTraderIncome(state: GameState): number {
 
 export function getSeniorTraderIncome(state: GameState): number {
   if (state.purchasedUpgrades.executiveTraining) {
-    return 12
+    return 30
   }
 
   return UNITS.seniorTrader.baseIncomePerSecond
@@ -104,12 +104,90 @@ export function getJuniorTraderCost(state: GameState): number {
   )
 }
 
-export function getTradingBotCost(state: GameState): number {
-  return getScaledCost(UNITS.tradingBot.baseCost, UNITS.tradingBot.costScaling, state.tradingBotCount)
+export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
+  return state.purchasedUpgrades[UNITS[unitId].unlockUpgradeId] === true
 }
 
-export function getPromotionCost(): number {
-  return GAME_CONSTANTS.promotionCost
+export function getUnitCount(state: GameState, unitId: UnitId): number {
+  switch (unitId) {
+    case 'juniorTrader':
+      return state.juniorTraderCount
+    case 'seniorTrader':
+      return state.seniorTraderCount
+    case 'tradingBot':
+      return state.tradingBotCount
+  }
+}
+
+export function getNextUnitCost(state: GameState, unitId: UnitId): number {
+  const unit = UNITS[unitId]
+
+  if (unitId === 'juniorTrader') {
+    return getJuniorTraderCost(state)
+  }
+
+  return getScaledCost(unit.baseCost, unit.costScaling, getUnitCount(state, unitId))
+}
+
+export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyMode): { quantity: number; totalCost: number } {
+  if (!isUnitUnlocked(state, unitId)) {
+    return { quantity: 0, totalCost: 0 }
+  }
+
+  const unit = UNITS[unitId]
+  const owned = getUnitCount(state, unitId)
+
+  if (quantity === 'max') {
+    let totalCost = 0
+    let bought = 0
+    let simulatedOwned = owned
+
+    while (true) {
+      const nextCost = unitId === 'juniorTrader'
+        ? Math.max(
+            1,
+            Math.floor(
+              getScaledCost(unit.baseCost, unit.costScaling, simulatedOwned) *
+                (1 - (state.purchasedPrestigeUpgrades.betterHiringPipeline ?? 0) * GAME_CONSTANTS.betterHiringPipelineDiscountPerRank),
+            ),
+          )
+        : getScaledCost(unit.baseCost, unit.costScaling, simulatedOwned)
+
+      if (totalCost + nextCost > state.cash) {
+        break
+      }
+
+      totalCost += nextCost
+      simulatedOwned += 1
+      bought += 1
+    }
+
+    return { quantity: bought, totalCost }
+  }
+
+  let totalCost = 0
+
+  for (let i = 0; i < quantity; i += 1) {
+    totalCost += unitId === 'juniorTrader'
+      ? Math.max(
+          1,
+          Math.floor(
+            getScaledCost(unit.baseCost, unit.costScaling, owned + i) *
+              (1 - (state.purchasedPrestigeUpgrades.betterHiringPipeline ?? 0) * GAME_CONSTANTS.betterHiringPipelineDiscountPerRank),
+          ),
+        )
+      : getScaledCost(unit.baseCost, unit.costScaling, owned + i)
+  }
+
+  return { quantity, totalCost }
+}
+
+export function getTradingBotCost(state: GameState): number {
+  return getNextUnitCost(state, 'tradingBot')
+}
+
+export function getSeniorTraderCost(state: GameState): number {
+  return getNextUnitCost(state, 'seniorTrader')
 }
 
 export function canAfford(state: GameState, amount: number): boolean {

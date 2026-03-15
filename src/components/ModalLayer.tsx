@@ -1,3 +1,4 @@
+import { Dialog } from '@/components/ui/dialog'
 import { useGameStore } from '../store/gameStore'
 import { OfflineEarningsModal } from './OfflineEarningsModal'
 import { PrestigeConfirmModal } from './PrestigeConfirmModal'
@@ -12,13 +13,10 @@ export function ModalLayer() {
   }
 
   return (
-    <div className="modal-layer" role="presentation">
-      <div className="modal-backdrop" onClick={closeModal} aria-hidden="true" />
-      <div className="modal-frame" role="dialog" aria-modal="true">
-        {activeModal === 'saveImport' && <SaveImportModal onClose={closeModal} />}
-        {activeModal === 'prestigeConfirm' && <PrestigeConfirmModal onClose={closeModal} />}
-        {activeModal === 'offlineEarnings' && <OfflineEarningsModal onClose={closeModal} />}
-      </div>
-    </div>
+    <Dialog open onOpenChange={(open) => { if (!open) closeModal() }}>
+      {activeModal === 'saveImport' && <SaveImportModal onClose={closeModal} />}
+      {activeModal === 'prestigeConfirm' && <PrestigeConfirmModal onClose={closeModal} />}
+      {activeModal === 'offlineEarnings' && <OfflineEarningsModal onClose={closeModal} />}
+    </Dialog>
   )
 }

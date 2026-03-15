@@ -1,8 +1,8 @@
 import type { AppInfo } from '../../shared/game'
 
-export type UpgradeCategory = 'manual' | 'staff' | 'automation' | 'global' | 'prestige'
+export type UpgradeCategory = 'trading' | 'operations' | 'research' | 'prestige'
 
-export type ShopTabId = 'manual' | 'staff' | 'automation' | 'global' | 'prestige'
+export type GameTabId = 'desk' | 'research' | 'prestige' | 'stats' | 'settings'
 
 export type UnitId = 'juniorTrader' | 'seniorTrader' | 'tradingBot'
 
@@ -10,22 +10,31 @@ export type UpgradeId =
   | 'betterTerminal'
   | 'hotkeyMacros'
   | 'premiumDataFeed'
+  | 'juniorHiringProgram'
+  | 'seniorRecruitment'
   | 'deskUpgrade'
   | 'trainingProgram'
-  | 'promotionProgram'
   | 'executiveTraining'
   | 'algorithmicTrading'
   | 'lowLatencyServers'
   | 'tradeMultiplier'
   | 'bullMarket'
 
+export type ResearchUnlockId = 'juniorHiringProgram' | 'seniorRecruitment' | 'algorithmicTrading'
+
 export type PrestigeUpgradeId = 'brandRecognition' | 'seedCapital' | 'betterHiringPipeline'
 
 export type ModalId = 'saveImport' | 'prestigeConfirm' | 'offlineEarnings'
 
+export type BuyMode = 1 | 5 | 10 | 'max'
+
 export type GameSettings = {
   autosaveEnabled: boolean
   shortNumberThreshold: number
+}
+
+export type GameUiState = {
+  unitBuyModes: Record<UnitId, BuyMode>
 }
 
 export type GameState = {
@@ -42,6 +51,7 @@ export type GameState = {
   lastSaveTimestamp: number
   totalOfflineSecondsApplied: number
   settings: GameSettings
+  ui: GameUiState
 }
 
 export type UnitDefinition = {
@@ -51,6 +61,8 @@ export type UnitDefinition = {
   costScaling: number
   baseIncomePerSecond: number
   description: string
+  tab: Extract<UpgradeCategory, 'operations'>
+  unlockUpgradeId: ResearchUnlockId
 }
 
 export type UpgradeDefinition = {
@@ -85,18 +97,22 @@ export type OfflineSummary = {
   cashEarned: number
 }
 
+export type TradeFeedback = {
+  amount: number
+  timestamp: number
+}
+
 export type GameStore = GameState & {
   appInfo: AppInfo | null
-  activeShopTab: ShopTabId
+  activeTab: GameTabId
   activeModal: ModalId | null
   offlineSummary: OfflineSummary | null
+  latestTradeFeedback: TradeFeedback | null
   makeTrade: () => void
   tick: (_deltaSeconds: number) => void
-  buyJuniorTrader: () => void
-  buyTradingBot: () => void
+  buyUnit: (_unitId: UnitId, _quantity: BuyMode) => void
   buyUpgrade: (_upgradeId: UpgradeId) => void
   buyPrestigeUpgrade: (_upgradeId: PrestigeUpgradeId) => void
-  promoteJuniorToSenior: () => void
   prestigeReset: () => void
   applyOfflineProgress: (_secondsAway: number) => void
   saveGame: () => void
@@ -104,9 +120,11 @@ export type GameStore = GameState & {
   exportSave: () => string
   importSave: (_encodedSave: string) => boolean
   setAppInfo: (_appInfo: AppInfo | null) => void
-  setActiveShopTab: (_tab: ShopTabId) => void
+  setActiveTab: (_tab: GameTabId) => void
+  setUnitBuyMode: (_unitId: UnitId, _mode: BuyMode) => void
   openModal: (_modal: ModalId) => void
   closeModal: () => void
   setOfflineSummary: (_summary: OfflineSummary | null) => void
+  clearTradeFeedback: () => void
   resetFoundation: () => void
 }

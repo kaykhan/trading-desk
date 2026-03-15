@@ -1,20 +1,15 @@
 import { initialState } from '../src/data/initialState'
 import { getUpgradeDefinition } from '../src/data/upgrades'
-import { getCashPerSecond, getJuniorTraderCost, getManualIncome, getPromotionCost, getTradingBotCost } from '../src/utils/economy'
+import { getBulkUnitCost, getCashPerSecond, getManualIncome, isUnitUnlocked } from '../src/utils/economy'
 import { getPrestigeGain } from '../src/utils/prestige'
-import type { GameState, UpgradeId } from '../src/types/game'
-
-type Strategy = {
-  name: string
-  maxSeniorBeforeSavingForBots: number
-}
+import type { GameState, UnitId, UpgradeId } from '../src/types/game'
 
 type SimulationResult = {
-  strategy: string
+  secondsToJuniorUnlock: number
   secondsToFirstJunior: number
-  secondsToPromotionProgram: number
+  secondsToSeniorUnlock: number
   secondsToFirstSenior: number
-  secondsToAlgorithmicTrading: number
+  secondsToBotUnlock: number
   secondsToFirstBot: number
   secondsToPrestigeReady: number
   finalState: GameState
@@ -22,17 +17,6 @@ type SimulationResult = {
 
 const TICK_SECONDS = 1
 const MAX_SECONDS = 6 * 60 * 60
-
-const STRATEGIES: Strategy[] = [
-  {
-    name: 'Auto-promote everything',
-    maxSeniorBeforeSavingForBots: Number.POSITIVE_INFINITY,
-  },
-  {
-    name: 'Save for bots after 5 seniors',
-    maxSeniorBeforeSavingForBots: 5,
-  },
-]
 
 function cloneState(state: GameState): GameState {
   return {
@@ -75,52 +59,44 @@ function buyUpgrade(state: GameState, upgradeId: UpgradeId): boolean {
   return true
 }
 
-function buyJuniorTrader(state: GameState): boolean {
-  const cost = getJuniorTraderCost(state)
-
-  if (state.cash < cost) {
+function buyUnit(state: GameState, unitId: UnitId): boolean {
+  if (!isUnitUnlocked(state, unitId)) {
     return false
   }
 
-  state.cash -= cost
-  state.juniorTraderCount += 1
-  return true
-}
+  const result = getBulkUnitCost(state, unitId, 1)
 
-function promoteJuniorToSenior(state: GameState): boolean {
-  const cost = getPromotionCost()
-
-  if (!state.purchasedUpgrades.promotionProgram || state.juniorTraderCount <= 0 || state.cash < cost) {
+  if (result.quantity <= 0 || state.cash < result.totalCost) {
     return false
   }
 
-  state.cash -= cost
-  state.juniorTraderCount -= 1
-  state.seniorTraderCount += 1
-  return true
-}
+  state.cash -= result.totalCost
 
-function buyTradingBot(state: GameState): boolean {
-  const cost = getTradingBotCost(state)
-
-  if (!state.purchasedUpgrades.algorithmicTrading || state.cash < cost) {
-    return false
+  if (unitId === 'juniorTrader') {
+    state.juniorTraderCount += 1
   }
 
-  state.cash -= cost
-  state.tradingBotCount += 1
+  if (unitId === 'seniorTrader') {
+    state.seniorTraderCount += 1
+  }
+
+  if (unitId === 'tradingBot') {
+    state.tradingBotCount += 1
+  }
+
   return true
 }
 
-function performPurchases(state: GameState, strategy: Strategy): void {
+function performPurchases(state: GameState): void {
   while (true) {
     let changed = false
 
     changed = buyUpgrade(state, 'betterTerminal') || changed
     changed = buyUpgrade(state, 'hotkeyMacros') || changed
     changed = buyUpgrade(state, 'premiumDataFeed') || changed
+    changed = buyUpgrade(state, 'juniorHiringProgram') || changed
 
-    while (buyJuniorTrader(state)) {
+    while (buyUnit(state, 'juniorTrader')) {
       changed = true
     }
 
@@ -128,28 +104,17 @@ function performPurchases(state: GameState, strategy: Strategy): void {
     changed = buyUpgrade(state, 'tradeMultiplier') || changed
     changed = buyUpgrade(state, 'trainingProgram') || changed
     changed = buyUpgrade(state, 'bullMarket') || changed
-    changed = buyUpgrade(state, 'promotionProgram') || changed
+    changed = buyUpgrade(state, 'seniorRecruitment') || changed
 
-    const savingForAlgorithmicTrading = !state.purchasedUpgrades.algorithmicTrading && state.seniorTraderCount >= strategy.maxSeniorBeforeSavingForBots
-    const savingForFirstBot = state.purchasedUpgrades.algorithmicTrading && state.tradingBotCount === 0
-
-    if (!savingForAlgorithmicTrading && !savingForFirstBot) {
-      while (promoteJuniorToSenior(state)) {
-        changed = true
-      }
+    while (buyUnit(state, 'seniorTrader')) {
+      changed = true
     }
 
     changed = buyUpgrade(state, 'executiveTraining') || changed
     changed = buyUpgrade(state, 'algorithmicTrading') || changed
 
-    while (buyTradingBot(state)) {
+    while (buyUnit(state, 'tradingBot')) {
       changed = true
-    }
-
-    if (state.tradingBotCount > 0) {
-      while (promoteJuniorToSenior(state)) {
-        changed = true
-      }
     }
 
     changed = buyUpgrade(state, 'lowLatencyServers') || changed
@@ -160,34 +125,39 @@ function performPurchases(state: GameState, strategy: Strategy): void {
   }
 }
 
-function simulateRun(strategy: Strategy): SimulationResult {
+function simulateRun(): SimulationResult {
   const state = cloneState(initialState)
+  let secondsToJuniorUnlock = -1
   let secondsToFirstJunior = -1
-  let secondsToPromotionProgram = -1
+  let secondsToSeniorUnlock = -1
   let secondsToFirstSenior = -1
-  let secondsToAlgorithmicTrading = -1
+  let secondsToBotUnlock = -1
   let secondsToFirstBot = -1
   let secondsToPrestigeReady = -1
 
   for (let elapsedSeconds = 1; elapsedSeconds <= MAX_SECONDS; elapsedSeconds += TICK_SECONDS) {
     makeTrade(state)
     tick(state, TICK_SECONDS)
-    performPurchases(state, strategy)
+    performPurchases(state)
+
+    if (secondsToJuniorUnlock < 0 && state.purchasedUpgrades.juniorHiringProgram) {
+      secondsToJuniorUnlock = elapsedSeconds
+    }
 
     if (secondsToFirstJunior < 0 && state.juniorTraderCount > 0) {
       secondsToFirstJunior = elapsedSeconds
     }
 
-    if (secondsToPromotionProgram < 0 && state.purchasedUpgrades.promotionProgram) {
-      secondsToPromotionProgram = elapsedSeconds
+    if (secondsToSeniorUnlock < 0 && state.purchasedUpgrades.seniorRecruitment) {
+      secondsToSeniorUnlock = elapsedSeconds
     }
 
     if (secondsToFirstSenior < 0 && state.seniorTraderCount > 0) {
       secondsToFirstSenior = elapsedSeconds
     }
 
-    if (secondsToAlgorithmicTrading < 0 && state.purchasedUpgrades.algorithmicTrading) {
-      secondsToAlgorithmicTrading = elapsedSeconds
+    if (secondsToBotUnlock < 0 && state.purchasedUpgrades.algorithmicTrading) {
+      secondsToBotUnlock = elapsedSeconds
     }
 
     if (secondsToFirstBot < 0 && state.tradingBotCount > 0) {
@@ -201,11 +171,11 @@ function simulateRun(strategy: Strategy): SimulationResult {
   }
 
   return {
-    strategy: strategy.name,
+    secondsToJuniorUnlock,
     secondsToFirstJunior,
-    secondsToPromotionProgram,
+    secondsToSeniorUnlock,
     secondsToFirstSenior,
-    secondsToAlgorithmicTrading,
+    secondsToBotUnlock,
     secondsToFirstBot,
     secondsToPrestigeReady,
     finalState: state,
@@ -220,17 +190,15 @@ function formatMinutes(seconds: number): string {
   return `${(seconds / 60).toFixed(1)}m`
 }
 
-for (const strategy of STRATEGIES) {
-  const result = simulateRun(strategy)
+const result = simulateRun()
 
-  console.log(`Strategy: ${result.strategy}`)
-  console.log(`- First Junior Trader: ${formatMinutes(result.secondsToFirstJunior)}`)
-  console.log(`- Promotion Program: ${formatMinutes(result.secondsToPromotionProgram)}`)
-  console.log(`- First Senior Trader: ${formatMinutes(result.secondsToFirstSenior)}`)
-  console.log(`- Algorithmic Trading: ${formatMinutes(result.secondsToAlgorithmicTrading)}`)
-  console.log(`- First Trading Bot: ${formatMinutes(result.secondsToFirstBot)}`)
-  console.log(`- Prestige Ready: ${formatMinutes(result.secondsToPrestigeReady)}`)
-  console.log(`- Ending cash/sec: ${getCashPerSecond(result.finalState).toFixed(2)}`)
-  console.log(`- Ending lifetime cash: ${result.finalState.lifetimeCashEarned.toFixed(2)}`)
-  console.log('')
-}
+console.log('Revision 1 balance check results')
+console.log(`- Junior Hiring Program: ${formatMinutes(result.secondsToJuniorUnlock)}`)
+console.log(`- First Junior Trader: ${formatMinutes(result.secondsToFirstJunior)}`)
+console.log(`- Senior Recruitment: ${formatMinutes(result.secondsToSeniorUnlock)}`)
+console.log(`- First Senior Trader: ${formatMinutes(result.secondsToFirstSenior)}`)
+console.log(`- Algorithmic Trading: ${formatMinutes(result.secondsToBotUnlock)}`)
+console.log(`- First Trading Bot: ${formatMinutes(result.secondsToFirstBot)}`)
+console.log(`- Prestige Ready: ${formatMinutes(result.secondsToPrestigeReady)}`)
+console.log(`- Ending cash/sec: ${getCashPerSecond(result.finalState).toFixed(2)}`)
+console.log(`- Ending lifetime cash: ${result.finalState.lifetimeCashEarned.toFixed(2)}`)

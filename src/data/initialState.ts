@@ -18,4 +18,11 @@ export const initialState: GameState = {
     autosaveEnabled: true,
     shortNumberThreshold: GAME_CONSTANTS.shortNumberThreshold,
   },
+  ui: {
+    unitBuyModes: {
+      juniorTrader: 1,
+      seniorTrader: 1,
+      tradingBot: 1,
+    },
+  },
 }

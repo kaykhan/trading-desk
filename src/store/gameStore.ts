@@ -3,24 +3,26 @@ import type { AppInfo } from '../../shared/game'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { getCashPerSecond, getJuniorTraderCost, getManualIncome, getPromotionCost, getTradingBotCost } from '../utils/economy'
+import { getBulkUnitCost, getCashPerSecond, getManualIncome, isUnitUnlocked } from '../utils/economy'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, saveStateToStorage } from '../utils/persistence'
 import { createPrestigeResetState } from '../utils/prestige'
-import type { GameState, GameStore, ModalId, OfflineSummary, ShopTabId } from '../types/game'
+import type { BuyMode, GameState, GameStore, GameTabId, ModalId, OfflineSummary, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
-  activeShopTab: ShopTabId
+  activeTab: GameTabId
   activeModal: ModalId | null
   offlineSummary: OfflineSummary | null
+  latestTradeFeedback: GameStore['latestTradeFeedback']
 }
 
 const initialUiState: StoreUiState = {
   appInfo: null,
-  activeShopTab: 'manual',
+  activeTab: 'desk',
   activeModal: null,
   offlineSummary: null,
+  latestTradeFeedback: null,
 }
 
 function getSnapshot(state: GameStore) {
@@ -38,6 +40,7 @@ function getSnapshot(state: GameStore) {
     lastSaveTimestamp: state.lastSaveTimestamp,
     totalOfflineSecondsApplied: state.totalOfflineSecondsApplied,
     settings: state.settings,
+    ui: state.ui,
   }
 
   return snapshot
@@ -53,6 +56,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return {
         cash: state.cash + gain,
         lifetimeCashEarned: state.lifetimeCashEarned + gain,
+        latestTradeFeedback: {
+          amount: gain,
+          timestamp: Date.now(),
+        },
       }
     })
   },
@@ -75,35 +82,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     })
   },
-  buyJuniorTrader: () => {
+  buyUnit: (unitId: UnitId, quantity: BuyMode) => {
     set((state) => {
-      const cost = getJuniorTraderCost(state)
-
-      if (state.cash < cost) {
+      if (!isUnitUnlocked(state, unitId)) {
         return state
+      }
+
+      const result = getBulkUnitCost(state, unitId, quantity)
+
+      if (result.quantity <= 0 || state.cash < result.totalCost) {
+        return state
+      }
+
+      const nextState = {
+        cash: state.cash - result.totalCost,
+      }
+
+      if (unitId === 'juniorTrader') {
+        return {
+          ...nextState,
+          juniorTraderCount: state.juniorTraderCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'seniorTrader') {
+        return {
+          ...nextState,
+          seniorTraderCount: state.seniorTraderCount + result.quantity,
+        }
       }
 
       return {
-        cash: state.cash - cost,
-        juniorTraderCount: state.juniorTraderCount + 1,
-      }
-    })
-  },
-  buyTradingBot: () => {
-    set((state) => {
-      if (!state.purchasedUpgrades.algorithmicTrading) {
-        return state
-      }
-
-      const cost = getTradingBotCost(state)
-
-      if (state.cash < cost) {
-        return state
-      }
-
-      return {
-        cash: state.cash - cost,
-        tradingBotCount: state.tradingBotCount + 1,
+        ...nextState,
+        tradingBotCount: state.tradingBotCount + result.quantity,
       }
     })
   },
@@ -151,26 +162,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     })
   },
-  promoteJuniorToSenior: () => {
-    set((state) => {
-      const promotionCost = getPromotionCost()
-
-      if (!state.purchasedUpgrades.promotionProgram || state.juniorTraderCount <= 0 || state.cash < promotionCost) {
-        return state
-      }
-
-      return {
-        cash: state.cash - promotionCost,
-        juniorTraderCount: state.juniorTraderCount - 1,
-        seniorTraderCount: state.seniorTraderCount + 1,
-      }
-    })
-  },
   prestigeReset: () => {
     set((state) => ({
       ...createPrestigeResetState(state),
       appInfo: state.appInfo,
-      activeShopTab: 'prestige',
+      activeTab: 'prestige',
       activeModal: null,
       offlineSummary: null,
     }))
@@ -230,7 +226,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return {
         ...savedState,
         appInfo: state.appInfo,
-        activeShopTab: state.activeShopTab,
+        activeTab: state.activeTab,
         activeModal: cashEarned > 0 ? 'offlineEarnings' : null,
         offlineSummary:
           cashEarned > 0
@@ -275,7 +271,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const hydratedState: Partial<GameStore> = {
       ...importedState,
       appInfo: currentState.appInfo,
-      activeShopTab: currentState.activeShopTab,
+      activeTab: currentState.activeTab,
       activeModal,
       offlineSummary:
         cashEarned > 0
@@ -304,8 +300,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAppInfo: (appInfo) => {
     set({ appInfo })
   },
-  setActiveShopTab: (tab) => {
-    set({ activeShopTab: tab })
+  setActiveTab: (tab) => {
+    set({ activeTab: tab })
+  },
+  setUnitBuyMode: (unitId, mode) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        unitBuyModes: {
+          ...state.ui.unitBuyModes,
+          [unitId]: mode,
+        },
+      },
+    }))
   },
   openModal: (modal) => {
     set({ activeModal: modal })
@@ -315,6 +322,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   setOfflineSummary: (summary) => {
     set({ offlineSummary: summary })
+  },
+  clearTradeFeedback: () => {
+    set({ latestTradeFeedback: null })
   },
   resetFoundation: () => {
     set({

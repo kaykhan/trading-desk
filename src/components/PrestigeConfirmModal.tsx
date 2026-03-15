@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useGameStore } from '../store/gameStore'
 import { selectors } from '../store/selectors'
 import { formatCurrency } from '../utils/formatting'
@@ -13,29 +15,24 @@ export function PrestigeConfirmModal({ onClose }: PrestigeConfirmModalProps) {
   const canPrestigeNow = useGameStore(selectors.canPrestige)
 
   return (
-    <section className="modal-card" aria-labelledby="prestige-modal-title">
-      <div className="modal-header">
-        <div>
-          <p className="panel-kicker">Prestige Reset</p>
-          <h2 id="prestige-modal-title">Confirm Reputation reset</h2>
-        </div>
-        <button type="button" className="ghost-button" onClick={onClose}>
-          Close
-        </button>
+    <DialogContent className="max-w-lg border-border/80 bg-card/95 text-foreground">
+      <DialogHeader>
+        <DialogTitle>Confirm prestige reset</DialogTitle>
+        <DialogDescription>
+          This resets cash, units, and standard upgrades, but keeps Reputation and all prestige upgrades.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-3 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Lifetime cash this run: {formatCurrency(lifetimeCashEarned, lifetimeCashEarned < 100 ? 1 : 0)}</div>
+        <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-foreground">Projected Reputation gain: {prestigePreview}</div>
+        {!canPrestigeNow ? <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Prestige stays locked until you have at least one Trading Bot on the desk.</div> : null}
       </div>
-      <div className="modal-copy">
-        <p className="panel-note">This resets cash, units, and standard upgrades, but keeps Reputation and prestige upgrades.</p>
-        <p className="panel-note">Lifetime cash this run: {formatCurrency(lifetimeCashEarned, lifetimeCashEarned < 100 ? 1 : 0)}</p>
-        <p className="panel-note">Projected Reputation gain: {prestigePreview}</p>
-        {!canPrestigeNow ? <p className="panel-note">Prestige stays locked until you have at least one Trading Bot on the desk.</p> : null}
-      </div>
-      <div className="modal-actions">
-        <button type="button" className="ghost-button" onClick={onClose}>
+      <DialogFooter className="border-border/70 bg-muted/20">
+        <Button type="button" variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="card-action"
           disabled={!canPrestigeNow}
           onClick={() => {
             prestigeReset()
@@ -43,8 +40,8 @@ export function PrestigeConfirmModal({ onClose }: PrestigeConfirmModalProps) {
           }}
         >
           Confirm Prestige
-        </button>
-      </div>
-    </section>
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   )
 }

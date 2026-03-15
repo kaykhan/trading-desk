@@ -53,6 +53,7 @@ export function normalizeGameState(value: unknown): GameState | null {
   const purchasedUpgradesSource = isRecord(value.purchasedUpgrades) ? value.purchasedUpgrades : {}
   const purchasedPrestigeUpgradesSource = isRecord(value.purchasedPrestigeUpgrades) ? value.purchasedPrestigeUpgrades : {}
   const settingsSource = isRecord(value.settings) ? value.settings : {}
+  const uiSource = isRecord(value.ui) ? value.ui : {}
 
   const purchasedUpgrades = Object.fromEntries(
     Object.entries(purchasedUpgradesSource).filter(
@@ -83,6 +84,22 @@ export function normalizeGameState(value: unknown): GameState | null {
     settings: {
       autosaveEnabled: getBoolean(settingsSource.autosaveEnabled, initialState.settings.autosaveEnabled),
       shortNumberThreshold: getNumber(settingsSource.shortNumberThreshold, initialState.settings.shortNumberThreshold),
+    },
+    ui: {
+      unitBuyModes: {
+        juniorTrader:
+          isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.juniorTrader === 1 || uiSource.unitBuyModes.juniorTrader === 5 || uiSource.unitBuyModes.juniorTrader === 10 || uiSource.unitBuyModes.juniorTrader === 'max')
+            ? uiSource.unitBuyModes.juniorTrader
+            : initialState.ui.unitBuyModes.juniorTrader,
+        seniorTrader:
+          isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.seniorTrader === 1 || uiSource.unitBuyModes.seniorTrader === 5 || uiSource.unitBuyModes.seniorTrader === 10 || uiSource.unitBuyModes.seniorTrader === 'max')
+            ? uiSource.unitBuyModes.seniorTrader
+            : initialState.ui.unitBuyModes.seniorTrader,
+        tradingBot:
+          isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.tradingBot === 1 || uiSource.unitBuyModes.tradingBot === 5 || uiSource.unitBuyModes.tradingBot === 10 || uiSource.unitBuyModes.tradingBot === 'max')
+            ? uiSource.unitBuyModes.tradingBot
+            : initialState.ui.unitBuyModes.tradingBot,
+      },
     },
   }
 }

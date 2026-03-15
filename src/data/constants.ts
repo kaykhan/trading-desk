@@ -1,7 +1,6 @@
 export const GAME_CONSTANTS = {
   baseClickIncome: 1,
-  promotionCost: 2500,
-  prestigeUnlockLifetimeCash: 1_000_000,
+  prestigeUnlockLifetimeCash: 4_000_000,
   offlineProgressCapSeconds: 8 * 60 * 60,
   autosaveIntervalMs: 15_000,
   shortNumberThreshold: 1_000_000,

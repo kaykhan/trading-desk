@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { useGameStore } from '../store/gameStore'
 
 type SaveImportModalProps = {
@@ -14,34 +17,27 @@ export function SaveImportModal({ onClose }: SaveImportModalProps) {
   const [message, setMessage] = useState('')
 
   return (
-    <section className="modal-card" aria-labelledby="save-modal-title">
-      <div className="modal-header">
-        <div>
-          <p className="panel-kicker">Save System</p>
-          <h2 id="save-modal-title">Import and export scaffold</h2>
-        </div>
-        <button type="button" className="ghost-button" onClick={onClose}>
-          Close
-        </button>
-      </div>
-      <div className="modal-copy">
-        <p className="panel-note">Autosave runs every 15 seconds and also saves on browser unload.</p>
-        <p className="panel-note">Use export for a portable backup string or import to restore a run.</p>
-      </div>
-      <div className="modal-actions modal-actions-start">
-        <button
+    <DialogContent className="max-w-2xl border-border/80 bg-card/95 text-foreground">
+      <DialogHeader>
+        <DialogTitle>Save and import</DialogTitle>
+        <DialogDescription>
+          Autosave runs every 15 seconds and also saves on browser unload. Export gives you a portable backup string.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex flex-wrap gap-2">
+        <Button
           type="button"
-          className="ghost-button"
+          variant="outline"
           onClick={() => {
             saveGame()
             setMessage('Game saved locally.')
           }}
         >
           Save now
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="ghost-button"
+          variant="outline"
           onClick={() => {
             const exportedSave = exportSave()
             setSaveText(exportedSave)
@@ -50,29 +46,33 @@ export function SaveImportModal({ onClose }: SaveImportModalProps) {
           }}
         >
           Export save
-        </button>
+        </Button>
       </div>
-      <label className="modal-field">
-        <span className="panel-kicker">Exported Save</span>
-        <textarea value={saveText} readOnly rows={5} />
+      <label className="grid gap-2 text-sm text-muted-foreground">
+        <span className="uppercase tracking-[0.2em] text-[11px]">Exported Save</span>
+        <Textarea value={saveText} readOnly rows={5} className="font-mono text-xs" />
       </label>
-      <label className="modal-field">
-        <span className="panel-kicker">Import Save</span>
-        <textarea value={importText} onChange={(event) => setImportText(event.target.value)} rows={5} />
+      <label className="grid gap-2 text-sm text-muted-foreground">
+        <span className="uppercase tracking-[0.2em] text-[11px]">Import Save</span>
+        <Textarea value={importText} onChange={(event) => setImportText(event.target.value)} rows={5} className="font-mono text-xs" />
       </label>
-      <div className="modal-actions">
-        <span className="modal-message">{message}</span>
-        <button
+      <DialogFooter className="border-border/70 bg-muted/20 sm:items-center sm:justify-between">
+        <span className="text-sm text-muted-foreground">{message}</span>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          <Button
           type="button"
-          className="card-action"
           onClick={() => {
             const success = importSave(importText)
             setMessage(success ? 'Save imported successfully.' : 'Import failed. Check the save string.')
           }}
         >
           Import save
-        </button>
-      </div>
-    </section>
+          </Button>
+        </div>
+      </DialogFooter>
+    </DialogContent>
   )
 }

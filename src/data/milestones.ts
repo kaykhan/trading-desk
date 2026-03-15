@@ -17,13 +17,13 @@ export const MILESTONES: MilestoneDefinition[] = [
     id: 'firm-growth',
     label: 'Phase 3: Senior Trader Firm Growth',
     rangeLabel: '30-60 min',
-    objective: 'Unlock promotions and turn human capital into the core engine of the first run.',
+    objective: 'Unlock Senior Recruitment and turn higher-tier human capital into the core engine of the first run.',
   },
   {
     id: 'bot-era',
     label: 'Phase 4: Trading Bot Era',
     rangeLabel: '60-85 min',
-    objective: 'Open algorithmic trading and push into high-status late-run automation.',
+    objective: 'Build a real Senior desk, then open algorithmic trading and push into late-run automation.',
   },
   {
     id: 'prestige-decision',
