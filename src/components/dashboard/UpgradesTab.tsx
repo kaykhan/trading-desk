@@ -1,4 +1,4 @@
-import { ALGORITHMIC_UPGRADES, INFRASTRUCTURE_UPGRADES, SCIENTIST_UPGRADES, TRADING_DESK_UPGRADES } from '@/data/tabContent'
+import { ALGORITHMIC_UPGRADES, INFRASTRUCTURE_UPGRADES, POLITICS_UPGRADES, SCIENTIST_UPGRADES, TRADING_DESK_UPGRADES } from '@/data/tabContent'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import { formatCurrency } from '@/utils/formatting'
@@ -15,12 +15,17 @@ const UPGRADE_SECTIONS = [
   },
   {
     title: 'Scientist Upgrades',
-    description: 'Improve Research Point and Influence output from the science team.',
+    description: 'Improve Research Point output from the science team.',
     upgrades: SCIENTIST_UPGRADES,
   },
   {
+    title: 'Political Upgrades',
+    description: 'Improve slow institutional influence generation and lobbying support.',
+    upgrades: POLITICS_UPGRADES,
+  },
+  {
     title: 'Algorithmic Trading Upgrades',
-    description: 'Increase bot and trading server efficiency once the machine stack is online.',
+    description: 'Increase rule-based, ML, and AI bot efficiency once the machine stack is online.',
     upgrades: ALGORITHMIC_UPGRADES,
   },
   {
@@ -39,6 +44,22 @@ function getUpgradeLockedReason(upgradeId: string, state: ReturnType<typeof useG
       return `Requires at least 1 Junior Trader (${state.juniorTraderCount}/1).`
     case 'executiveTraining':
       return `Requires at least 1 Senior Trader (${state.seniorTraderCount}/1).`
+    case 'propDeskMandates':
+      return state.purchasedResearchTech.propDeskOperations
+        ? `Requires at least 1 Prop Desk (${state.propDeskCount}/1).`
+        : 'Requires Prop Desk Operations research first.'
+    case 'institutionalRelationships':
+      return state.purchasedResearchTech.institutionalDesks
+        ? `Requires at least 1 Institutional Desk (${state.institutionalDeskCount}/1).`
+        : 'Requires Institutional Desks research first.'
+    case 'fundOfFundsNetwork':
+      return state.purchasedResearchTech.hedgeFundStrategies
+        ? `Requires at least 1 Hedge Fund (${state.hedgeFundCount}/1).`
+        : 'Requires Hedge Fund Strategies research first.'
+    case 'globalDistribution':
+      return state.purchasedResearchTech.investmentFirms
+        ? `Requires at least 1 Investment Firm (${state.investmentFirmCount}/1).`
+        : 'Requires Investment Firms research first.'
     case 'labAutomation':
       return `Requires at least 1 Junior Scientist (${state.juniorResearchScientistCount}/1).`
     case 'researchGrants':
@@ -46,18 +67,39 @@ function getUpgradeLockedReason(upgradeId: string, state: ReturnType<typeof useG
         ? `Requires at least 1 Senior Scientist (${state.seniorResearchScientistCount}/1).`
         : 'Requires Senior Scientists research first.'
     case 'policyAnalysisDesk':
+    case 'donorRoundtables':
       return state.purchasedResearchTech.regulatoryAffairs
-        ? `Requires at least 1 Senior Scientist (${state.seniorResearchScientistCount}/1).`
+        ? `Requires at least 1 Senator (${state.juniorPoliticianCount}/1).`
         : 'Requires Regulatory Affairs research first.'
+    case 'systematicExecution':
     case 'botTelemetry':
     case 'lowLatencyServers':
       return state.purchasedResearchTech.algorithmicTrading
-        ? `Requires at least 1 Trading Bot (${state.tradingBotCount}/1).`
+        ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
         : 'Requires Algorithmic Trading research first.'
     case 'executionCluster':
-      return state.purchasedResearchTech.tradingServers
-        ? `Requires at least 1 Trading Server (${state.tradingServerCount}/1).`
-        : 'Requires Trading Servers research first.'
+    case 'modelOpsPipeline':
+      return state.purchasedResearchTech.dataCenterSystems
+        ? `Requires at least 1 ML Trading Bot (${state.mlTradingBotCount}/1).`
+        : 'Requires Data Centre Systems research first.'
+    case 'aiRiskStack':
+      return state.purchasedResearchTech.aiTradingSystems
+        ? `Requires at least 1 AI Trading Bot (${state.aiTradingBotCount}/1).`
+        : 'Requires AI Trading Systems research first.'
+    case 'rackStacking':
+      return `Requires at least 1 Server Rack (${state.serverRackCount}/1).`
+    case 'roomScaleout':
+      return state.purchasedResearchTech.powerSystemsEngineering
+        ? `Requires at least 1 Server Room (${state.serverRoomCount}/1).`
+        : 'Requires Power Systems Engineering research first.'
+    case 'dataCenterFabric':
+      return state.purchasedResearchTech.dataCenterSystems
+        ? `Requires at least 1 Data Centre (${state.dataCenterCount}/1).`
+        : 'Requires Data Centre Systems research first.'
+    case 'cloudBurstContracts':
+      return state.purchasedResearchTech.aiTradingSystems
+        ? `Requires at least 1 Cloud Infrastructure (${state.cloudComputeCount}/1).`
+        : 'Requires AI Trading Systems research first.'
     case 'coolingSystems':
       return state.purchasedResearchTech.powerSystemsEngineering
         ? 'Requires owned infrastructure first.'

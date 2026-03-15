@@ -9,15 +9,21 @@ import { SummaryTile } from './DashboardPrimitives'
 export function StatsTab() {
   const appInfo = useGameStore((state) => state.appInfo)
   const lifetimeCashEarned = useGameStore((state) => state.lifetimeCashEarned)
+  const internCount = useGameStore((state) => state.internCount)
   const juniorTraderCount = useGameStore((state) => state.juniorTraderCount)
   const seniorTraderCount = useGameStore((state) => state.seniorTraderCount)
-  const tradingServerCount = useGameStore((state) => state.tradingServerCount)
-  const tradingBotCount = useGameStore((state) => state.tradingBotCount)
+  const ruleBasedBotCount = useGameStore((state) => state.ruleBasedBotCount)
+  const mlTradingBotCount = useGameStore((state) => state.mlTradingBotCount)
+  const aiTradingBotCount = useGameStore((state) => state.aiTradingBotCount)
+  const internResearchScientistCount = useGameStore((state) => state.internResearchScientistCount)
   const juniorResearchScientistCount = useGameStore((state) => state.juniorResearchScientistCount)
   const seniorResearchScientistCount = useGameStore((state) => state.seniorResearchScientistCount)
+  const internIncome = useGameStore(selectors.internIncome)
   const juniorIncome = useGameStore(selectors.juniorIncome)
   const seniorIncome = useGameStore(selectors.seniorIncome)
-  const botIncome = useGameStore(selectors.botIncome)
+  const ruleBasedBotIncome = useGameStore(selectors.ruleBasedBotIncome)
+  const mlTradingBotIncome = useGameStore(selectors.mlTradingBotIncome)
+  const aiTradingBotIncome = useGameStore(selectors.aiTradingBotIncome)
   const globalMultiplier = useGameStore(selectors.globalMultiplier)
   const prestigeMultiplier = useGameStore(selectors.prestigeMultiplier)
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
@@ -35,21 +41,24 @@ export function StatsTab() {
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
           <SummaryTile label="Lifetime Cash" value={formatCurrency(lifetimeCashEarned, lifetimeCashEarned < 100 ? 1 : 0)} icon={TrendingUp} />
           <SummaryTile label="Build" value={appInfo ? appInfo.version : 'Preview'} icon={Landmark} />
-          <SummaryTile label="Juniors" value={juniorTraderCount.toString()} icon={Users} />
-          <SummaryTile label="Bots / Servers" value={`${tradingBotCount} / ${tradingServerCount}`} icon={Cpu} />
+          <SummaryTile label="Interns" value={internCount.toString()} icon={Users} />
+          <SummaryTile label="Algo Bots" value={`${ruleBasedBotCount} / ${mlTradingBotCount} / ${aiTradingBotCount}`} icon={Cpu} />
         </div>
         <div className="rounded-xl border border-border/80 bg-background/65 p-2.5 text-[11px]">
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">Junior desk</span><span className="font-mono text-primary">{formatRate(juniorIncome)}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">Intern desk</span><span className="font-mono text-primary">{formatRate(internIncome)}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Junior desk</span><span className="font-mono text-primary">{formatRate(juniorIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Senior desk</span><span className="font-mono text-primary">{formatRate(seniorIncome)}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Traders</span><span className="font-mono text-primary">{juniorTraderCount} / {seniorTraderCount}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Trading bots</span><span className="font-mono text-primary">{formatRate(botIncome)}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Trading servers</span><span className="font-mono text-primary">{tradingServerCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Traders</span><span className="font-mono text-primary">{internCount} / {juniorTraderCount} / {seniorTraderCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Rule-based bots</span><span className="font-mono text-primary">{formatRate(ruleBasedBotIncome)}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">ML trading bots</span><span className="font-mono text-primary">{formatRate(mlTradingBotIncome)}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">AI trading bots</span><span className="font-mono text-primary">{formatRate(aiTradingBotIncome)}</span></div>
           <Separator className="my-3 bg-border/60" />
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">Junior scientists</span><span className="font-mono text-primary">{juniorResearchScientistCount}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">Intern scientists</span><span className="font-mono text-primary">{internResearchScientistCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Junior scientists</span><span className="font-mono text-primary">{juniorResearchScientistCount}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Senior scientists</span><span className="font-mono text-primary">{seniorResearchScientistCount}</span></div>
           <Separator className="my-3 bg-border/60" />
           <div className="flex items-center justify-between"><span className="text-muted-foreground">Research production</span><span className="font-mono text-primary">{formatPlainRate(researchPointsPerSecond)}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Influence</span><span className="font-mono text-primary">{influence.toFixed(influence < 100 ? 1 : 0)}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Influence</span><span className="font-mono text-primary">{influence.toFixed(influence < 100 ? 2 : 1)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Influence production</span><span className="font-mono text-primary">{formatPlainRate(influencePerSecond)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Policies passed</span><span className="font-mono text-primary">{purchasedPolicyCount}</span></div>
           <Separator className="my-3 bg-border/60" />

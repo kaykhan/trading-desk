@@ -1,6 +1,7 @@
 import { GAME_CONSTANTS } from '../data/constants'
 import { initialState } from '../data/initialState'
-import type { GameState } from '../types/game'
+import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
+import type { GameState, PrestigeUpgradeId } from '../types/game'
 
 export function getPrestigeGain(lifetimeCashEarned: number): number {
   if (lifetimeCashEarned < GAME_CONSTANTS.prestigeUnlockLifetimeCash) {
@@ -48,10 +49,10 @@ export function getPowerCapacityPrestigeMultiplier(state: GameState): number {
 }
 
 export function canPrestige(state: GameState): boolean {
-  return getPrestigeGain(state.lifetimeCashEarned) > 0 && state.tradingBotCount > 0
+  return getPrestigeGain(state.lifetimeCashEarned) > 0 && state.ruleBasedBotCount > 0
 }
 
-export function createPrestigeResetState(state: GameState): GameState {
+export function createPrestigeResetState(state: GameState, plannedPurchases?: Partial<Record<PrestigeUpgradeId, number>>): GameState {
   const gainedReputation = getPrestigeGain(state.lifetimeCashEarned)
 
   if (gainedReputation <= 0) {
@@ -61,13 +62,48 @@ export function createPrestigeResetState(state: GameState): GameState {
   const nextReputation = state.reputation + gainedReputation
   const seedCapitalBonus = getSeedCapitalBonus(state)
 
-  return {
+  const nextState: GameState = {
     ...initialState,
     cash: seedCapitalBonus,
+    discoveredLobbying: state.discoveredLobbying,
     reputation: nextReputation,
     reputationSpent: state.reputationSpent,
     prestigeCount: state.prestigeCount + 1,
     purchasedPrestigeUpgrades: { ...state.purchasedPrestigeUpgrades },
     lastSaveTimestamp: Date.now(),
   }
+
+  if (!plannedPurchases) {
+    return nextState
+  }
+
+  for (const upgradeId of Object.keys(plannedPurchases) as PrestigeUpgradeId[]) {
+    const plannedRanks = plannedPurchases[upgradeId] ?? 0
+
+    if (plannedRanks <= 0) {
+      continue
+    }
+
+    const definition = getPrestigeUpgradeDefinition(upgradeId)
+    const currentRank = nextState.purchasedPrestigeUpgrades[upgradeId] ?? 0
+
+    if (!definition) {
+      continue
+    }
+
+    let nextRank = currentRank
+    for (let i = 0; i < plannedRanks; i += 1) {
+      if (nextRank >= definition.maxRank || nextState.reputation < definition.baseCost) {
+        break
+      }
+
+      nextState.reputation -= definition.baseCost
+      nextState.reputationSpent += definition.baseCost
+      nextRank += 1
+    }
+
+    nextState.purchasedPrestigeUpgrades[upgradeId] = nextRank
+  }
+
+  return nextState
 }

@@ -406,7 +406,7 @@ Definition of done:
 - [x] Decide how much Research Points should appear in the top metrics versus living inside the Research tab.
 - [x] Add conditional top metrics for Power and Influence when those systems become relevant.
 - [x] Update right-side tabs and visibility rules so Upgrades, Research, Prestige, Stats, Settings, and future Lobbying fit the new system bundle cleanly.
-- [x] Ensure disabled/future desk categories like Materials and Crypto still fit the long-term progression plan.
+- [x] Ensure disabled/future desk categories like Commodities and Crypto still fit the long-term progression plan.
 
 Definition of done:
 - The UI exposes the new systems without breaking the now-clear operations-first desk flow.
@@ -420,3 +420,128 @@ Definition of done:
 
 Definition of done:
 - Revision 2 systems are migrated safely, paced coherently, and verified by both automated checks and balance testing.
+
+## Revision 3
+
+Note:
+- `revision3.md` is implemented as a dedicated `Optimizations` system.
+- Keep `Upgrades` as one-time purchases only.
+- Put repeatable scaling purchases in a separate `Optimizations` tab with cash-based and RP-based groups.
+
+### 41. Repeatable optimization data model and definitions
+- [x] Add repeatable optimization types to `src/types/game.ts`, including currency, target, definition, and rank storage.
+- [x] Add `repeatableUpgradeRanks` to run-state and any related tab typing needed for `optimizations`.
+- [x] Create `src/data/repeatableUpgrades.ts` as the source of truth for initial optimization definitions.
+- [x] Encode repeatable optimizations for all purchasable units and infrastructure, including traders, scientists, bots, trading servers, server rooms, and data centres.
+- [x] Add shared helpers for rank-based cost and effect formulas so the system stays easy to tune.
+
+Definition of done:
+- Repeatable optimizations have a clear typed model, centralized definitions, and shared scaling helpers.
+
+### 42. Optimization purchase flow and selectors
+- [x] Add a general `buyRepeatableUpgrade(id)` store action in `src/store/gameStore.ts`.
+- [x] Route purchases by currency so cash optimizations spend `cash` and research optimizations spend `researchPoints`.
+- [x] Enforce affordability, unlock rules, and rank increments in store logic instead of relying on UI-only checks.
+- [x] Add selectors/helpers for current rank, next cost, affordability, and derived optimization multipliers.
+- [x] Keep the first implementation single-rank purchase only unless later balancing shows a need for bulk repeatable buys.
+
+Definition of done:
+- Repeatable optimizations can be purchased safely through one shared action and queried cleanly from selectors.
+
+### 43. Economy integration for optimization effects
+- [x] Patch `src/utils/economy.ts` so Junior Trader income includes both cash and research optimization bonuses.
+- [x] Patch `src/utils/economy.ts` so Senior Trader income includes both cash and research optimization bonuses.
+- [x] Patch `src/utils/economy.ts` so Trading Bot income includes both cash and research optimization bonuses.
+- [x] Patch scientist output, Trading Server output, and infrastructure capacity so every purchasable unit category benefits from the optimization system.
+- [x] Patch machine power usage so optimization reductions interact cleanly with the existing power-capacity model.
+
+Definition of done:
+- Optimization ranks affect production and bot power usage correctly without replacing unit purchases or new tier unlocks.
+
+### 44. Dedicated Optimizations tab UI
+- [x] Add `Optimizations` to the right-side management tabs without repurposing the existing one-time `Upgrades` tab.
+- [x] Create `src/components/dashboard/OptimizationsTab.tsx` for the repeatable optimization interface.
+- [x] Group the UI into at least cash-based operational optimizations and RP-based research optimizations.
+- [x] Show name, current rank, per-rank effect, next cost, currency, affordability, and lock reason for each optimization.
+- [x] Keep the presentation dense, terminal-like, and progression-readable, with future optimizations visible but clearly gated.
+
+Definition of done:
+- The player can understand and buy repeatable optimizations from one dedicated tab while `Upgrades` remains strictly one-time.
+
+### 45. Persistence, reset behavior, and migration
+- [x] Persist `repeatableUpgradeRanks` in the save model.
+- [x] Add migration defaults so older saves load with an empty repeatable rank map.
+- [x] Verify prestige/reset behavior treats repeatable optimizations as run-based progression unless a permanent rule is added later.
+- [x] Update any import/export typing or validation paths that assume the pre-Revision 3 state shape.
+
+Definition of done:
+- Older saves remain compatible and repeatable optimization data survives save/load correctly while respecting run reset rules.
+
+### 46. Balance pass and Revision 3 verification
+- [x] Extend `scripts/balance-check.ts` to account for repeatable optimization purchases and their scaling effects.
+- [x] Simulate whether cash repeatables support unit investment instead of overshadowing it too early.
+- [x] Simulate whether RP repeatables give Research a meaningful sink without crowding out core unlock techs.
+- [x] Tune optimization values so the wider unit and infrastructure system remains relevant across late runs.
+- [x] Run final verification with `npm run typecheck`, `npm run lint`, `npm run build`, and `npm run balance:check`.
+
+Definition of done:
+- Revision 3 optimizations are paced coherently, validated by tooling, and ready for iterative tuning instead of structural rework.
+
+## Revision 4
+
+Note:
+- Expand the human trading ladder beyond `Junior Trader` and `Senior Trader`.
+- New progression target:
+  - `Junior Trader` = entry human unit
+  - `Senior Trader` = stronger human unit
+  - `Prop Desk` = jump from person to team
+  - `Institutional Desk` = larger, more serious trading operation
+  - `Hedge Fund` = major institutional capital player
+  - `Investment Firm` = broad, powerful top-tier organization
+- These new tiers should unlock through research, not one-time upgrades.
+- This revision must include a balance-check update and tuning pass.
+
+### 47. Expanded trading ladder data model
+- [ ] Add new unit ids and state counts for `Prop Desk`, `Institutional Desk`, `Hedge Fund`, and `Investment Firm` in `src/types/game.ts`.
+- [ ] Extend `src/data/initialState.ts` and UI buy-mode defaults for the new human trading tiers.
+- [ ] Add the new unit definitions in `src/data/units.ts`, with each tier clearly representing a larger operational scale than the last.
+- [ ] Revisit naming and descriptions so the player understands the shift from individual hires to team/organization entities.
+
+Definition of done:
+- The game state and unit data support a six-step human trading ladder from `Junior Trader` to `Investment Firm`.
+
+### 48. Research unlock chain for higher-order trading organizations
+- [ ] Add new research tech ids and definitions for unlocking the new human trading tiers.
+- [ ] Gate `Prop Desk`, `Institutional Desk`, `Hedge Fund`, and `Investment Firm` behind research milestones rather than one-time upgrades.
+- [ ] Design a dependency chain that reads cleanly in the Research graph and communicates escalating organizational scale.
+- [ ] Update research node labels, descriptions, lock reasons, and map connections in `src/components/dashboard/ResearchTab.tsx`.
+
+Definition of done:
+- Each new human trading tier has an intentional research-based unlock path that is readable in both the graph and selected-node details.
+
+### 49. Economy integration for the new human ladder
+- [ ] Add income formulas and selectors for `Prop Desk`, `Institutional Desk`, `Hedge Fund`, and `Investment Firm`.
+- [ ] Ensure new human tiers participate in global profit multipliers, prestige scaling, and any relevant optimizations.
+- [ ] Re-evaluate whether the existing `Senior Recruitment` upgrade should remain specific to `Senior Trader` or be reframed around the early human staffing phase only.
+- [ ] Keep the progression meaningful so each higher tier is a noticeable jump rather than a minor stat variant.
+
+Definition of done:
+- The expanded human ladder contributes correctly to the core economy and feels like real progression between tiers.
+
+### 50. Desk UI and optimization coverage for new trading tiers
+- [ ] Update `src/components/dashboard/DeskTab.tsx` so the Traders section includes all six human progression tiers cleanly.
+- [ ] Keep the card presentation dense and readable as the human trading section grows.
+- [ ] Add optimization coverage for the new human tiers in `src/data/repeatableUpgrades.ts` and `src/utils/economy.ts`.
+- [ ] Decide whether some human-tier optimizations should be shared by stage (desk/team/institution) or remain one optimization line per tier.
+
+Definition of done:
+- The UI exposes the full human trading ladder and the optimization system understands the new tiers.
+
+### 51. Balance simulation and pacing pass for Revision 4
+- [ ] Update `scripts/balance-check.ts` so it can purchase and report the new human trading tiers and their unlock timings.
+- [ ] Add milestone reporting for first `Prop Desk`, first `Institutional Desk`, first `Hedge Fund`, and first `Investment Firm`.
+- [ ] Tune the new research costs, unit costs, and income outputs so the player gets more progression opportunities without collapsing the pacing curve.
+- [ ] Re-run `npm run typecheck`, `npm run lint`, `npm run build`, and `npm run balance:check` after the ladder is implemented.
+
+Definition of done:
+- The expanded human trading ladder is integrated into the simulator and tuned with clear progression milestones instead of guesswork.

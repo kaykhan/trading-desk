@@ -41,6 +41,14 @@ export const PRESTIGE_UPGRADES: PrestigeUpgradeDefinition[] = [
     maxRank: 6,
     description: 'Increase machine output and power capacity by 5 percent per rank.',
   },
+  {
+    id: 'tradeMultiplier',
+    name: 'Trade Multiplier',
+    category: 'prestige',
+    baseCost: 6,
+    maxRank: 1,
+    description: 'Gain a permanent 25 percent increase to all profits.',
+  },
 ]
 
 export function getPrestigeUpgradeDefinition(upgradeId: PrestigeUpgradeDefinition['id']): PrestigeUpgradeDefinition | undefined {

@@ -12,10 +12,12 @@ export const TRADING_DESK_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group 
 
 export const SCIENTIST_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'scientists')
 
+export const POLITICS_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'politics')
+
 export const ALGORITHMIC_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'algorithmic')
 
 export const INFRASTRUCTURE_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'infrastructure')
 
-export const OPERATIONS_UNITS = [UNITS.juniorTrader, UNITS.seniorTrader, UNITS.tradingBot]
+export const OPERATIONS_UNITS = [UNITS.intern, UNITS.juniorTrader, UNITS.seniorTrader, UNITS.ruleBasedBot]
 
 export const PRESTIGE_TAB_UPGRADES = PRESTIGE_UPGRADES

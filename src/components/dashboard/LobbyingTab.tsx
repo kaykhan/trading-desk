@@ -45,7 +45,7 @@ export function LobbyingTab() {
       </CardHeader>
       <CardContent className="flex h-full min-h-0 flex-col gap-2">
         <div className="grid gap-2 md:grid-cols-3">
-          <SummaryTile label="Influence" value={formatNumber(influence, { decimalsBelowThreshold: influence < 100 ? 1 : 0 })} icon={Landmark} />
+          <SummaryTile label="Influence" value={formatNumber(influence, { decimalsBelowThreshold: influence < 100 ? 2 : 1 })} icon={Landmark} />
           <SummaryTile label="Influence / Sec" value={formatPlainRate(influencePerSecond)} icon={TrendingUp} />
           <SummaryTile label="Policies Passed" value={`${purchasedPolicyCount}/${LOBBYING_POLICIES.length}`} icon={Vote} />
         </div>

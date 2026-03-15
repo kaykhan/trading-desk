@@ -7,17 +7,21 @@ import { formatCurrency, formatMultiplier, formatPlainRate } from '@/utils/forma
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ActionRow, SummaryTile } from './DashboardPrimitives'
+import { PurchaseCard, SummaryTile } from './DashboardPrimitives'
 
 export function PrestigeTab() {
   const gameState = useGameStore((state) => state)
   const openModal = useGameStore((state) => state.openModal)
-  const buyPrestigeUpgrade = useGameStore((state) => state.buyPrestigeUpgrade)
+  const adjustPrestigePurchasePlan = useGameStore((state) => state.adjustPrestigePurchasePlan)
+  const clearPrestigePurchasePlan = useGameStore((state) => state.clearPrestigePurchasePlan)
   const prestigePreview = useGameStore(selectors.prestigeGainPreview)
   const prestigeMultiplier = useGameStore(selectors.prestigeMultiplier)
   const canPrestigeNow = useGameStore(selectors.canPrestige)
   const seedCapitalBonus = useGameStore(selectors.seedCapitalBonus)
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
+  const plannedPrestigeCost = useGameStore(selectors.plannedPrestigeCost)
+  const plannedPrestigeAvailable = useGameStore(selectors.plannedPrestigeAvailable)
+  const plannedPrestigeRemaining = useGameStore(selectors.plannedPrestigeRemaining)
 
   return (
     <Card className="terminal-panel h-full rounded-2xl border-border/80 bg-card/92">
@@ -31,6 +35,11 @@ export function PrestigeTab() {
           <SummaryTile label="Permanent Multiplier" value={formatMultiplier(prestigeMultiplier)} icon={TrendingUp} />
           <SummaryTile label="Next Seed Cash" value={formatCurrency(seedCapitalBonus)} icon={TrendingUp} />
         </div>
+        <div className="grid gap-2 md:grid-cols-3">
+          <SummaryTile label="Rep After Reset" value={plannedPrestigeAvailable.toString()} icon={BarChart3} />
+          <SummaryTile label="Planned Spend" value={plannedPrestigeCost.toString()} icon={TrendingUp} />
+          <SummaryTile label="Unallocated Rep" value={plannedPrestigeRemaining.toString()} icon={TrendingUp} />
+        </div>
         <div className="rounded-xl border border-primary/30 bg-primary/10 p-2.5">
           <p className="text-[11px] leading-4 text-muted-foreground">
             {canPrestigeNow
@@ -38,9 +47,14 @@ export function PrestigeTab() {
               : `Prestige is still locked. Reach the bot phase and build enough lifetime cash to earn your first Reputation.`}
           </p>
           <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-primary">Current research pace: {formatPlainRate(researchPointsPerSecond)}</p>
+          <div className="mt-2 flex gap-2">
+            <Button className="rounded-lg uppercase tracking-[0.1em]" size="sm" variant="outline" onClick={clearPrestigePurchasePlan}>
+              Clear planned purchases
+            </Button>
           <Button className="mt-2 rounded-lg uppercase tracking-[0.1em]" size="sm" disabled={!canPrestigeNow} onClick={() => openModal('prestigeConfirm')}>
             {canPrestigeNow ? 'Open prestige confirmation' : 'Prestige locked'}
           </Button>
+          </div>
         </div>
         <ScrollArea className="h-full min-h-0 pr-2">
           <div className="space-y-2">
@@ -48,20 +62,35 @@ export function PrestigeTab() {
               const definition = getPrestigeUpgradeDefinition(upgrade.id)
               const currentRank = selectors.prestigeUpgradeRank(upgrade.id)(gameState)
               const nextCost = definition?.baseCost ?? upgrade.baseCost
-              const shortfall = Math.max(0, nextCost - gameState.reputation)
+              const plannedRank = selectors.plannedPrestigeRank(upgrade.id)(gameState)
+              const canAddPlan = selectors.canPlanPrestigeUpgrade(upgrade.id, 1)(gameState)
+              const canRemovePlan = selectors.canPlanPrestigeUpgrade(upgrade.id, -1)(gameState)
 
               return (
-                <ActionRow
+                <PurchaseCard
                   key={upgrade.id}
                   title={upgrade.name}
                   description={upgrade.description}
-                  cost={`Cost ${nextCost} reputation`}
-                  status={currentRank >= upgrade.maxRank ? `Rank ${currentRank}/${upgrade.maxRank}` : shortfall > 0 ? 'Need rep' : 'Ready'}
-                  statusTone={currentRank >= upgrade.maxRank ? 'done' : shortfall > 0 ? 'default' : 'ready'}
-                  actionLabel={currentRank >= upgrade.maxRank ? 'Maxed' : 'Buy rank'}
-                  disabled={!selectors.canAffordPrestigeUpgrade(upgrade.id)(gameState)}
-                  disabledReason={currentRank < upgrade.maxRank && shortfall > 0 ? `Need ${shortfall} more Reputation.` : undefined}
-                  onClick={() => buyPrestigeUpgrade(upgrade.id)}
+                  cost={`Next rank costs ${nextCost} reputation`}
+                  status={currentRank >= upgrade.maxRank ? `Rank ${currentRank}/${upgrade.maxRank}` : plannedRank > 0 ? `Queued x${plannedRank}` : `Rank ${currentRank}/${upgrade.maxRank}`}
+                  statusTone={currentRank >= upgrade.maxRank ? 'done' : plannedRank > 0 ? 'ready' : 'default'}
+                  actionLabel={currentRank >= upgrade.maxRank ? 'Maxed' : '+ Plan'}
+                  disabled={!canAddPlan}
+                  disabledReason={!canAddPlan && currentRank < upgrade.maxRank ? `Need ${nextCost} free reputation in the reset plan.` : undefined}
+                  onClick={() => adjustPrestigePurchasePlan(upgrade.id, 1)}
+                  footer={currentRank >= upgrade.maxRank ? undefined : (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Planned ranks: {plannedRank}</span>
+                      <div className="flex gap-1.5">
+                        <Button size="xs" variant="outline" className="rounded-md uppercase tracking-[0.12em]" disabled={!canRemovePlan} onClick={() => adjustPrestigePurchasePlan(upgrade.id, -1)}>
+                          -1
+                        </Button>
+                        <Button size="xs" variant="default" className="rounded-md uppercase tracking-[0.12em]" disabled={!canAddPlan} onClick={() => adjustPrestigePurchasePlan(upgrade.id, 1)}>
+                          +1
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 />
               )
             })}

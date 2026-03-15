@@ -14,45 +14,72 @@ export function OperationsTab() {
   const gameState = useGameStore((state) => state)
   const buyUnit = useGameStore((state) => state.buyUnit)
   const buyUpgrade = useGameStore((state) => state.buyUpgrade)
+  const nextInternCost = useGameStore(selectors.nextInternCost)
   const nextJuniorTraderCost = useGameStore(selectors.nextJuniorTraderCost)
   const nextSeniorTraderCost = useGameStore(selectors.nextSeniorTraderCost)
-  const nextTradingBotCost = useGameStore(selectors.nextTradingBotCost)
+  const nextRuleBasedBotCost = useGameStore(selectors.nextRuleBasedBotCost)
+  const internBulkQuantity = useGameStore(selectors.bulkUnitQuantity('intern'))
+  const internBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('intern'))
   const juniorBulkQuantity = useGameStore(selectors.bulkUnitQuantity('juniorTrader'))
   const juniorBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('juniorTrader'))
   const seniorBulkQuantity = useGameStore(selectors.bulkUnitQuantity('seniorTrader'))
   const seniorBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('seniorTrader'))
-  const botBulkQuantity = useGameStore(selectors.bulkUnitQuantity('tradingBot'))
-  const botBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('tradingBot'))
+  const botBulkQuantity = useGameStore(selectors.bulkUnitQuantity('ruleBasedBot'))
+  const botBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('ruleBasedBot'))
+  const internBuyMode = useGameStore(selectors.unitBuyMode('intern'))
   const juniorBuyMode = useGameStore(selectors.unitBuyMode('juniorTrader'))
   const seniorBuyMode = useGameStore(selectors.unitBuyMode('seniorTrader'))
-  const botBuyMode = useGameStore(selectors.unitBuyMode('tradingBot'))
+  const botBuyMode = useGameStore(selectors.unitBuyMode('ruleBasedBot'))
+  const internUnlocked = useGameStore(selectors.isUnitUnlocked('intern'))
   const juniorUnlocked = useGameStore(selectors.isUnitUnlocked('juniorTrader'))
   const seniorUnlocked = useGameStore(selectors.isUnitUnlocked('seniorTrader'))
-  const botUnlocked = useGameStore(selectors.isUnitUnlocked('tradingBot'))
+  const botUnlocked = useGameStore(selectors.isUnitUnlocked('ruleBasedBot'))
 
-  const nextOperationsGoal = !juniorUnlocked
-    ? 'Research Junior Hiring Program first.'
-    : !seniorUnlocked
-      ? 'Scale Juniors and unlock Senior Recruitment.'
+  const nextOperationsGoal = !internUnlocked
+    ? 'Research Recruiter first.'
+    : !juniorUnlocked
+      ? 'Scale Interns and unlock Junior Trader Program.'
+      : !seniorUnlocked
+        ? 'Scale Juniors and unlock Senior Recruitment.'
       : !botUnlocked
         ? 'Grow Seniors until Algorithmic Trading becomes available.'
         : 'Scale bots with bulk buying and infrastructure upgrades.'
 
-  const currentLane = !juniorUnlocked
+  const currentLane = !internUnlocked
     ? 'Desk not started'
-    : !seniorUnlocked
-      ? 'Junior expansion'
+    : !juniorUnlocked
+      ? 'Intern ramp'
+      : !seniorUnlocked
+        ? 'Junior expansion'
       : !botUnlocked
         ? 'Senior growth'
         : 'Automation scaling'
 
   const unitUnlockProgress = {
-    juniorTrader: 'Unlock with Junior Hiring Program in Research.',
+    intern: 'Unlock with Recruiter in Research.',
+    juniorTrader: `Unlock with Junior Trader Program after reaching 5 Interns (${gameState.internCount}/5).`,
     seniorTrader: `Unlock with Senior Recruitment after reaching 5 Juniors (${gameState.juniorTraderCount}/5).`,
-    tradingBot: `Unlock with Algorithmic Trading after reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,
+    ruleBasedBot: `Unlock with Algorithmic Trading after reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,
   } as const
 
   const getUnitRow = (unitId: (typeof OPERATIONS_UNITS)[number]['id']) => {
+    if (unitId === 'intern') {
+      const affordable = selectors.canAffordIntern(gameState)
+      const shortfall = Math.max(0, nextInternCost - gameState.cash)
+      const unlocked = selectors.isUnitUnlocked('intern')(gameState)
+
+      return {
+        title: `Hire ${UNITS.intern.name}`,
+        description: unlocked ? UNITS.intern.description : `${UNITS.intern.description} ${unitUnlockProgress.intern}`,
+        cost: `${internBuyMode === 'max' ? 'Max' : `x${internBuyMode}`} costs ${formatCurrency(internBulkTotalCost || nextInternCost)}${internBuyMode !== 'max' ? ` | Next ${formatCurrency(nextInternCost)}` : ''}`,
+        status: unlocked ? (affordable ? 'Ready' : 'Need cash') : 'Locked',
+        actionLabel: internBuyMode === 'max' ? `Hire Max (${internBulkQuantity})` : `Hire x${internBuyMode}`,
+        disabled: !selectors.canAffordUnitInCurrentMode('intern')(gameState),
+        disabledReason: !unlocked ? unitUnlockProgress.intern : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash for the next hire.` : undefined,
+        onClick: () => buyUnit('intern', internBuyMode),
+      }
+    }
+
     if (unitId === 'juniorTrader') {
       const affordable = selectors.canAffordJuniorTrader(gameState)
       const shortfall = Math.max(0, nextJuniorTraderCost - gameState.cash)
@@ -87,18 +114,18 @@ export function OperationsTab() {
       }
     }
 
-    const unlocked = selectors.isUnitUnlocked('tradingBot')(gameState)
-    const shortfall = Math.max(0, nextTradingBotCost - gameState.cash)
+    const unlocked = selectors.isUnitUnlocked('ruleBasedBot')(gameState)
+    const shortfall = Math.max(0, nextRuleBasedBotCost - gameState.cash)
 
     return {
-      title: `Buy ${UNITS.tradingBot.name}`,
-      description: unlocked ? UNITS.tradingBot.description : `${UNITS.tradingBot.description} ${unitUnlockProgress.tradingBot}`,
-      cost: `${botBuyMode === 'max' ? 'Max' : `x${botBuyMode}`} costs ${formatCurrency(botBulkTotalCost || nextTradingBotCost)}${botBuyMode !== 'max' ? ` | Next ${formatCurrency(nextTradingBotCost)}` : ''}`,
+      title: `Buy ${UNITS.ruleBasedBot.name}`,
+      description: unlocked ? UNITS.ruleBasedBot.description : `${UNITS.ruleBasedBot.description} ${unitUnlockProgress.ruleBasedBot}`,
+      cost: `${botBuyMode === 'max' ? 'Max' : `x${botBuyMode}`} costs ${formatCurrency(botBulkTotalCost || nextRuleBasedBotCost)}${botBuyMode !== 'max' ? ` | Next ${formatCurrency(nextRuleBasedBotCost)}` : ''}`,
       status: unlocked ? (shortfall > 0 ? 'Need cash' : 'Ready') : 'Locked',
       actionLabel: botBuyMode === 'max' ? `Deploy Max (${botBulkQuantity})` : `Deploy x${botBuyMode}`,
-      disabled: !selectors.canAffordUnitInCurrentMode('tradingBot')(gameState),
-      disabledReason: !unlocked ? unitUnlockProgress.tradingBot : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash for the next bot.` : undefined,
-      onClick: () => buyUnit('tradingBot', botBuyMode),
+      disabled: !selectors.canAffordUnitInCurrentMode('ruleBasedBot')(gameState),
+      disabledReason: !unlocked ? unitUnlockProgress.ruleBasedBot : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash for the next bot.` : undefined,
+      onClick: () => buyUnit('ruleBasedBot', botBuyMode),
     }
   }
 
@@ -109,15 +136,16 @@ export function OperationsTab() {
         <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Deployment and scaling layer</CardDescription>
         <CardAction>
           <Badge variant="outline" className="rounded-md border-border/80 bg-background/70 text-[10px] uppercase tracking-[0.18em] text-primary">
-            {gameState.juniorTraderCount} juniors / {gameState.seniorTraderCount} seniors / {gameState.tradingBotCount} bots
+            {gameState.internCount} interns / {gameState.juniorTraderCount} juniors / {gameState.seniorTraderCount} seniors / {gameState.ruleBasedBotCount} bots
           </Badge>
         </CardAction>
       </CardHeader>
       <CardContent className="flex h-full min-h-0 flex-col gap-2">
-        <div className="grid gap-2 md:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-4">
+          <SummaryTile label="Interns" value={gameState.internCount.toString()} icon={Users} />
           <SummaryTile label="Juniors" value={gameState.juniorTraderCount.toString()} icon={Users} />
           <SummaryTile label="Seniors" value={gameState.seniorTraderCount.toString()} icon={BriefcaseBusiness} />
-          <SummaryTile label="Bots" value={gameState.tradingBotCount.toString()} icon={Cpu} />
+          <SummaryTile label="Bots" value={gameState.ruleBasedBotCount.toString()} icon={Cpu} />
         </div>
         <div className="rounded-xl border border-primary/25 bg-primary/10 p-2 text-xs text-foreground">
           <div className="flex flex-wrap items-center justify-between gap-2">

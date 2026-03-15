@@ -9,6 +9,7 @@ import type { ResearchTechId, UpgradeId } from '@/types/game'
 import { formatCurrency, formatPlainRate } from '@/utils/formatting'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SummaryTile } from './DashboardPrimitives'
 
 type ResearchNodeId = UpgradeId | ResearchTechId
@@ -33,43 +34,63 @@ type ResearchGraphData = {
   isLocked: boolean
   isReady: boolean
   isSelected: boolean
-  onPurchase: () => void
 }
 
 const RESEARCH_TREE: ResearchNodeDefinition[] = [
-  { id: 'juniorHiringProgram', kind: 'upgrade', x: 20, y: 150, title: 'Junior Hiring Program', description: 'Open the first staffing lane for traders and scientists.', costLabel: '$50' },
-  { id: 'tradeMultiplier', kind: 'upgrade', x: 20, y: 340, title: 'Trade Multiplier', description: 'Lift firm-wide profit output by 25 percent.', costLabel: '$1,000' },
-  { id: 'seniorScientists', kind: 'tech', x: 255, y: 45, title: 'Senior Scientists', description: 'Unlock the second research staffing tier.', costLabel: '160 RP' },
-  { id: 'seniorRecruitment', kind: 'upgrade', x: 255, y: 150, title: 'Senior Recruitment', description: 'Open the senior trader lane for the desk.', costLabel: '$10,000' },
-  { id: 'bullMarket', kind: 'upgrade', x: 255, y: 340, title: 'Bull Market', description: 'Push firm-wide profits higher with a larger market bonus.', costLabel: '$8,000' },
-  { id: 'algorithmicTrading', kind: 'tech', x: 500, y: 150, title: 'Algorithmic Trading', description: 'Unlock Trading Bots and the automation era.', costLabel: '100 RP' },
-  { id: 'powerSystemsEngineering', kind: 'tech', x: 745, y: 150, title: 'Power Systems Engineering', description: 'Open infrastructure support for machine systems.', costLabel: '150 RP' },
-  { id: 'tradingServers', kind: 'tech', x: 990, y: 45, title: 'Trading Servers', description: 'Unlock the heavy machine tier after Data Centre research.', costLabel: '450 RP' },
-  { id: 'dataCenterSystems', kind: 'tech', x: 990, y: 150, title: 'Data Centre Systems', description: 'Unlock Data Centres for dense infrastructure scaling.', costLabel: '325 RP' },
-  { id: 'regulatoryAffairs', kind: 'tech', x: 990, y: 255, title: 'Regulatory Affairs', description: 'Unlock lobbying and institutional policy strategy.', costLabel: '250 RP' },
+  { id: 'juniorHiringProgram', kind: 'upgrade', x: 20, y: 150, title: 'Recruiter', description: 'Open the first staffing lane for interns and scientists.', costLabel: '$50' },
+  { id: 'juniorScientists', kind: 'tech', x: 255, y: 45, title: 'Junior Scientists', description: 'Unlock the second research staffing tier.', costLabel: '180 RP' },
+  { id: 'seniorScientists', kind: 'tech', x: 500, y: 45, title: 'Senior Scientists', description: 'Unlock the top research staffing tier.', costLabel: '1,000 RP' },
+  { id: 'juniorTraderProgram', kind: 'upgrade', x: 255, y: 150, title: 'Junior Trader Program', description: 'Promote the desk from interns into the junior trader tier.', costLabel: '$400' },
+  { id: 'seniorRecruitment', kind: 'upgrade', x: 500, y: 150, title: 'Senior Recruitment', description: 'Open the senior trader lane for the desk.', costLabel: '$5,000' },
+  { id: 'propDeskOperations', kind: 'tech', x: 745, y: 45, title: 'Prop Desk Operations', description: 'Unlock Prop Desks as the first organized human trading team.', costLabel: '200 RP' },
+  { id: 'algorithmicTrading', kind: 'tech', x: 745, y: 150, title: 'Algorithmic Trading', description: 'Unlock Rule-Based Bots and the first automation era.', costLabel: '700 RP' },
+  { id: 'institutionalDesks', kind: 'tech', x: 990, y: 45, title: 'Institutional Desks', description: 'Unlock larger coordinated trading organizations.', costLabel: '1,500 RP' },
+  { id: 'powerSystemsEngineering', kind: 'tech', x: 990, y: 150, title: 'Power Systems Engineering', description: 'Expand from starter racks into Server Rooms and machine support systems.', costLabel: '500 RP' },
+  { id: 'hedgeFundStrategies', kind: 'tech', x: 1235, y: 45, title: 'Hedge Fund Strategies', description: 'Unlock Hedge Funds as a major capital tier.', costLabel: '7,500 RP' },
+  { id: 'dataCenterSystems', kind: 'tech', x: 1235, y: 150, title: 'Data Centre Systems', description: 'Unlock Data Centres and ML Trading Bots for dense infrastructure scaling.', costLabel: '9,000 RP' },
+  { id: 'regulatoryAffairs', kind: 'tech', x: 1235, y: 255, title: 'Regulatory Affairs', description: 'Unlock lobbying and institutional policy strategy.', costLabel: '6,000 RP' },
+  { id: 'investmentFirms', kind: 'tech', x: 1480, y: 45, title: 'Investment Firms', description: 'Unlock the broad top-tier human trading organization.', costLabel: '20,000 RP' },
+  { id: 'aiTradingSystems', kind: 'tech', x: 1480, y: 150, title: 'AI Trading Systems', description: 'Unlock AI Trading Bots and Cloud Infrastructure as the late machine tier after Data Centre research.', costLabel: '22,000 RP' },
 ]
 
 const TREE_CONNECTIONS: Array<{ from: ResearchNodeId; to: ResearchNodeId }> = [
-  { from: 'juniorHiringProgram', to: 'seniorScientists' },
-  { from: 'juniorHiringProgram', to: 'seniorRecruitment' },
-  { from: 'tradeMultiplier', to: 'bullMarket' },
+  { from: 'juniorHiringProgram', to: 'juniorScientists' },
+  { from: 'juniorScientists', to: 'seniorScientists' },
+  { from: 'juniorHiringProgram', to: 'juniorTraderProgram' },
+  { from: 'juniorTraderProgram', to: 'seniorRecruitment' },
   { from: 'seniorRecruitment', to: 'algorithmicTrading' },
+  { from: 'seniorRecruitment', to: 'propDeskOperations' },
+  { from: 'propDeskOperations', to: 'institutionalDesks' },
   { from: 'algorithmicTrading', to: 'powerSystemsEngineering' },
+  { from: 'institutionalDesks', to: 'hedgeFundStrategies' },
+  { from: 'hedgeFundStrategies', to: 'investmentFirms' },
   { from: 'powerSystemsEngineering', to: 'dataCenterSystems' },
-  { from: 'dataCenterSystems', to: 'tradingServers' },
+  { from: 'dataCenterSystems', to: 'aiTradingSystems' },
   { from: 'powerSystemsEngineering', to: 'regulatoryAffairs' },
 ]
 
 function getUpgradeLockedReason(upgradeId: UpgradeId, state: ReturnType<typeof useGameStore.getState>) {
+  if (upgradeId === 'juniorTraderProgram') {
+    return `Requires 5 Interns (${state.internCount}/5).`
+  }
+
   if (upgradeId === 'seniorRecruitment') {
     return `Requires 5 Junior Traders (${state.juniorTraderCount}/5).`
   }
 
-  if (upgradeId === 'bullMarket') {
-    return 'Requires Trade Multiplier first.'
+  return 'Research this earlier node first.'
+}
+
+function getUpgradeLockedStatus(upgradeId: UpgradeId) {
+  if (upgradeId === 'juniorTraderProgram') {
+    return 'Need 5 Interns'
   }
 
-  return 'Research this earlier node first.'
+  if (upgradeId === 'seniorRecruitment') {
+    return 'Need 5 Juniors'
+  }
+
+  return 'Locked'
 }
 
 function getTechLockedReason(techId: ResearchTechId, state: ReturnType<typeof useGameStore.getState>) {
@@ -77,20 +98,40 @@ function getTechLockedReason(techId: ResearchTechId, state: ReturnType<typeof us
     return `Requires 5 Senior Traders (${state.seniorTraderCount}/5).`
   }
 
+  if (techId === 'propDeskOperations') {
+    return `Requires 5 Senior Traders (${state.seniorTraderCount}/5).`
+  }
+
+  if (techId === 'institutionalDesks') {
+    return `Requires Prop Desk Operations and 3 Prop Desks (${state.propDeskCount}/3).`
+  }
+
+  if (techId === 'hedgeFundStrategies') {
+    return `Requires Institutional Desks and 2 Institutional Desks (${state.institutionalDeskCount}/2).`
+  }
+
+  if (techId === 'investmentFirms') {
+    return `Requires Hedge Fund Strategies and 1 Hedge Fund (${state.hedgeFundCount}/1).`
+  }
+
   if (techId === 'seniorScientists') {
     return `Requires 5 Junior Scientists (${state.juniorResearchScientistCount}/5) or deeper research reserves.`
   }
 
+  if (techId === 'juniorScientists') {
+    return `Requires 5 Intern Scientists (${state.internResearchScientistCount}/5) or deeper research reserves.`
+  }
+
   if (techId === 'powerSystemsEngineering') {
-    return 'Requires Algorithmic Trading first.'
+    return 'Requires Recruiter first.'
   }
 
   if (techId === 'dataCenterSystems') {
-    return `Requires Power Systems Engineering and 5 Trading Bots (${state.tradingBotCount}/5).`
+    return `Requires Power Systems Engineering and 5 Rule-Based Bots (${state.ruleBasedBotCount}/5).`
   }
 
-  if (techId === 'tradingServers') {
-    return `Requires Data Centre Systems and 5 Trading Bots (${state.tradingBotCount}/5).`
+  if (techId === 'aiTradingSystems') {
+    return `Requires Data Centre Systems and 3 ML Trading Bots (${state.mlTradingBotCount}/3).`
   }
 
   if (techId === 'regulatoryAffairs') {
@@ -98,6 +139,54 @@ function getTechLockedReason(techId: ResearchTechId, state: ReturnType<typeof us
   }
 
   return 'Research this earlier node first.'
+}
+
+function getTechLockedStatus(techId: ResearchTechId) {
+  if (techId === 'algorithmicTrading') {
+    return 'Need 5 Seniors'
+  }
+
+  if (techId === 'propDeskOperations') {
+    return 'Need 5 Seniors'
+  }
+
+  if (techId === 'institutionalDesks') {
+    return 'Need 3 Prop Desks'
+  }
+
+  if (techId === 'hedgeFundStrategies') {
+    return 'Need 2 Inst Desks'
+  }
+
+  if (techId === 'investmentFirms') {
+    return 'Need Hedge Fund'
+  }
+
+  if (techId === 'seniorScientists') {
+    return 'Need Jr Scientists'
+  }
+
+  if (techId === 'juniorScientists') {
+    return 'Need Int Scientists'
+  }
+
+  if (techId === 'powerSystemsEngineering') {
+    return 'Need Recruiter'
+  }
+
+  if (techId === 'dataCenterSystems') {
+    return 'Need 5 Rule Bots'
+  }
+
+  if (techId === 'aiTradingSystems') {
+    return 'Need 3 ML Bots'
+  }
+
+  if (techId === 'regulatoryAffairs') {
+    return 'Need Power Systems'
+  }
+
+  return 'Locked'
 }
 
 const ResearchFlowNode = memo(({ data }: NodeProps<Node<ResearchGraphData>>) => {
@@ -121,17 +210,6 @@ const ResearchFlowNode = memo(({ data }: NodeProps<Node<ResearchGraphData>>) => 
           <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-primary">{data.costLabel}</p>
           <p className="mt-1 text-[9px] uppercase tracking-[0.12em]">{data.status}</p>
         </div>
-        <button
-          type="button"
-          className={data.isReady && !data.isPurchased ? 'rounded-md border border-primary/40 bg-primary/15 px-2 py-1 text-[9px] uppercase tracking-[0.12em] text-primary' : 'rounded-md border border-border/70 bg-background/50 px-2 py-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground'}
-          disabled={!data.isReady || data.isPurchased}
-          onClick={(event) => {
-            event.stopPropagation()
-            data.onPurchase()
-          }}
-        >
-          {data.isPurchased ? 'Done' : data.isReady ? 'Research' : 'View'}
-        </button>
       </div>
       <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-0 !bg-border/80" />
     </div>
@@ -147,6 +225,7 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
   const researchPoints = useGameStore(selectors.researchPoints)
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
   const [selectedNodeId, setSelectedNodeId] = useState<ResearchNodeId>('juniorHiringProgram')
+  const [confirmNodeId, setConfirmNodeId] = useState<ResearchNodeId | null>(null)
 
   const purchasedTechCount = RESEARCH_TECH.filter((tech) => gameState.purchasedResearchTech[tech.id]).length
   const selectedNode = RESEARCH_TREE.find((node) => node.id === selectedNodeId) ?? RESEARCH_TREE[0]
@@ -163,7 +242,7 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
             visible,
             isReady: visible && shortfall <= 0,
             canAfford: selectors.canAffordUpgrade(node.id as UpgradeId)(gameState),
-            status: isPurchased ? 'Unlocked' : !visible ? 'Locked' : shortfall > 0 ? 'Need cash' : 'Ready',
+            status: isPurchased ? 'Unlocked' : !visible ? getUpgradeLockedStatus(node.id as UpgradeId) : shortfall > 0 ? 'Need cash' : 'Ready',
             shortfallText: !isPurchased ? (!visible ? getUpgradeLockedReason(node.id as UpgradeId, gameState) : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined) : undefined,
           }]
         }
@@ -176,7 +255,7 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
           visible,
           isReady: visible && shortfall <= 0,
           canAfford: selectors.canAffordResearchTech(node.id as ResearchTechId)(gameState),
-          status: isPurchased ? 'Unlocked' : !visible ? 'Locked' : shortfall > 0 ? 'Need RP' : 'Ready',
+          status: isPurchased ? 'Unlocked' : !visible ? getTechLockedStatus(node.id as ResearchTechId) : shortfall > 0 ? 'Need RP' : 'Ready',
           shortfallText: !isPurchased ? (!visible ? getTechLockedReason(node.id as ResearchTechId, gameState) : shortfall > 0 ? `Need ${Math.ceil(shortfall)} more RP.` : undefined) : undefined,
         }]
       }),
@@ -203,24 +282,10 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
           isLocked: !state.visible,
           isReady: state.canAfford && !state.isPurchased,
           isSelected: selectedNodeId === node.id,
-          onPurchase: () => {
-            setSelectedNodeId(node.id)
-
-            if (state.isPurchased || !state.canAfford) {
-              return
-            }
-
-            if (node.kind === 'upgrade') {
-              buyUpgrade(node.id as UpgradeId)
-              return
-            }
-
-            buyResearchTech(node.id as ResearchTechId)
-          },
         },
       }
     })
-  }, [buyResearchTech, buyUpgrade, nodeStates, selectedNodeId])
+  }, [nodeStates, selectedNodeId])
 
   const flowEdges = useMemo<Edge[]>(() => {
     return TREE_CONNECTIONS.map((connection) => ({
@@ -238,9 +303,69 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
   }, [nodeStates])
 
   const selectedNodeState = nodeStates[selectedNode.id]
+  const confirmNode = confirmNodeId ? RESEARCH_TREE.find((node) => node.id === confirmNodeId) ?? null : null
+  const confirmNodeState = confirmNode ? nodeStates[confirmNode.id] : null
+
+  const openNodeConfirm = (nodeId: ResearchNodeId) => {
+    const state = nodeStates[nodeId]
+
+    setSelectedNodeId(nodeId)
+
+    if (!state || state.isPurchased || !state.canAfford) {
+      return
+    }
+
+    setConfirmNodeId(nodeId)
+  }
+
+  const confirmResearchPurchase = () => {
+    if (!confirmNode || !confirmNodeState || confirmNodeState.isPurchased || !confirmNodeState.canAfford) {
+      setConfirmNodeId(null)
+      return
+    }
+
+    if (confirmNode.kind === 'upgrade') {
+      buyUpgrade(confirmNode.id as UpgradeId)
+    } else {
+      buyResearchTech(confirmNode.id as ResearchTechId)
+    }
+
+    setConfirmNodeId(null)
+  }
 
   return (
     <>
+        <Dialog open={confirmNode !== null} onOpenChange={(open) => { if (!open) setConfirmNodeId(null) }}>
+          {confirmNode && confirmNodeState ? (
+            <DialogContent className="max-w-lg border-border/80 bg-card/95 text-foreground">
+              <DialogHeader>
+                <DialogTitle>{confirmNode.kind === 'tech' ? 'Confirm research' : 'Confirm unlock purchase'}</DialogTitle>
+                <DialogDescription>
+                  {confirmNode.description}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-3 text-sm text-muted-foreground">
+                <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                  Cost: <span className="font-mono text-primary">{confirmNode.costLabel}</span>
+                </div>
+                <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-foreground">
+                  {confirmNode.kind === 'tech'
+                    ? `Research ${confirmNode.title} and add it to your active technology stack?`
+                    : `Purchase ${confirmNode.title} and unlock its effect for this run?`}
+                </div>
+              </div>
+              <DialogFooter className="border-border/70 bg-muted/20">
+                <Button type="button" variant="outline" onClick={() => setConfirmNodeId(null)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={confirmResearchPurchase}>
+                  {confirmNode.kind === 'tech' ? 'Research' : 'Purchase'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          ) : null}
+        </Dialog>
+
         <div className="grid gap-2 md:grid-cols-3">
           <SummaryTile label="Research Points" value={Math.floor(researchPoints).toLocaleString()} icon={BrainCircuit} />
           <SummaryTile label="Research / Sec" value={formatPlainRate(researchPointsPerSecond)} icon={TrendingUp} />
@@ -258,7 +383,7 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
                 nodesDraggable={false}
                 nodesConnectable={false}
                 elementsSelectable={false}
-                onNodeClick={(_, node) => setSelectedNodeId(node.id as ResearchNodeId)}
+                onNodeClick={(_, node) => openNodeConfirm(node.id as ResearchNodeId)}
                 zoomOnDoubleClick={false}
                 selectNodesOnDrag={false}
                 minZoom={expanded ? 0.4 : 0.6}
@@ -271,8 +396,8 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border-border/80 bg-background/50">
-          <CardContent className="grid gap-2 p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)_auto] md:items-start">
+          <Card className="rounded-xl border-border/80 bg-background/50">
+          <CardContent className="grid gap-2 p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)] md:items-start">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Selected node</p>
               <h3 className="mt-1 text-sm font-semibold text-foreground">{selectedNode.title}</h3>
@@ -291,28 +416,8 @@ export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }
             </div>
 
             <div className="rounded-xl border border-border/80 bg-background/65 p-3 text-[11px] text-muted-foreground md:col-span-2">
-              {selectedNodeState.shortfallText ?? 'Click a node or use its inline button to research it when ready.'}
+              {selectedNodeState.shortfallText ?? (selectedNodeState.isPurchased ? 'Already unlocked.' : selectedNodeState.canAfford ? 'Click the node to confirm this research purchase.' : 'Click a node to inspect its requirements.')}
             </div>
-
-            <button
-              type="button"
-              className={selectedNodeState.canAfford && !selectedNodeState.isPurchased ? 'w-full rounded-md border border-primary/50 bg-primary/10 px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-primary transition hover:bg-primary/20 md:w-auto' : 'w-full rounded-md border border-border/70 bg-background/50 px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground md:w-auto'}
-              disabled={!selectedNodeState.canAfford || selectedNodeState.isPurchased}
-              onClick={() => {
-                if (selectedNodeState.isPurchased || !selectedNodeState.canAfford) {
-                  return
-                }
-
-                if (selectedNode.kind === 'upgrade') {
-                  buyUpgrade(selectedNode.id as UpgradeId)
-                  return
-                }
-
-                buyResearchTech(selectedNode.id as ResearchTechId)
-              }}
-            >
-              {selectedNodeState.isPurchased ? 'Unlocked' : selectedNodeState.canAfford ? 'Research selected node' : 'Locked'}
-            </button>
           </CardContent>
         </Card>
     </>

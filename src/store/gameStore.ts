@@ -1,15 +1,16 @@
 import { create } from 'zustand'
 import type { AppInfo } from '../../shared/game'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
+import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeDefinition, getRepeatableUpgradeRank } from '../data/repeatableUpgrades'
 import { getResearchTechDefinition } from '../data/researchTech'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
 import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
-import { exportState, importState, loadStateFromStorage, saveStateToStorage } from '../utils/persistence'
+import { exportState, importState, loadStateFromStorage, SAVE_KEY, saveStateToStorage } from '../utils/persistence'
 import { createPrestigeResetState } from '../utils/prestige'
-import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, ResearchTechId, UnitId } from '../types/game'
+import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -32,22 +33,34 @@ function getSnapshot(state: GameStore) {
     cash: state.cash,
     researchPoints: state.researchPoints,
     influence: state.influence,
+    discoveredLobbying: state.discoveredLobbying,
     lifetimeCashEarned: state.lifetimeCashEarned,
     reputation: state.reputation,
     reputationSpent: state.reputationSpent,
     prestigeCount: state.prestigeCount,
+    internCount: state.internCount,
     juniorTraderCount: state.juniorTraderCount,
     seniorTraderCount: state.seniorTraderCount,
-    tradingServerCount: state.tradingServerCount,
-    tradingBotCount: state.tradingBotCount,
+    propDeskCount: state.propDeskCount,
+    institutionalDeskCount: state.institutionalDeskCount,
+    hedgeFundCount: state.hedgeFundCount,
+    investmentFirmCount: state.investmentFirmCount,
+    ruleBasedBotCount: state.ruleBasedBotCount,
+    mlTradingBotCount: state.mlTradingBotCount,
+    aiTradingBotCount: state.aiTradingBotCount,
+    internResearchScientistCount: state.internResearchScientistCount,
     juniorResearchScientistCount: state.juniorResearchScientistCount,
     seniorResearchScientistCount: state.seniorResearchScientistCount,
+    juniorPoliticianCount: state.juniorPoliticianCount,
+    serverRackCount: state.serverRackCount,
     serverRoomCount: state.serverRoomCount,
     dataCenterCount: state.dataCenterCount,
+    cloudComputeCount: state.cloudComputeCount,
     purchasedUpgrades: state.purchasedUpgrades,
     purchasedResearchTech: state.purchasedResearchTech,
     purchasedPolicies: state.purchasedPolicies,
     purchasedPrestigeUpgrades: state.purchasedPrestigeUpgrades,
+    repeatableUpgradeRanks: state.repeatableUpgradeRanks,
     lastSaveTimestamp: state.lastSaveTimestamp,
     totalOfflineSecondsApplied: state.totalOfflineSecondsApplied,
     settings: state.settings,
@@ -120,6 +133,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
+      if (unitId === 'intern') {
+        return {
+          ...nextState,
+          internCount: state.internCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'internResearchScientist') {
+        return {
+          ...nextState,
+          internResearchScientistCount: state.internResearchScientistCount + result.quantity,
+        }
+      }
+
       if (unitId === 'seniorTrader') {
         return {
           ...nextState,
@@ -127,10 +154,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
-      if (unitId === 'tradingServer') {
+      if (unitId === 'propDesk') {
         return {
           ...nextState,
-          tradingServerCount: state.tradingServerCount + result.quantity,
+          propDeskCount: state.propDeskCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'institutionalDesk') {
+        return {
+          ...nextState,
+          institutionalDeskCount: state.institutionalDeskCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'hedgeFund') {
+        return {
+          ...nextState,
+          hedgeFundCount: state.hedgeFundCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'investmentFirm') {
+        return {
+          ...nextState,
+          investmentFirmCount: state.investmentFirmCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'ruleBasedBot') {
+        return {
+          ...nextState,
+          ruleBasedBotCount: state.ruleBasedBotCount + result.quantity,
         }
       }
 
@@ -148,9 +203,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
+      if (unitId === 'juniorPolitician') {
+        return {
+          ...nextState,
+          juniorPoliticianCount: state.juniorPoliticianCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'mlTradingBot') {
+        return {
+          ...nextState,
+          mlTradingBotCount: state.mlTradingBotCount + result.quantity,
+        }
+      }
+
       return {
         ...nextState,
-        tradingBotCount: state.tradingBotCount + result.quantity,
+        aiTradingBotCount: state.aiTradingBotCount + result.quantity,
       }
     })
   },
@@ -170,11 +239,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
         cash: state.cash - result.totalCost,
       }
 
+      if (infrastructureId === 'serverRack') {
+        return { ...nextState, serverRackCount: state.serverRackCount + result.quantity }
+      }
+
       if (infrastructureId === 'serverRoom') {
         return { ...nextState, serverRoomCount: state.serverRoomCount + result.quantity }
       }
 
-      return { ...nextState, dataCenterCount: state.dataCenterCount + result.quantity }
+      if (infrastructureId === 'dataCenter') {
+        return { ...nextState, dataCenterCount: state.dataCenterCount + result.quantity }
+      }
+
+      return { ...nextState, cloudComputeCount: state.cloudComputeCount + result.quantity }
     })
   },
   buyUpgrade: (upgradeId) => {
@@ -202,6 +279,62 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     })
   },
+  buyRepeatableUpgrade: (upgradeId: RepeatableUpgradeId) => {
+    set((state) => {
+      const upgrade = getRepeatableUpgradeDefinition(upgradeId)
+
+      if (!upgrade) {
+        return state
+      }
+
+      if (upgrade.visibleWhen && !upgrade.visibleWhen(state)) {
+        return state
+      }
+
+      if (upgrade.unlockWhen && !upgrade.unlockWhen(state)) {
+        return state
+      }
+
+      const currentRank = getRepeatableUpgradeRank(state, upgradeId)
+      const buyMode = state.ui.repeatableUpgradeBuyModes[upgradeId]
+      const availableCurrency = upgrade.currency === 'cash' ? state.cash : upgrade.currency === 'researchPoints' ? state.researchPoints : state.influence
+      const purchase = buyMode === 'max'
+        ? getMaxAffordableRepeatableUpgradeQuantity(upgrade.baseCost, upgrade.costScaling, currentRank, availableCurrency)
+        : getBulkRepeatableUpgradeCost(upgrade.baseCost, upgrade.costScaling, currentRank, buyMode)
+
+      if (purchase.quantity <= 0 || availableCurrency < purchase.totalCost) {
+        return state
+      }
+
+      if (upgrade.currency === 'cash') {
+        return {
+          cash: state.cash - purchase.totalCost,
+          repeatableUpgradeRanks: {
+            ...state.repeatableUpgradeRanks,
+            [upgradeId]: currentRank + purchase.quantity,
+          },
+        }
+      }
+
+      if (upgrade.currency === 'researchPoints') {
+        return {
+          researchPoints: state.researchPoints - purchase.totalCost,
+          repeatableUpgradeRanks: {
+            ...state.repeatableUpgradeRanks,
+            [upgradeId]: currentRank + purchase.quantity,
+          },
+        }
+      }
+
+      return {
+        influence: state.influence - purchase.totalCost,
+        repeatableUpgradeRanks: {
+          ...state.repeatableUpgradeRanks,
+          [upgradeId]: currentRank + purchase.quantity,
+        },
+      }
+    })
+  },
   buyResearchTech: (techId: ResearchTechId) => {
     set((state) => {
       const tech = getResearchTechDefinition(techId)
@@ -220,6 +353,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       return {
         researchPoints: state.researchPoints - tech.researchCost,
+        discoveredLobbying: state.discoveredLobbying || techId === 'regulatoryAffairs',
         purchasedResearchTech: {
           ...state.purchasedResearchTech,
           [techId]: true,
@@ -273,7 +407,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   prestigeReset: () => {
     set((state) => ({
-      ...createPrestigeResetState(state),
+      ...createPrestigeResetState(state, state.ui.prestigePurchasePlan),
       appInfo: state.appInfo,
       activeTab: 'prestige',
       activeModal: null,
@@ -462,6 +596,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
       },
     }))
   },
+  setRepeatableUpgradeBuyMode: (upgradeId, mode) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        repeatableUpgradeBuyModes: {
+          ...state.ui.repeatableUpgradeBuyModes,
+          [upgradeId]: mode,
+        },
+      },
+    }))
+  },
+  adjustPrestigePurchasePlan: (upgradeId: PrestigeUpgradeId, delta: 1 | -1) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        prestigePurchasePlan: {
+          ...state.ui.prestigePurchasePlan,
+          [upgradeId]: Math.max(0, (state.ui.prestigePurchasePlan[upgradeId] ?? 0) + delta),
+        },
+      },
+    }))
+  },
+  clearPrestigePurchasePlan: () => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        prestigePurchasePlan: { ...initialState.ui.prestigePurchasePlan },
+      },
+    }))
+  },
   openModal: (modal) => {
     set({ activeModal: modal })
   },
@@ -475,10 +639,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ latestTradeFeedback: null })
   },
   resetFoundation: () => {
-    set({
+    window.localStorage.removeItem(SAVE_KEY)
+    set((state) => ({
       ...initialState,
       ...initialUiState,
+      appInfo: state.appInfo,
       lastSaveTimestamp: Date.now(),
-    })
+    }))
   },
 }))
