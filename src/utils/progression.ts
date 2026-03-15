@@ -1,4 +1,4 @@
-import type { GameState, GameTabId } from '../types/game'
+import type { GameState } from '../types/game'
 import { getPrestigeGain } from './prestige'
 
 export type ProgressionPhaseId =
@@ -14,7 +14,6 @@ export type ProgressionSummary = {
   headline: string
   objective: string
   nextTarget: string
-  focusArea: GameTabId
 }
 
 const PHASE_LABELS: Record<ProgressionPhaseId, string> = {
@@ -55,7 +54,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       headline: 'Open your first staffed desk.',
       objective: 'Manual trades fund the first real unlock. Research Junior Hiring Program, then move into Operations.',
       nextTarget: 'Junior Hiring Program in Research for $50.',
-      focusArea: 'research',
     }
   }
 
@@ -67,7 +65,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
         headline: 'Build the junior desk into a real income floor.',
         objective: 'Scale Juniors until Senior Recruitment appears. This is the bridge from manual trading to firm growth.',
         nextTarget: `Reach 5 Junior Traders (${state.juniorTraderCount}/5) to reveal Senior Recruitment.`,
-        focusArea: 'desk',
       }
     }
 
@@ -77,7 +74,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       headline: 'Unlock your senior hiring lane.',
       objective: 'The junior desk is established. Research Senior Recruitment to open the next tier in Operations.',
       nextTarget: 'Senior Recruitment in Research for $10,000.',
-      focusArea: 'research',
     }
   }
 
@@ -89,7 +85,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
         headline: 'Turn seniors into the core growth engine.',
         objective: 'Seniors accelerate the desk and prepare the automation phase.',
         nextTarget: `Reach 5 Senior Traders (${state.seniorTraderCount}/5) to reveal Algorithmic Trading.`,
-        focusArea: 'desk',
       }
     }
 
@@ -99,7 +94,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       headline: 'Open the automation era.',
       objective: 'Your human desk is strong enough. Research Algorithmic Trading to unlock Trading Bots.',
       nextTarget: 'Algorithmic Trading in Research for $100,000.',
-      focusArea: 'research',
     }
   }
 
@@ -112,7 +106,6 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       headline: 'Scale automation until reset value appears.',
       objective: 'Bots are online. Use upgrades and bulk buying to push lifetime cash into a worthwhile prestige.',
       nextTarget: prestigeGain > 0 ? `You can already claim ${prestigeGain} Reputation after adding at least one bot.` : 'Keep pushing bot income until Reputation becomes available.',
-      focusArea: prestigeGain > 0 ? 'prestige' : 'desk',
     }
   }
 
@@ -122,6 +115,5 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
     headline: 'Choose the best moment to reset.',
     objective: 'Prestige is live. Decide whether more bot scaling or an immediate reset gives the better next run.',
     nextTarget: `Reset now for ${getPrestigeGain(state.lifetimeCashEarned)} Reputation.`,
-    focusArea: 'prestige',
   }
 }

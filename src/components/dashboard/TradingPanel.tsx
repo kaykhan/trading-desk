@@ -98,9 +98,6 @@ export function TradingPanel() {
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Manual upgrades</p>
               <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{progressionSummary.headline} Improve click value before you move more cash into the next tier.</p>
             </div>
-            <Badge variant="outline" className="rounded-md border-border/80 bg-card/70 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              Focus: {progressionSummary.focusArea}
-            </Badge>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { ArrowRight, BriefcaseBusiness, Cpu, TrendingUp, Users } from 'lucide-react'
-import { OPERATIONS_UPGRADES, RESEARCH_UPGRADES, TRADING_UPGRADES } from '@/data/tabContent'
+import { OPERATIONS_UPGRADES, TRADING_UPGRADES } from '@/data/tabContent'
 import { UNITS } from '@/data/units'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
@@ -9,7 +9,6 @@ import { getProgressionSummary } from '@/utils/progression'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { ActionRow, SummaryTile } from './DashboardPrimitives'
 
 const BUY_MODES: BuyMode[] = [1, 5, 10, 'max']
@@ -173,22 +172,6 @@ export function DeskTab() {
     }
   }
 
-  const getResearchDescription = (upgradeId: UpgradeId, fallback: string) => {
-    if (upgradeId === 'seniorRecruitment' && !selectors.isUpgradeVisible(upgradeId)(gameState)) {
-      return `Unlock Senior Traders in the desk. Requires 5 Junior Traders (${gameState.juniorTraderCount}/5).`
-    }
-
-    if (upgradeId === 'algorithmicTrading' && !selectors.isUpgradeVisible(upgradeId)(gameState)) {
-      return `Unlock Trading Bots in the desk. Requires 5 Senior Traders (${gameState.seniorTraderCount}/5).`
-    }
-
-    if (upgradeId === 'bullMarket' && !selectors.isUpgradeVisible(upgradeId)(gameState)) {
-      return 'Increase all profits by 50 percent. Requires Trade Multiplier first.'
-    }
-
-    return fallback
-  }
-
   return (
     <div className="h-full min-h-0 overflow-y-auto pr-1">
       <div className="space-y-2">
@@ -271,13 +254,6 @@ export function DeskTab() {
           const unit = UNITS[section.unitId]
           const unitMeta = getUnitMeta(section.unitId)
           const SectionIcon = section.unitId === 'juniorTrader' ? Users : section.unitId === 'seniorTrader' ? BriefcaseBusiness : Cpu
-          const inlineResearchUpgradeIds =
-            section.unitId === 'juniorTrader'
-              ? ['juniorHiringProgram', 'tradeMultiplier']
-              : section.unitId === 'seniorTrader'
-                ? ['seniorRecruitment', 'bullMarket']
-                : ['algorithmicTrading']
-
           return (
             <Card key={section.unitId} className="terminal-panel rounded-2xl border-border/80 bg-card/92">
               <CardContent className="space-y-2 p-3">
@@ -384,58 +360,10 @@ export function DeskTab() {
                   </div>
                 </div>
 
-                <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-2">
-                  <div className="flex items-center gap-2">
-                    <ArrowRight className="size-3.5 text-primary" />
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Unlock research</p>
-                  </div>
-                  <div className="grid gap-2 xl:grid-cols-2">
-                    {inlineResearchUpgradeIds.map((upgradeId) => {
-                      const upgrade = RESEARCH_UPGRADES.find((item) => item.id === upgradeId)
-
-                      if (!upgrade) {
-                        return null
-                      }
-
-                      const isPurchased = selectors.isUpgradePurchased(upgrade.id)(gameState)
-                      const visible = selectors.isUpgradeVisible(upgrade.id)(gameState)
-                      const shortfall = selectors.upgradeCashShortfall(upgrade.id)(gameState)
-                      const description = getResearchDescription(upgrade.id, upgrade.description)
-
-                      return (
-                        <ActionRow
-                          key={upgrade.id}
-                          title={upgrade.name}
-                          description={description}
-                          cost={`Cost ${formatCurrency(upgrade.cost)}`}
-                          status={isPurchased ? 'Purchased' : !visible ? 'Locked' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                          statusTone={isPurchased ? 'done' : !visible ? 'locked' : shortfall > 0 ? 'default' : 'ready'}
-                          actionLabel={isPurchased ? 'Purchased' : 'Research'}
-                          disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
-                          disabledReason={!isPurchased && !visible ? description : !isPurchased && shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined}
-                          onClick={() => buyUpgrade(upgrade.id)}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           )
         })}
-        <Card className="terminal-panel rounded-2xl border-border/80 bg-card/92">
-          <CardContent className="space-y-2 p-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-primary">What next</p>
-              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{progressionSummary.objective}</p>
-            </div>
-            <Separator className="bg-border/60" />
-            <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Current target</p>
-              <p className="text-[11px] leading-4 text-foreground">{progressionSummary.nextTarget}</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
