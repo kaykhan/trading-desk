@@ -57,7 +57,7 @@ export type UnitUnlockId = ResearchUnlockId | 'researchProduction'
 
 export type PrestigeUpgradeId = 'brandRecognition' | 'seedCapital' | 'betterHiringPipeline' | 'institutionalKnowledge' | 'gridOrchestration'
 
-export type ModalId = 'saveImport' | 'prestigeConfirm' | 'offlineEarnings'
+export type ModalId = 'saveImport' | 'prestigeConfirm' | 'offlineEarnings' | 'researchMap'
 
 export type BuyMode = 1 | 5 | 10 | 'max'
 

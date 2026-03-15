@@ -2,6 +2,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { useGameStore } from '../store/gameStore'
 import { OfflineEarningsModal } from './OfflineEarningsModal'
 import { PrestigeConfirmModal } from './PrestigeConfirmModal'
+import { ResearchMapModal } from './ResearchMapModal'
 import { SaveImportModal } from './SaveImportModal'
 
 export function ModalLayer() {
@@ -17,6 +18,7 @@ export function ModalLayer() {
       {activeModal === 'saveImport' && <SaveImportModal onClose={closeModal} />}
       {activeModal === 'prestigeConfirm' && <PrestigeConfirmModal onClose={closeModal} />}
       {activeModal === 'offlineEarnings' && <OfflineEarningsModal onClose={closeModal} />}
+      {activeModal === 'researchMap' && <ResearchMapModal />}
     </Dialog>
   )
 }
