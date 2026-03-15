@@ -261,7 +261,7 @@ export function getSeniorTraderIncome(state: GameState): number {
 }
 
 export function getRuleBasedBotIncome(state: GameState): number {
-  let value = state.purchasedUpgrades.lowLatencyServers ? 65 : UNITS.ruleBasedBot.baseIncomePerSecond
+  let value = state.purchasedUpgrades.lowLatencyServers ? 160 : UNITS.ruleBasedBot.baseIncomePerSecond
 
   if (state.purchasedUpgrades.systematicExecution) {
     value *= 1.15

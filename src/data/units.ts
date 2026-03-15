@@ -44,7 +44,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
   institutionalDesk: {
     id: 'institutionalDesk',
     name: 'Institutional Desk',
-    baseCost: 90_000,
+    baseCost: 150_000,
     costScaling: 1.21,
     baseIncomePerSecond: 540,
     description: 'A larger trading organization built for heavier flow and more serious market presence.',
@@ -76,7 +76,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     name: 'Rule-Based Bot',
     baseCost: 32_000,
     costScaling: 1.21,
-    baseIncomePerSecond: 45,
+    baseIncomePerSecond: 120,
     description: 'The first automation tier, running simple systematic strategies once the desk moves beyond manual execution.',
     tab: 'operations',
     unlockUpgradeId: 'algorithmicTrading',

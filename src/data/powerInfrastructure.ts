@@ -12,7 +12,7 @@ export const POWER_INFRASTRUCTURE: Record<PowerInfrastructureId, PowerInfrastruc
   serverRoom: {
     id: 'serverRoom',
     name: 'Server Room',
-    baseCost: 10_000,
+    baseCost: 100_000,
     costScaling: 1.15,
     powerCapacity: 30,
     description: 'A proper in-house machine floor that supports sustained Rule-Based and ML system growth.',

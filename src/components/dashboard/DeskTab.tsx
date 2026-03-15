@@ -537,13 +537,13 @@ export function DeskTab() {
               <Lock className="size-4 text-primary" />
               <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Infrastructure</h3>
               <Badge variant="outline" className={powerUnlocked ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{powerUnlocked ? 'Unlocked' : 'Locked'}</Badge>
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })}</Badge> : null}
+              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</Badge> : null}
               {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Desks {formatNumber(humanTradingPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
             </div>
-            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">You begin with a single Server Rack. Server Rooms support Prop Desks and Institutional Desks, Data Centres support Hedge Funds and ML systems, and Cloud Infrastructure supports top-tier scale.</p>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">You begin with a single Server Rack. Server Rooms support Institutional Desks and machine growth, Data Centres support Hedge Funds and ML systems, and Cloud Infrastructure supports top-tier scale.</p>
             {powerUnlocked && machineEfficiencyMultiplier < 1 ? <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-amber-400">Over capacity - powered output {Math.round(machineEfficiencyMultiplier * 100)}%</p> : null}
           </div>
 
