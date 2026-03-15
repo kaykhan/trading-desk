@@ -1,7 +1,7 @@
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useGameStore } from '../store/gameStore'
-import { formatCurrency } from '../utils/formatting'
+import { formatCurrency, formatNumber } from '../utils/formatting'
 
 type OfflineEarningsModalProps = {
   onClose: () => void
@@ -20,6 +20,8 @@ export function OfflineEarningsModal({ onClose }: OfflineEarningsModalProps) {
         <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Time away: {offlineSummary ? `${offlineSummary.secondsAway.toLocaleString()} sec` : '0 sec'}</div>
         <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Capped time counted: {offlineSummary ? `${offlineSummary.appliedSeconds.toLocaleString()} sec` : '0 sec'}</div>
         <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-foreground">Cash earned offline: {offlineSummary ? formatCurrency(offlineSummary.cashEarned, offlineSummary.cashEarned < 100 ? 1 : 0) : '$0'}</div>
+        {offlineSummary && offlineSummary.researchEarned > 0 ? <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Research earned offline: {formatNumber(offlineSummary.researchEarned, { decimalsBelowThreshold: offlineSummary.researchEarned < 100 ? 1 : 0 })}</div> : null}
+        {offlineSummary && offlineSummary.influenceEarned > 0 ? <div className="rounded-2xl border border-border/60 bg-background/40 p-4">Influence earned offline: {formatNumber(offlineSummary.influenceEarned, { decimalsBelowThreshold: offlineSummary.influenceEarned < 100 ? 2 : 1 })}</div> : null}
       </div>
       <div className="flex justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Close</Button>

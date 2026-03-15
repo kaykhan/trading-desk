@@ -14,9 +14,37 @@ export function getLifetimeReputation(state: GameState): number {
   return state.reputation + state.reputationSpent
 }
 
+export function getProfitPrestigeMultiplier(state: GameState): number {
+  const brandRecognitionRank = state.purchasedPrestigeUpgrades.brandRecognition ?? 0
+  const directBonus = 1 + getLifetimeReputation(state) * GAME_CONSTANTS.directReputationBonusPerPoint
+  const brandRecognitionBonus = 1 + brandRecognitionRank * GAME_CONSTANTS.brandRecognitionBonusPerRank
+
+  return directBonus * brandRecognitionBonus
+}
+
+export function getResearchPrestigeMultiplier(state: GameState): number {
+  const rank = state.purchasedPrestigeUpgrades.institutionalKnowledge ?? 0
+  return 1 + rank * GAME_CONSTANTS.institutionalKnowledgeResearchBonusPerRank
+}
+
 export function getSeedCapitalBonus(state: GameState): number {
   const rank = state.purchasedPrestigeUpgrades.seedCapital ?? 0
   return rank * GAME_CONSTANTS.seedCapitalPerRank
+}
+
+export function getHumanStaffCostMultiplier(state: GameState): number {
+  const rank = state.purchasedPrestigeUpgrades.betterHiringPipeline ?? 0
+  return Math.max(0.2, 1 - rank * GAME_CONSTANTS.betterHiringPipelineDiscountPerRank)
+}
+
+export function getMachineOutputPrestigeMultiplier(state: GameState): number {
+  const rank = state.purchasedPrestigeUpgrades.gridOrchestration ?? 0
+  return 1 + rank * GAME_CONSTANTS.gridOrchestrationMachineBonusPerRank
+}
+
+export function getPowerCapacityPrestigeMultiplier(state: GameState): number {
+  const rank = state.purchasedPrestigeUpgrades.gridOrchestration ?? 0
+  return 1 + rank * GAME_CONSTANTS.gridOrchestrationPowerBonusPerRank
 }
 
 export function canPrestige(state: GameState): boolean {

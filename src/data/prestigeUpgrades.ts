@@ -22,8 +22,24 @@ export const PRESTIGE_UPGRADES: PrestigeUpgradeDefinition[] = [
     name: 'Better Hiring Pipeline',
     category: 'prestige',
     baseCost: 3,
-    maxRank: 5,
-    description: 'Make Junior Traders cheaper on all future runs.',
+    maxRank: 6,
+    description: 'Reduce all human staff costs by 5 percent per rank.',
+  },
+  {
+    id: 'institutionalKnowledge',
+    name: 'Institutional Knowledge',
+    category: 'prestige',
+    baseCost: 4,
+    maxRank: 6,
+    description: 'Increase Research Point production by 12 percent per rank.',
+  },
+  {
+    id: 'gridOrchestration',
+    name: 'Grid Orchestration',
+    category: 'prestige',
+    baseCost: 5,
+    maxRank: 6,
+    description: 'Increase machine output and power capacity by 5 percent per rank.',
   },
 ]
 

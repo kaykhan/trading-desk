@@ -333,3 +333,90 @@ Definition of done:
 
 Definition of done:
 - The interface feels useful first and thematic second, while still keeping the terminal tone.
+
+## Balance Follow-up
+
+### 33. Unit cost scaling and progression balance
+- [x] Audit unit pricing logic for Junior Traders, Senior Traders, and Trading Bots.
+- [x] Confirm repeatable units use escalating owned-count cost scaling rather than flat costs.
+- [x] Confirm x1, x5, x10, and Max purchases sum real rising per-copy costs.
+- [x] Rebalance base cost, scaling, and income values so Juniors feel early, Seniors feel mid-tier, and Bots feel late-game.
+- [x] Verify one-time upgrades and research unlocks remain flat-cost.
+- [x] Run a balance simulation pass for Trading -> Juniors -> Seniors -> Bots -> Prestige readiness.
+- [x] Tune values after simulation and rerun verification.
+
+Definition of done:
+- Repeatable units scale correctly, bulk buying respects scaling, and the run preserves a clear progression ladder through late-game automation.
+
+## Revision 2
+
+### 34. Research economy and research staffing
+- [x] Add `researchPoints`, `researchComputerScientistCount`, and `purchasedResearchTech` to game state, persistence, selectors, and migrations.
+- [x] Add the `Research Computer Scientist` repeatable unit with cash cost scaling and Research Points/sec production.
+- [x] Add research production functions, bulk-buy functions, and store actions for buying research staff.
+- [x] Patch the main tick loop so the game generates both Cash and Research Points every tick.
+- [x] Update UI/state formatting so Research Points totals and Research/sec are readable where needed.
+
+Definition of done:
+- Research is a real production economy powered by repeatable staff rather than only a list of one-off unlocks.
+
+### 35. Research technologies and unlock routing
+- [x] Create `data/researchTech.ts` and define the first tech ladder: `algorithmicTrading`, `powerSystemsEngineering`, and `regulatoryAffairs`.
+- [x] Add store actions and selectors for purchasing research tech with Research Points.
+- [x] Move advanced unlock responsibility to research tech purchases instead of cash-only or prestige-only assumptions.
+- [x] Derive system visibility/unlock rules for Trading Bots, Power Infrastructure, and Lobbying from research tech state.
+- [x] Update the Research tab so it includes both research production and technology unlock cards.
+
+Definition of done:
+- Research technologies clearly gate major late-game systems and replace old unlock assumptions cleanly.
+
+### 36. Power / electricity infrastructure
+- [x] Add power-related game state fields for capacity infrastructure and any explicit unlock state if needed.
+- [x] Add Power infrastructure purchases such as `Backup Generator`, `Power Contract`, and `Grid Expansion` with cash costs and scaling.
+- [x] Add selectors and utility functions for `powerUsage`, `powerCapacity`, and machine efficiency.
+- [x] Apply the over-capacity formula so machine systems are penalized by `capacity / usage` when usage exceeds capacity.
+- [x] Ensure the power penalty affects machine-side systems only, not manual trading or human traders.
+- [x] Add Power visibility to the UI when unlocked and integrate power information into the main progression layout.
+
+Definition of done:
+- Power behaves as a capacity system that supports bots and machine infrastructure without becoming a fuel meter.
+
+### 37. Lobbying and influence
+- [x] Add `influence` and `purchasedPolicies` to game state, persistence, selectors, and migrations.
+- [x] Create `data/lobbyingPolicies.ts` with the four policy tracks: labor, energy, market, and technology.
+- [x] Add store actions/selectors for Influence earning and policy purchases.
+- [x] Unlock Lobbying exclusively through the `regulatoryAffairs` research tech.
+- [x] Build the Lobbying UI with track grouping, influence costs, and purchased state.
+- [x] Apply the first round of policy effects across labor, energy, market, and technology systems.
+
+Definition of done:
+- Lobbying is a late-game researched strategic layer powered by Influence rather than Prestige unlocks.
+
+### 38. Prestige role revision
+- [x] Remove any remaining prestige responsibility for unlocking Lobbying.
+- [x] Rework prestige upgrades so they provide broad permanent scaling across profits, research, power efficiency, staff costs, machine efficiency, and starting cash.
+- [x] Add any missing prestige upgrade definitions/selectors needed for the revised broad-scaling role.
+- [x] Verify prestige still feels rewarding after Research, Power, and Lobbying are added.
+
+Definition of done:
+- Prestige clearly acts as a long-term multiplier layer for the full machine instead of a feature gate.
+
+### 39. Main layout and system integration
+- [x] Keep the main Desk screen focused on operations order: Trade, Junior Trader, Senior Trader, Trading Bot, and Power infrastructure.
+- [x] Decide how much Research Points should appear in the top metrics versus living inside the Research tab.
+- [x] Add conditional top metrics for Power and Influence when those systems become relevant.
+- [x] Update right-side tabs and visibility rules so Upgrades, Research, Prestige, Stats, Settings, and future Lobbying fit the new system bundle cleanly.
+- [x] Ensure disabled/future desk categories like Materials and Crypto still fit the long-term progression plan.
+
+Definition of done:
+- The UI exposes the new systems without breaking the now-clear operations-first desk flow.
+
+### 40. Save migration, balancing, and verification
+- [x] Update save/load migration defaults for all new Revision 2 fields so older saves still load safely.
+- [x] Add or extend balance-check tooling to cover Research timing, bot unlock timing, power unlock timing, lobbying unlock timing, and prestige pacing.
+- [x] Run progression simulations and manual playtesting for Trading -> Research staffing -> Bots -> Power -> Lobbying -> Prestige.
+- [x] Tune cash costs, RP costs, power numbers, influence pacing, and prestige bonuses after testing.
+- [x] Run final `typecheck`, `lint`, `build`, and any balance scripts after tuning.
+
+Definition of done:
+- Revision 2 systems are migrated safely, paced coherently, and verified by both automated checks and balance testing.

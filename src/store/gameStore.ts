@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 import type { AppInfo } from '../../shared/game'
+import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
+import { getResearchTechDefinition } from '../data/researchTech'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { getBulkUnitCost, getCashPerSecond, getManualIncome, isUnitUnlocked } from '../utils/economy'
+import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, saveStateToStorage } from '../utils/persistence'
 import { createPrestigeResetState } from '../utils/prestige'
-import type { BuyMode, GameState, GameStore, GameTabId, ModalId, OfflineSummary, UnitId } from '../types/game'
+import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, ResearchTechId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -28,14 +30,23 @@ const initialUiState: StoreUiState = {
 function getSnapshot(state: GameStore) {
   const snapshot: GameState = {
     cash: state.cash,
+    researchPoints: state.researchPoints,
+    influence: state.influence,
     lifetimeCashEarned: state.lifetimeCashEarned,
     reputation: state.reputation,
     reputationSpent: state.reputationSpent,
     prestigeCount: state.prestigeCount,
     juniorTraderCount: state.juniorTraderCount,
     seniorTraderCount: state.seniorTraderCount,
+    tradingServerCount: state.tradingServerCount,
     tradingBotCount: state.tradingBotCount,
+    juniorResearchScientistCount: state.juniorResearchScientistCount,
+    seniorResearchScientistCount: state.seniorResearchScientistCount,
+    serverRoomCount: state.serverRoomCount,
+    dataCenterCount: state.dataCenterCount,
     purchasedUpgrades: state.purchasedUpgrades,
+    purchasedResearchTech: state.purchasedResearchTech,
+    purchasedPolicies: state.purchasedPolicies,
     purchasedPrestigeUpgrades: state.purchasedPrestigeUpgrades,
     lastSaveTimestamp: state.lastSaveTimestamp,
     totalOfflineSecondsApplied: state.totalOfflineSecondsApplied,
@@ -70,13 +81,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set((state) => {
       const gain = getCashPerSecond(state) * deltaSeconds
+      const researchGain = getResearchPointsPerSecond(state) * deltaSeconds
+      const influenceGain = getInfluencePerSecond(state) * deltaSeconds
 
-      if (gain <= 0) {
+      if (gain <= 0 && researchGain <= 0 && influenceGain <= 0) {
         return { lastSaveTimestamp: Date.now() }
       }
 
       return {
         cash: state.cash + gain,
+        researchPoints: state.researchPoints + researchGain,
+        influence: state.influence + influenceGain,
         lifetimeCashEarned: state.lifetimeCashEarned + gain,
         lastSaveTimestamp: Date.now(),
       }
@@ -112,10 +127,54 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
+      if (unitId === 'tradingServer') {
+        return {
+          ...nextState,
+          tradingServerCount: state.tradingServerCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'juniorResearchScientist') {
+        return {
+          ...nextState,
+          juniorResearchScientistCount: state.juniorResearchScientistCount + result.quantity,
+        }
+      }
+
+      if (unitId === 'seniorResearchScientist') {
+        return {
+          ...nextState,
+          seniorResearchScientistCount: state.seniorResearchScientistCount + result.quantity,
+        }
+      }
+
       return {
         ...nextState,
         tradingBotCount: state.tradingBotCount + result.quantity,
       }
+    })
+  },
+  buyPowerInfrastructure: (infrastructureId: PowerInfrastructureId, quantity: BuyMode) => {
+    set((state) => {
+      if (!isPowerInfrastructureUnlocked(state)) {
+        return state
+      }
+
+      const result = getBulkPowerInfrastructureCost(state, infrastructureId, quantity)
+
+      if (result.quantity <= 0 || state.cash < result.totalCost) {
+        return state
+      }
+
+      const nextState = {
+        cash: state.cash - result.totalCost,
+      }
+
+      if (infrastructureId === 'serverRoom') {
+        return { ...nextState, serverRoomCount: state.serverRoomCount + result.quantity }
+      }
+
+      return { ...nextState, dataCenterCount: state.dataCenterCount + result.quantity }
     })
   },
   buyUpgrade: (upgradeId) => {
@@ -139,6 +198,56 @@ export const useGameStore = create<GameStore>((set, get) => ({
         purchasedUpgrades: {
           ...state.purchasedUpgrades,
           [upgradeId]: true,
+        },
+      }
+    })
+  },
+  buyResearchTech: (techId: ResearchTechId) => {
+    set((state) => {
+      const tech = getResearchTechDefinition(techId)
+
+      if (!tech || state.purchasedResearchTech[techId]) {
+        return state
+      }
+
+      if (tech.visibleWhen && !tech.visibleWhen(state)) {
+        return state
+      }
+
+      if (state.researchPoints < tech.researchCost) {
+        return state
+      }
+
+      return {
+        researchPoints: state.researchPoints - tech.researchCost,
+        purchasedResearchTech: {
+          ...state.purchasedResearchTech,
+          [techId]: true,
+        },
+      }
+    })
+  },
+  buyLobbyingPolicy: (policyId: LobbyingPolicyId) => {
+    set((state) => {
+      const policy = getLobbyingPolicyDefinition(policyId)
+
+      if (!policy || state.purchasedPolicies[policyId]) {
+        return state
+      }
+
+      if (state.purchasedResearchTech.regulatoryAffairs !== true) {
+        return state
+      }
+
+      if (state.influence < policy.influenceCost) {
+        return state
+      }
+
+      return {
+        influence: state.influence - policy.influenceCost,
+        purchasedPolicies: {
+          ...state.purchasedPolicies,
+          [policyId]: true,
         },
       }
     })
@@ -175,8 +284,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => {
       const appliedSeconds = Math.min(secondsAway, getOfflineSecondsApplied(Date.now() - secondsAway * 1000, Date.now()))
       const cashEarned = getCashPerSecond(state) * appliedSeconds
+      const researchEarned = getResearchPointsPerSecond(state) * appliedSeconds
+      const influenceEarned = getInfluencePerSecond(state) * appliedSeconds
 
-      if (appliedSeconds <= 0 || cashEarned <= 0) {
+      if (appliedSeconds <= 0 || (cashEarned <= 0 && researchEarned <= 0 && influenceEarned <= 0)) {
         return {
           offlineSummary: null,
         }
@@ -184,6 +295,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       return {
         cash: state.cash + cashEarned,
+        researchPoints: state.researchPoints + researchEarned,
+        influence: state.influence + influenceEarned,
         lifetimeCashEarned: state.lifetimeCashEarned + cashEarned,
         totalOfflineSecondsApplied: state.totalOfflineSecondsApplied + appliedSeconds,
         lastSaveTimestamp: Date.now(),
@@ -191,6 +304,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           secondsAway,
           appliedSeconds,
           cashEarned,
+          researchEarned,
+          influenceEarned,
         },
         activeModal: 'offlineEarnings',
       }
@@ -222,21 +337,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const secondsAway = getElapsedOfflineSeconds(savedState.lastSaveTimestamp, now)
       const appliedSeconds = getOfflineSecondsApplied(savedState.lastSaveTimestamp, now)
       const cashEarned = getCashPerSecond(savedState) * appliedSeconds
+      const researchEarned = getResearchPointsPerSecond(savedState) * appliedSeconds
+      const influenceEarned = getInfluencePerSecond(savedState) * appliedSeconds
 
       return {
         ...savedState,
         appInfo: state.appInfo,
         activeTab: state.activeTab,
-        activeModal: cashEarned > 0 ? 'offlineEarnings' : null,
+        activeModal: cashEarned > 0 || researchEarned > 0 || influenceEarned > 0 ? 'offlineEarnings' : null,
         offlineSummary:
-          cashEarned > 0
+          cashEarned > 0 || researchEarned > 0 || influenceEarned > 0
             ? {
                 secondsAway,
                 appliedSeconds,
                 cashEarned,
+                researchEarned,
+                influenceEarned,
               }
             : null,
         cash: savedState.cash + cashEarned,
+        researchPoints: savedState.researchPoints + researchEarned,
+        influence: savedState.influence + influenceEarned,
         lifetimeCashEarned: savedState.lifetimeCashEarned + cashEarned,
         totalOfflineSecondsApplied: savedState.totalOfflineSecondsApplied + appliedSeconds,
         lastSaveTimestamp: now,
@@ -266,7 +387,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const secondsAway = getElapsedOfflineSeconds(importedState.lastSaveTimestamp, now)
     const appliedSeconds = getOfflineSecondsApplied(importedState.lastSaveTimestamp, now)
     const cashEarned = getCashPerSecond(importedState) * appliedSeconds
-    const activeModal: ModalId | null = cashEarned > 0 ? 'offlineEarnings' : null
+    const researchEarned = getResearchPointsPerSecond(importedState) * appliedSeconds
+    const influenceEarned = getInfluencePerSecond(importedState) * appliedSeconds
+    const activeModal: ModalId | null = cashEarned > 0 || researchEarned > 0 || influenceEarned > 0 ? 'offlineEarnings' : null
 
     const hydratedState: Partial<GameStore> = {
       ...importedState,
@@ -274,14 +397,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       activeTab: currentState.activeTab,
       activeModal,
       offlineSummary:
-        cashEarned > 0
+        cashEarned > 0 || researchEarned > 0 || influenceEarned > 0
           ? {
               secondsAway,
               appliedSeconds,
               cashEarned,
+              researchEarned,
+              influenceEarned,
             }
           : null,
       cash: importedState.cash + cashEarned,
+      researchPoints: importedState.researchPoints + researchEarned,
+      influence: importedState.influence + influenceEarned,
       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
@@ -290,6 +417,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     saveStateToStorage({
       ...importedState,
       cash: importedState.cash + cashEarned,
+      researchPoints: importedState.researchPoints + researchEarned,
+      influence: importedState.influence + influenceEarned,
       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
@@ -303,6 +432,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setActiveTab: (tab) => {
     set({ activeTab: tab })
   },
+  setActiveDeskView: (view: DeskViewId) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        activeDeskView: view,
+      },
+    }))
+  },
   setUnitBuyMode: (unitId, mode) => {
     set((state) => ({
       ui: {
@@ -310,6 +447,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
         unitBuyModes: {
           ...state.ui.unitBuyModes,
           [unitId]: mode,
+        },
+      },
+    }))
+  },
+  setPowerBuyMode: (infrastructureId, mode) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        powerBuyModes: {
+          ...state.ui.powerBuyModes,
+          [infrastructureId]: mode,
         },
       },
     }))

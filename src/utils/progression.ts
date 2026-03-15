@@ -29,7 +29,7 @@ export function getProgressionPhase(state: GameState): ProgressionPhaseId {
     return 'prestige-decision'
   }
 
-  if (state.purchasedUpgrades.algorithmicTrading || state.tradingBotCount > 0) {
+  if (state.purchasedResearchTech.algorithmicTrading || state.tradingBotCount > 0) {
     return 'bot-era'
   }
 
@@ -78,7 +78,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
   }
 
   if (phaseId === 'firm-growth') {
-    if (state.seniorTraderCount < 5 && !state.purchasedUpgrades.algorithmicTrading) {
+    if (state.seniorTraderCount < 5 && !state.purchasedResearchTech.algorithmicTrading) {
       return {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
@@ -92,8 +92,8 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Open the automation era.',
-      objective: 'Your human desk is strong enough. Research Algorithmic Trading to unlock Trading Bots.',
-      nextTarget: 'Algorithmic Trading in Research for $100,000.',
+      objective: 'Your human desk is strong enough. Research Algorithmic Trading with Research Points to unlock Trading Bots.',
+      nextTarget: 'Algorithmic Trading in Research for 100 RP.',
     }
   }
 
@@ -104,7 +104,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Scale automation until reset value appears.',
-      objective: 'Bots are online. Use upgrades and bulk buying to push lifetime cash into a worthwhile prestige.',
+      objective: 'Bots are online. Build infrastructure support, push into Data Centres and Trading Servers, and convert automation into a worthwhile prestige.',
       nextTarget: prestigeGain > 0 ? `You can already claim ${prestigeGain} Reputation after adding at least one bot.` : 'Keep pushing bot income until Reputation becomes available.',
     }
   }
