@@ -215,6 +215,10 @@ export function getInternIncome(state: GameState): number {
 export function getJuniorTraderIncome(state: GameState): number {
   let value: number = UNITS.juniorTrader.baseIncomePerSecond
 
+  if (state.purchasedUpgrades.trainingProgram) {
+    value += 0.8
+  }
+
   if (state.purchasedUpgrades.marketScanner) {
     value *= 1.1
   }
@@ -274,7 +278,7 @@ export function getPropDeskIncome(state: GameState): number {
   let value = UNITS.propDesk.baseIncomePerSecond
 
   if (state.purchasedUpgrades.propDeskMandates) {
-    value *= 1.25
+    value *= 1.5
   }
 
   return value * getPropDeskOptimizationMultiplier(state)

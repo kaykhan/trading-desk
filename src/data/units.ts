@@ -36,7 +36,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     name: 'Prop Desk',
     baseCost: 18_000,
     costScaling: 1.2,
-    baseIncomePerSecond: 85,
+    baseIncomePerSecond: 120,
     description: 'A coordinated in-house team that marks the jump from individual traders to a real desk.',
     tab: 'operations',
     unlockUpgradeId: 'propDeskOperations',

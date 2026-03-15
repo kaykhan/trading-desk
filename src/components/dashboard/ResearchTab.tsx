@@ -38,11 +38,11 @@ type ResearchGraphData = {
 
 const RESEARCH_TREE: ResearchNodeDefinition[] = [
   { id: 'juniorHiringProgram', kind: 'upgrade', x: 20, y: 150, title: 'Recruiter', description: 'Open the first staffing lane for interns and scientists.', costLabel: '$50' },
-  { id: 'juniorScientists', kind: 'tech', x: 255, y: 45, title: 'Junior Scientists', description: 'Unlock the second research staffing tier.', costLabel: '180 RP' },
+  { id: 'juniorScientists', kind: 'tech', x: 255, y: 45, title: 'Junior Scientists', description: 'Unlock the second research staffing tier.', costLabel: '100 RP' },
   { id: 'seniorScientists', kind: 'tech', x: 500, y: 45, title: 'Senior Scientists', description: 'Unlock the top research staffing tier.', costLabel: '1,000 RP' },
   { id: 'juniorTraderProgram', kind: 'upgrade', x: 255, y: 150, title: 'Junior Trader Program', description: 'Promote the desk from interns into the junior trader tier.', costLabel: '$400' },
-  { id: 'seniorRecruitment', kind: 'upgrade', x: 500, y: 150, title: 'Senior Recruitment', description: 'Open the senior trader lane for the desk.', costLabel: '$5,000' },
-  { id: 'propDeskOperations', kind: 'tech', x: 745, y: 45, title: 'Prop Desk Operations', description: 'Unlock Prop Desks as the first organized human trading team.', costLabel: '200 RP' },
+  { id: 'seniorRecruitment', kind: 'upgrade', x: 500, y: 150, title: 'Senior Recruitment', description: 'Open the senior trader lane for the desk.', costLabel: '$3,000' },
+  { id: 'propDeskOperations', kind: 'tech', x: 745, y: 45, title: 'Prop Desk Operations', description: 'Unlock Prop Desks as the first organized human trading team.', costLabel: '100 RP' },
   { id: 'algorithmicTrading', kind: 'tech', x: 745, y: 150, title: 'Algorithmic Trading', description: 'Unlock Rule-Based Bots and the first automation era.', costLabel: '700 RP' },
   { id: 'institutionalDesks', kind: 'tech', x: 990, y: 45, title: 'Institutional Desks', description: 'Unlock larger coordinated trading organizations.', costLabel: '1,500 RP' },
   { id: 'powerSystemsEngineering', kind: 'tech', x: 990, y: 150, title: 'Power Systems Engineering', description: 'Expand from starter racks into Server Rooms and machine support systems.', costLabel: '500 RP' },

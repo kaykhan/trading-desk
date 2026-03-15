@@ -18,7 +18,7 @@ export const RESEARCH_TECH: ResearchTechDefinition[] = [
   {
     id: 'juniorScientists',
     name: 'Junior Scientists',
-    researchCost: 180,
+    researchCost: 100,
     description: 'Unlock Junior Scientists for the research team.',
     visibleWhen: (state) => state.internResearchScientistCount >= 5 || state.researchPoints >= 40,
   },
@@ -32,7 +32,7 @@ export const RESEARCH_TECH: ResearchTechDefinition[] = [
   {
     id: 'propDeskOperations',
     name: 'Prop Desk Operations',
-    researchCost: 200,
+    researchCost: 100,
     description: 'Unlock Prop Desks as the first move from traders to organized teams.',
     visibleWhen: (state) => state.seniorTraderCount >= 5,
   },
