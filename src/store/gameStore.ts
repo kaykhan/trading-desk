@@ -19,7 +19,7 @@ type StoreUiState = {
 
 const initialUiState: StoreUiState = {
   appInfo: null,
-  activeTab: 'research',
+  activeTab: 'upgrades',
   activeModal: null,
   offlineSummary: null,
   latestTradeFeedback: null,

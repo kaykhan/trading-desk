@@ -2,7 +2,7 @@ import type { AppInfo } from '../../shared/game'
 
 export type UpgradeCategory = 'trading' | 'operations' | 'research' | 'prestige'
 
-export type GameTabId = 'desk' | 'research' | 'prestige' | 'stats' | 'settings'
+export type GameTabId = 'desk' | 'upgrades' | 'research' | 'prestige' | 'stats' | 'settings'
 
 export type UnitId = 'juniorTrader' | 'seniorTrader' | 'tradingBot'
 

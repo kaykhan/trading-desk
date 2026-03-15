@@ -1,15 +1,14 @@
-import { ArrowRight, BriefcaseBusiness, Cpu, TrendingUp, Users } from 'lucide-react'
-import { OPERATIONS_UPGRADES, TRADING_UPGRADES } from '@/data/tabContent'
+import { BriefcaseBusiness, Cpu, TrendingUp, Users } from 'lucide-react'
 import { UNITS } from '@/data/units'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
-import type { BuyMode, UnitId, UpgradeId } from '@/types/game'
+import type { BuyMode, UnitId } from '@/types/game'
 import { formatCurrency, formatRate } from '@/utils/formatting'
 import { getProgressionSummary } from '@/utils/progression'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ActionRow, SummaryTile } from './DashboardPrimitives'
+import { SummaryTile } from './DashboardPrimitives'
 
 const BUY_MODES: BuyMode[] = [1, 5, 10, 'max']
 
@@ -17,7 +16,6 @@ type DeskSectionConfig = {
   unitId: UnitId
   title: string
   unlockLabel: string
-  upgradeIds: UpgradeId[]
 }
 
 type RowTone = 'default' | 'ready' | 'locked' | 'done'
@@ -67,19 +65,16 @@ const DESK_SECTIONS: DeskSectionConfig[] = [
     unitId: 'juniorTrader',
     title: 'Junior Desk',
     unlockLabel: 'Research Junior Hiring Program to open this desk.',
-    upgradeIds: ['deskUpgrade', 'trainingProgram'],
   },
   {
     unitId: 'seniorTrader',
     title: 'Senior Desk',
     unlockLabel: 'Reach 5 Juniors, then research Senior Recruitment.',
-    upgradeIds: ['executiveTraining'],
   },
   {
     unitId: 'tradingBot',
     title: 'Bot Desk',
     unlockLabel: 'Reach 5 Seniors, then research Algorithmic Trading.',
-    upgradeIds: ['lowLatencyServers'],
   },
 ]
 
@@ -87,7 +82,6 @@ export function DeskTab() {
   const gameState = useGameStore((state) => state)
   const makeTrade = useGameStore((state) => state.makeTrade)
   const buyUnit = useGameStore((state) => state.buyUnit)
-  const buyUpgrade = useGameStore((state) => state.buyUpgrade)
   const setUnitBuyMode = useGameStore((state) => state.setUnitBuyMode)
   const latestTradeFeedback = useGameStore((state) => state.latestTradeFeedback)
   const progressionSummary = getProgressionSummary(gameState)
@@ -219,32 +213,6 @@ export function DeskTab() {
                 </div>
               </div>
 
-              <div className="mt-3 grid gap-2 xl:grid-cols-3">
-                {TRADING_UPGRADES.map((upgrade) => {
-                  const isPurchased = selectors.isUpgradePurchased(upgrade.id)(gameState)
-                  const visible = selectors.isUpgradeVisible(upgrade.id)(gameState)
-                  const shortfall = selectors.upgradeCashShortfall(upgrade.id)(gameState)
-
-                  if (!visible) {
-                    return null
-                  }
-
-                  return (
-                    <ActionRow
-                      key={upgrade.id}
-                      title={upgrade.name}
-                      description={upgrade.description}
-                      cost={`Cost ${formatCurrency(upgrade.cost)}`}
-                      status={isPurchased ? 'Purchased' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                      statusTone={isPurchased ? 'done' : shortfall > 0 ? 'default' : 'ready'}
-                      actionLabel={isPurchased ? 'Purchased' : 'Upgrade'}
-                      disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
-                      disabledReason={!isPurchased && shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined}
-                      onClick={() => buyUpgrade(upgrade.id)}
-                    />
-                  )
-                })}
-              </div>
             </div>
 
           </CardContent>
@@ -319,45 +287,6 @@ export function DeskTab() {
                           {unitMeta.purchaseLabel}
                         </Button>
                       </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <ArrowRight className="size-3.5 text-primary" />
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Relevant upgrades</p>
-                  </div>
-                  <div className="grid gap-2 xl:grid-cols-2">
-                    {section.upgradeIds.map((upgradeId) => {
-                      const upgrade = OPERATIONS_UPGRADES.find((item) => item.id === upgradeId)
-
-                      if (!upgrade) {
-                        return null
-                      }
-
-                      const isPurchased = selectors.isUpgradePurchased(upgrade.id)(gameState)
-                      const visible = selectors.isUpgradeVisible(upgrade.id)(gameState)
-                      const shortfall = selectors.upgradeCashShortfall(upgrade.id)(gameState)
-
-                      if (!visible) {
-                        return null
-                      }
-
-                      return (
-                        <ActionRow
-                          key={upgrade.id}
-                          title={upgrade.name}
-                          description={upgrade.description}
-                          cost={`Cost ${formatCurrency(upgrade.cost)}`}
-                          status={isPurchased ? 'Purchased' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                          statusTone={isPurchased ? 'done' : shortfall > 0 ? 'default' : 'ready'}
-                          actionLabel={isPurchased ? 'Purchased' : 'Upgrade'}
-                          disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
-                          disabledReason={!isPurchased && shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined}
-                          onClick={() => buyUpgrade(upgrade.id)}
-                        />
-                      )
-                    })}
-                  </div>
                 </div>
 
               </CardContent>

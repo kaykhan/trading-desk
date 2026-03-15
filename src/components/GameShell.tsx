@@ -1,15 +1,20 @@
-import { BarChart3, BrainCircuit, Landmark, Settings2 } from 'lucide-react'
+import { BarChart3, BrainCircuit, Landmark, Settings2, TrendingUp } from 'lucide-react'
 import { DeskTab } from '@/components/dashboard/DeskTab'
 import { HeaderStats } from '@/components/dashboard/HeaderStats'
 import { PrestigeTab } from '@/components/dashboard/PrestigeTab'
 import { ResearchTab } from '@/components/dashboard/ResearchTab'
 import { SettingsTab } from '@/components/dashboard/SettingsTab'
 import { StatsTab } from '@/components/dashboard/StatsTab'
+import { UpgradesTab } from '@/components/dashboard/UpgradesTab'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGameStore } from '@/store/gameStore'
 
 const tabMetaById = {
+  upgrades: {
+    label: 'Upgrades',
+    description: 'Buy trading and desk upgrades without repeating them in the desk lane.',
+  },
   research: {
     label: 'Research',
     description: 'Review the full research list outside the main desk flow.',
@@ -31,7 +36,7 @@ const tabMetaById = {
 export function GameShell() {
   const activeTab = useGameStore((state) => state.activeTab)
   const setActiveTab = useGameStore((state) => state.setActiveTab)
-  const safeActiveTab = activeTab === 'desk' ? 'research' : activeTab
+  const safeActiveTab = activeTab === 'desk' ? 'upgrades' : activeTab
   const activeTabMeta = tabMetaById[safeActiveTab]
 
   return (
@@ -44,7 +49,8 @@ export function GameShell() {
         <Tabs value={safeActiveTab} onValueChange={(value) => setActiveTab(value as typeof safeActiveTab)} className="min-h-0 flex flex-col overflow-hidden">
           <Card className="terminal-panel shrink-0 rounded-xl border-border/80 bg-card/92">
             <CardContent className="space-y-2 p-2.5">
-              <TabsList className="grid h-auto w-full grid-cols-4 gap-1 rounded-xl border border-border/80 bg-background/65 p-1">
+              <TabsList className="grid h-auto w-full grid-cols-5 gap-1 rounded-xl border border-border/80 bg-background/65 p-1">
+                <TabsTrigger value="upgrades" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] data-active:bg-primary data-active:text-primary-foreground"><TrendingUp className="size-3.5" />Upgrades</TabsTrigger>
                 <TabsTrigger value="research" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] data-active:bg-primary data-active:text-primary-foreground"><BrainCircuit className="size-3.5" />Research</TabsTrigger>
                 <TabsTrigger value="prestige" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] data-active:bg-primary data-active:text-primary-foreground"><BarChart3 className="size-3.5" />Prestige</TabsTrigger>
                 <TabsTrigger value="stats" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] data-active:bg-primary data-active:text-primary-foreground"><Landmark className="size-3.5" />Stats</TabsTrigger>
@@ -55,6 +61,7 @@ export function GameShell() {
             </CardContent>
           </Card>
 
+          <TabsContent value="upgrades" className="min-h-0 overflow-hidden"><UpgradesTab /></TabsContent>
           <TabsContent value="research" className="min-h-0 overflow-hidden"><ResearchTab /></TabsContent>
           <TabsContent value="prestige" className="min-h-0 overflow-hidden"><PrestigeTab /></TabsContent>
           <TabsContent value="stats" className="min-h-0 overflow-hidden"><StatsTab /></TabsContent>
