@@ -1,192 +1,202 @@
 import { memo, useMemo, useState } from 'react'
-import { BrainCircuit, Cpu, Expand, TrendingUp } from 'lucide-react'
 import { Background, Handle, MarkerType, Position, ReactFlow, type Edge, type Node, type NodeProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { RESEARCH_TECH } from '@/data/researchTech'
+import { BrainCircuit, ChevronDown, ChevronUp, Cpu, Expand, GitBranch, Landmark, TrendingUp, Users } from 'lucide-react'
+import { RESEARCH_BRANCH_DESCRIPTIONS, RESEARCH_BRANCH_LABELS, RESEARCH_BRANCH_ORDER, getResearchTechsByBranch, RESEARCH_TECH } from '@/data/researchTech'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
-import type { ResearchTechId, UpgradeId } from '@/types/game'
-import { formatCurrency, formatPlainRate } from '@/utils/formatting'
+import type { ResearchBranchId, ResearchTechDefinition, ResearchTechId } from '@/types/game'
+import { formatCurrency, formatNumber, formatPlainRate } from '@/utils/formatting'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SummaryTile } from './DashboardPrimitives'
 
-type ResearchNodeId = UpgradeId | ResearchTechId
-
-type ResearchNodeDefinition = {
-  id: ResearchNodeId
-  kind: 'upgrade' | 'tech'
-  x: number
-  y: number
-  title: string
-  description: string
-  costLabel: string
-}
-
 type ResearchGraphData = {
-  id: ResearchNodeId
   title: string
-  kind: 'upgrade' | 'tech'
   costLabel: string
+  branchLabel: string
   status: string
+  reason: string
   isPurchased: boolean
   isLocked: boolean
   isReady: boolean
-  isSelected: boolean
+  accentClass: string
 }
 
-const RESEARCH_TREE: ResearchNodeDefinition[] = [
-  { id: 'juniorHiringProgram', kind: 'upgrade', x: 20, y: 150, title: 'Recruiter', description: 'Open the first staffing lane for interns and scientists.', costLabel: '$50' },
-  { id: 'juniorScientists', kind: 'tech', x: 255, y: 45, title: 'Junior Scientists', description: 'Unlock the second research staffing tier.', costLabel: '100 RP' },
-  { id: 'seniorScientists', kind: 'tech', x: 500, y: 45, title: 'Senior Scientists', description: 'Unlock the top research staffing tier.', costLabel: '1,000 RP' },
-  { id: 'juniorTraderProgram', kind: 'upgrade', x: 255, y: 150, title: 'Junior Trader Program', description: 'Promote the desk from interns into the junior trader tier.', costLabel: '$400' },
-  { id: 'seniorRecruitment', kind: 'upgrade', x: 500, y: 150, title: 'Senior Recruitment', description: 'Open the senior trader lane for the desk.', costLabel: '$3,000' },
-  { id: 'propDeskOperations', kind: 'tech', x: 745, y: 45, title: 'Prop Desk Operations', description: 'Unlock Prop Desks as the first organized human trading team.', costLabel: '100 RP' },
-  { id: 'algorithmicTrading', kind: 'tech', x: 745, y: 150, title: 'Algorithmic Trading', description: 'Unlock Rule-Based Bots and the first automation era.', costLabel: '700 RP' },
-  { id: 'institutionalDesks', kind: 'tech', x: 990, y: 45, title: 'Institutional Desks', description: 'Unlock larger coordinated trading organizations.', costLabel: '1,500 RP' },
-  { id: 'powerSystemsEngineering', kind: 'tech', x: 990, y: 150, title: 'Power Systems Engineering', description: 'Expand from starter racks into Server Rooms and machine support systems.', costLabel: '500 RP' },
-  { id: 'hedgeFundStrategies', kind: 'tech', x: 1235, y: 45, title: 'Hedge Fund Strategies', description: 'Unlock Hedge Funds as a major capital tier.', costLabel: '7,500 RP' },
-  { id: 'dataCenterSystems', kind: 'tech', x: 1235, y: 150, title: 'Data Centre Systems', description: 'Unlock Data Centres and ML Trading Bots for dense infrastructure scaling.', costLabel: '9,000 RP' },
-  { id: 'regulatoryAffairs', kind: 'tech', x: 1235, y: 255, title: 'Regulatory Affairs', description: 'Unlock lobbying and institutional policy strategy.', costLabel: '6,000 RP' },
-  { id: 'investmentFirms', kind: 'tech', x: 1480, y: 45, title: 'Investment Firms', description: 'Unlock the broad top-tier human trading organization.', costLabel: '20,000 RP' },
-  { id: 'aiTradingSystems', kind: 'tech', x: 1480, y: 150, title: 'AI Trading Systems', description: 'Unlock AI Trading Bots and Cloud Infrastructure as the late machine tier after Data Centre research.', costLabel: '22,000 RP' },
-]
-
-const TREE_CONNECTIONS: Array<{ from: ResearchNodeId; to: ResearchNodeId }> = [
-  { from: 'juniorHiringProgram', to: 'juniorScientists' },
-  { from: 'juniorScientists', to: 'seniorScientists' },
-  { from: 'juniorHiringProgram', to: 'juniorTraderProgram' },
-  { from: 'juniorTraderProgram', to: 'seniorRecruitment' },
-  { from: 'seniorRecruitment', to: 'algorithmicTrading' },
-  { from: 'seniorRecruitment', to: 'propDeskOperations' },
-  { from: 'propDeskOperations', to: 'institutionalDesks' },
-  { from: 'algorithmicTrading', to: 'powerSystemsEngineering' },
-  { from: 'institutionalDesks', to: 'hedgeFundStrategies' },
-  { from: 'hedgeFundStrategies', to: 'investmentFirms' },
-  { from: 'powerSystemsEngineering', to: 'dataCenterSystems' },
-  { from: 'dataCenterSystems', to: 'aiTradingSystems' },
-  { from: 'powerSystemsEngineering', to: 'regulatoryAffairs' },
-]
-
-function getUpgradeLockedReason(upgradeId: UpgradeId, state: ReturnType<typeof useGameStore.getState>) {
-  if (upgradeId === 'juniorTraderProgram') {
-    return `Requires 5 Interns (${state.internCount}/5).`
-  }
-
-  if (upgradeId === 'seniorRecruitment') {
-    return `Requires 5 Junior Traders (${state.juniorTraderCount}/5).`
-  }
-
-  return 'Research this earlier node first.'
+type ResearchGroupData = {
+  title: string
+  subtitle: string
+  accentClass: string
+  variant?: 'default' | 'office' | 'energy'
 }
 
-function getUpgradeLockedStatus(upgradeId: UpgradeId) {
-  if (upgradeId === 'juniorTraderProgram') {
-    return 'Need 5 Interns'
-  }
+const NODE_WIDTH = 210
+const NODE_HEIGHT = 124
 
-  if (upgradeId === 'seniorRecruitment') {
-    return 'Need 5 Juniors'
-  }
-
-  return 'Locked'
+const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
+  id: string
+  title: string
+  subtitle: string
+  techIds: ResearchTechId[]
+  paddingTop?: number
+  paddingBottom?: number
+  paddingX?: number
+  variant?: 'default' | 'office' | 'energy'
+}>>> = {
+  humanCapital: [
+    {
+      id: 'human-capital-specialist-training',
+      title: 'Specialist Training',
+      subtitle: 'Finance, technology, and energy trader programs',
+      techIds: ['financeSpecialistTraining', 'technologySpecialistTraining', 'energySpecialistTraining'],
+      paddingTop: 92,
+      paddingBottom: 56,
+      paddingX: 36,
+      variant: 'default',
+    },
+  ],
+  infrastructure: [
+    {
+      id: 'infrastructure-office-growth',
+      title: 'Office Growth',
+      subtitle: 'Research planning milestones for larger human workspace expansion',
+      techIds: ['floorSpacePlanning', 'officeExpansionPlanning'],
+      paddingTop: 96,
+      paddingBottom: 68,
+      paddingX: 40,
+      variant: 'office',
+    },
+    {
+      id: 'infrastructure-energy-systems',
+      title: 'Energy Systems',
+      subtitle: 'Machine power infrastructure and late-run compute expansion',
+      techIds: ['powerSystemsEngineering', 'dataCenterSystems', 'aiTradingSystems'],
+      paddingTop: 96,
+      paddingBottom: 68,
+      paddingX: 40,
+      variant: 'energy',
+    },
+  ],
+  regulation: [
+    {
+      id: 'regulation-mandate-frameworks',
+      title: 'Mandate Frameworks',
+      subtitle: 'Institutional sector-focus frameworks for desks, funds, and firms',
+      techIds: ['financeMandateFramework', 'techGrowthMandateFramework', 'energyExposureFramework'],
+      paddingTop: 96,
+      paddingBottom: 64,
+      paddingX: 38,
+      variant: 'energy',
+    },
+  ],
 }
 
-function getTechLockedReason(techId: ResearchTechId, state: ReturnType<typeof useGameStore.getState>) {
-  if (techId === 'algorithmicTrading') {
-    return `Requires 5 Senior Traders (${state.seniorTraderCount}/5).`
-  }
-
-  if (techId === 'propDeskOperations') {
-    return `Requires 5 Senior Traders (${state.seniorTraderCount}/5).`
-  }
-
-  if (techId === 'institutionalDesks') {
-    return `Requires Prop Desk Operations and 3 Prop Desks (${state.propDeskCount}/3).`
-  }
-
-  if (techId === 'hedgeFundStrategies') {
-    return `Requires Institutional Desks and 2 Institutional Desks (${state.institutionalDeskCount}/2).`
-  }
-
-  if (techId === 'investmentFirms') {
-    return `Requires Hedge Fund Strategies and 1 Hedge Fund (${state.hedgeFundCount}/1).`
-  }
-
-  if (techId === 'seniorScientists') {
-    return `Requires 5 Junior Scientists (${state.juniorResearchScientistCount}/5) or deeper research reserves.`
-  }
-
-  if (techId === 'juniorScientists') {
-    return `Requires 5 Intern Scientists (${state.internResearchScientistCount}/5) or deeper research reserves.`
-  }
-
-  if (techId === 'powerSystemsEngineering') {
-    return 'Requires Recruiter first.'
-  }
-
-  if (techId === 'dataCenterSystems') {
-    return `Requires Power Systems Engineering and 5 Rule-Based Bots (${state.ruleBasedBotCount}/5).`
-  }
-
-  if (techId === 'aiTradingSystems') {
-    return `Requires Data Centre Systems and 3 ML Trading Bots (${state.mlTradingBotCount}/3).`
-  }
-
-  if (techId === 'regulatoryAffairs') {
-    return 'Requires Power Systems Engineering first.'
-  }
-
-  return 'Research this earlier node first.'
+const BRANCH_THEMES: Record<ResearchBranchId, {
+  icon: typeof GitBranch
+  badge: string
+  edge: string
+  background: string
+  glow: string
+}> = {
+  markets: {
+    icon: TrendingUp,
+    badge: 'text-amber-300',
+    edge: 'rgba(245, 158, 11, 0.65)',
+    background: 'from-amber-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(245,158,11,0.18)]',
+  },
+  humanCapital: {
+    icon: Users,
+    badge: 'text-sky-300',
+    edge: 'rgba(56, 189, 248, 0.65)',
+    background: 'from-sky-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(56,189,248,0.18)]',
+  },
+  infrastructure: {
+    icon: Cpu,
+    badge: 'text-emerald-300',
+    edge: 'rgba(16, 185, 129, 0.65)',
+    background: 'from-emerald-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(16,185,129,0.18)]',
+  },
+  automation: {
+    icon: BrainCircuit,
+    badge: 'text-violet-300',
+    edge: 'rgba(167, 139, 250, 0.7)',
+    background: 'from-violet-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(167,139,250,0.18)]',
+  },
+  regulation: {
+    icon: Landmark,
+    badge: 'text-rose-300',
+    edge: 'rgba(244, 63, 94, 0.65)',
+    background: 'from-rose-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(244,63,94,0.18)]',
+  },
 }
 
-function getTechLockedStatus(techId: ResearchTechId) {
-  if (techId === 'algorithmicTrading') {
-    return 'Need 5 Seniors'
+function formatResearchCostLabel(cost: number, currency: 'cash' | 'researchPoints') {
+  return currency === 'cash' ? formatCurrency(cost) : `${formatNumber(cost)} RP`
+}
+
+function getResearchStatus(gameState: ReturnType<typeof useGameStore.getState>, techId: ResearchTechId) {
+  const purchased = selectors.isResearchTechPurchased(techId)(gameState)
+  const visible = selectors.isResearchTechVisible(techId)(gameState)
+  const unlocked = selectors.isResearchTechUnlocked(techId)(gameState)
+  const shortfall = selectors.researchTechShortfall(techId)(gameState)
+  const missingPrerequisites = selectors.missingResearchPrerequisites(techId)(gameState)
+  const tech = RESEARCH_TECH.find((item) => item.id === techId)
+
+  if (purchased) {
+    return { status: 'Purchased', tone: 'done', disabled: true, reason: 'Already researched.' }
   }
 
-  if (techId === 'propDeskOperations') {
-    return 'Need 5 Seniors'
+  if (missingPrerequisites.length > 0) {
+    return {
+      status: 'Locked',
+      tone: 'locked',
+      disabled: true,
+      reason: `Requires ${missingPrerequisites.map((item) => item.name).join(', ')} first.`,
+    }
   }
 
-  if (techId === 'institutionalDesks') {
-    return 'Need 3 Prop Desks'
+  if (tech?.lockedReason && (!visible || !unlocked)) {
+    return {
+      status: 'Locked',
+      tone: 'locked',
+      disabled: true,
+      reason: tech.lockedReason(gameState),
+    }
   }
 
-  if (techId === 'hedgeFundStrategies') {
-    return 'Need 2 Inst Desks'
+  if (!visible) {
+    return { status: 'Future', tone: 'locked', disabled: true, reason: 'Progress further in the current run to reveal this node.' }
   }
 
-  if (techId === 'investmentFirms') {
-    return 'Need Hedge Fund'
+  if (!unlocked) {
+    return {
+      status: 'Locked',
+      tone: 'locked',
+      disabled: true,
+      reason: tech?.lockedReason ? tech.lockedReason(gameState) : 'Meet this node\'s run requirement first.',
+    }
   }
 
-  if (techId === 'seniorScientists') {
-    return 'Need Jr Scientists'
+  if (shortfall > 0) {
+    return {
+      status: 'Need funds',
+      tone: 'default',
+      disabled: true,
+      reason: `Need ${formatResearchCostLabel(shortfall, tech?.currency ?? 'researchPoints')} more.`,
+    }
   }
 
-  if (techId === 'juniorScientists') {
-    return 'Need Int Scientists'
-  }
+  return { status: 'Ready', tone: 'ready', disabled: false, reason: 'Ready to research.' }
+}
 
-  if (techId === 'powerSystemsEngineering') {
-    return 'Need Recruiter'
-  }
-
-  if (techId === 'dataCenterSystems') {
-    return 'Need 5 Rule Bots'
-  }
-
-  if (techId === 'aiTradingSystems') {
-    return 'Need 3 ML Bots'
-  }
-
-  if (techId === 'regulatoryAffairs') {
-    return 'Need Power Systems'
-  }
-
-  return 'Locked'
+function getResearchTechById(techId: ResearchTechId) {
+  return RESEARCH_TECH.find((item) => item.id === techId)
 }
 
 const ResearchFlowNode = memo(({ data }: NodeProps<Node<ResearchGraphData>>) => {
@@ -199,227 +209,416 @@ const ResearchFlowNode = memo(({ data }: NodeProps<Node<ResearchGraphData>>) => 
         : 'border-border/80 bg-background/80 text-foreground'
 
   return (
-    <div className={`w-[185px] cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition ${tone} ${data.isSelected ? 'ring-1 ring-primary/80' : ''}`}>
-      <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0 !bg-border/80" />
-      <div>
-        <p className="text-[8px] uppercase tracking-[0.16em] text-primary">{data.kind === 'tech' ? 'Research Tech' : 'Research Unlock'}</p>
-        <h3 className="mt-1 text-[12px] font-semibold leading-4">{data.title}</h3>
-      </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
+    <div className={`w-[210px] rounded-lg border px-3 py-2 shadow-sm transition ${tone}`}>
+      <Handle type="target" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-border/80" />
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-primary">{data.costLabel}</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.12em]">{data.status}</p>
+          <p className={`text-[8px] uppercase tracking-[0.16em] ${data.accentClass}`}>{data.branchLabel}</p>
+          <h3 className="mt-1 text-[12px] font-semibold leading-4">{data.title}</h3>
+        </div>
+        <div className="rounded-md border border-border/70 bg-background/60 px-1.5 py-1 text-[9px] font-mono uppercase tracking-[0.08em] text-primary">
+          {data.costLabel}
         </div>
       </div>
-      <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-0 !bg-border/80" />
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[9px] uppercase tracking-[0.12em]">{data.status}</p>
+      </div>
+      <p className="mt-1 text-[9px] leading-3.5 text-muted-foreground">{data.reason}</p>
+      <Handle type="source" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-border/80" />
     </div>
   )
 })
 
-const nodeTypes = { researchNode: ResearchFlowNode }
+const ResearchGroupNode = memo(({ data }: NodeProps<Node<ResearchGroupData>>) => {
+  const variantClasses = data.variant === 'office'
+    ? 'border-cyan-400/35 bg-cyan-500/6 shadow-[inset_0_1px_0_rgba(34,211,238,0.08)]'
+    : data.variant === 'energy'
+      ? 'border-emerald-400/35 bg-emerald-500/6 shadow-[inset_0_1px_0_rgba(52,211,153,0.08)]'
+      : 'border-border/70 bg-background/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
+
+  return (
+    <div className={`h-full w-full rounded-2xl border border-dashed p-4 ${variantClasses}`}>
+      <p className={`text-[9px] uppercase tracking-[0.18em] ${data.accentClass}`}>{data.title}</p>
+      <p className="mt-1 max-w-[260px] text-[10px] leading-4 text-muted-foreground">{data.subtitle}</p>
+    </div>
+  )
+})
+
+const nodeTypes = { researchNode: ResearchFlowNode, researchGroup: ResearchGroupNode }
+
+function getLocalPrerequisites(techs: ResearchTechDefinition[], tech: ResearchTechDefinition) {
+  const techIds = new Set(techs.map((candidate) => candidate.id))
+  return (tech.prerequisites ?? []).filter((prerequisiteId) => techIds.has(prerequisiteId))
+}
+
+function getBranchTreeLayout(techs: ResearchTechDefinition[]) {
+  const depthMap = new Map<ResearchTechId, number>()
+
+  function getDepth(tech: ResearchTechDefinition): number {
+    const cachedDepth = depthMap.get(tech.id)
+
+    if (cachedDepth !== undefined) {
+      return cachedDepth
+    }
+
+    const localPrerequisites = getLocalPrerequisites(techs, tech)
+      .map((prerequisiteId) => techs.find((candidate) => candidate.id === prerequisiteId))
+      .filter((candidate): candidate is ResearchTechDefinition => Boolean(candidate))
+
+    const depth = localPrerequisites.length === 0
+      ? 0
+      : Math.max(...localPrerequisites.map((candidate) => getDepth(candidate))) + 1
+
+    depthMap.set(tech.id, depth)
+    return depth
+  }
+
+  const groupedByDepth = new Map<number, ResearchTechDefinition[]>()
+
+  techs.forEach((tech) => {
+    const depth = getDepth(tech)
+    groupedByDepth.set(depth, [...(groupedByDepth.get(depth) ?? []), tech])
+  })
+
+  const maxDepth = Math.max(...groupedByDepth.keys(), 0)
+  const maxWidth = Math.max(...Array.from(groupedByDepth.values(), (level) => level.length), 1)
+  const horizontalGap = 340
+  const verticalGap = 210
+  const positions = new Map<ResearchTechId, { x: number; y: number }>()
+
+  Array.from(groupedByDepth.entries())
+    .sort((a, b) => a[0] - b[0])
+    .forEach(([depth, levelTechs]) => {
+      const levelOffset = ((maxWidth - levelTechs.length) * horizontalGap) / 2
+
+      levelTechs.forEach((tech, index) => {
+        positions.set(tech.id, {
+          x: 40 + levelOffset + index * horizontalGap,
+          y: 40 + (maxDepth - depth) * verticalGap,
+        })
+      })
+    })
+
+  return positions
+}
+
+function buildBranchGraph(techs: ResearchTechDefinition[], gameState: ReturnType<typeof useGameStore.getState>, branchId: ResearchBranchId) {
+  const nodes: Node[] = []
+  const edges: Edge[] = []
+  const theme = BRANCH_THEMES[branchId]
+  const treeLayout = getBranchTreeLayout(techs)
+  const subgroupDefinitions = RESEARCH_SUBGROUPS[branchId] ?? []
+  const techNodeMap = new Map<ResearchTechId, Node<ResearchGraphData>>()
+
+  subgroupDefinitions.forEach((group) => {
+    const groupMembers = group.techIds
+      .map((techId) => techs.find((candidate) => candidate.id === techId))
+      .filter((tech): tech is ResearchTechDefinition => Boolean(tech))
+
+    if (groupMembers.length === 0) {
+      return
+    }
+
+    const groupPositions = groupMembers.map((tech, index) => ({
+      tech,
+      position: tech.graphPosition ?? treeLayout.get(tech.id) ?? { x: index * 280, y: 60 },
+    }))
+
+    const minX = Math.min(...groupPositions.map(({ position }) => position.x))
+    const maxX = Math.max(...groupPositions.map(({ position }) => position.x + NODE_WIDTH))
+    const minY = Math.min(...groupPositions.map(({ position }) => position.y))
+    const maxY = Math.max(...groupPositions.map(({ position }) => position.y + NODE_HEIGHT))
+    const paddingX = group.paddingX ?? 36
+    const paddingTop = group.paddingTop ?? 92
+    const paddingBottom = group.paddingBottom ?? 56
+    const groupX = minX - paddingX
+    const groupY = minY - paddingTop
+    const extraNodeBottomInset = 42
+
+    nodes.push({
+      id: group.id,
+      type: 'researchGroup',
+      position: { x: groupX, y: groupY },
+      draggable: false,
+      selectable: false,
+      connectable: false,
+      data: {
+        title: group.title,
+        subtitle: group.subtitle,
+        accentClass: theme.badge,
+        variant: group.variant,
+      },
+      style: {
+        width: maxX - minX + paddingX * 2,
+        height: maxY - minY + paddingTop + paddingBottom + extraNodeBottomInset,
+      },
+    })
+
+    groupPositions.forEach(({ tech, position }) => {
+      const state = getResearchStatus(gameState, tech.id)
+      techNodeMap.set(tech.id, {
+        id: tech.id,
+        type: 'researchNode',
+        parentId: group.id,
+        extent: 'parent',
+        draggable: false,
+        position: {
+          x: position.x - groupX,
+          y: position.y - groupY + 14,
+        },
+        sourcePosition: Position.Top,
+        targetPosition: Position.Bottom,
+        data: {
+          title: tech.name,
+          costLabel: formatResearchCostLabel(tech.researchCost, tech.currency),
+          branchLabel: RESEARCH_BRANCH_LABELS[tech.branch],
+          status: state.status,
+          reason: state.reason,
+          isPurchased: state.tone === 'done',
+          isLocked: state.tone === 'locked',
+          isReady: state.tone === 'ready',
+          accentClass: theme.badge,
+        },
+      })
+    })
+  })
+
+  techs.forEach((tech, index) => {
+    if (techNodeMap.has(tech.id)) {
+      return
+    }
+
+    const state = getResearchStatus(gameState, tech.id)
+    techNodeMap.set(tech.id, {
+      id: tech.id,
+      type: 'researchNode',
+      position: treeLayout.get(tech.id) ?? tech.graphPosition ?? { x: index * 280, y: 60 },
+      sourcePosition: Position.Top,
+      targetPosition: Position.Bottom,
+      data: {
+        title: tech.name,
+        costLabel: formatResearchCostLabel(tech.researchCost, tech.currency),
+        branchLabel: RESEARCH_BRANCH_LABELS[tech.branch],
+        status: state.status,
+        reason: state.reason,
+        isPurchased: state.tone === 'done',
+        isLocked: state.tone === 'locked',
+        isReady: state.tone === 'ready',
+        accentClass: theme.badge,
+      },
+    })
+  })
+
+  techs.forEach((tech) => {
+    const node = techNodeMap.get(tech.id)
+
+    if (node) {
+      nodes.push(node)
+    }
+  })
+
+  techs.forEach((tech) => {
+    ;(tech.prerequisites ?? []).forEach((prerequisiteId) => {
+      if (!techs.some((candidate) => candidate.id === prerequisiteId)) return
+
+      edges.push({
+        id: `${prerequisiteId}-${tech.id}`,
+        source: prerequisiteId,
+        target: tech.id,
+        type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { stroke: theme.edge, strokeWidth: 1.8 },
+      })
+    })
+  })
+
+  return { nodes, edges }
+}
+
+function ResearchPurchaseDialog({
+  techId,
+  onClose,
+}: {
+  techId: ResearchTechId | null
+  onClose: () => void
+}) {
+  const gameState = useGameStore((state) => state)
+  const buyResearchTech = useGameStore((state) => state.buyResearchTech)
+
+  if (!techId) {
+    return null
+  }
+
+  const tech = getResearchTechById(techId)
+
+  if (!tech) {
+    return null
+  }
+
+  const status = getResearchStatus(gameState, techId)
+  const missingPrerequisites = selectors.missingResearchPrerequisites(techId)(gameState)
+
+  return (
+    <Dialog open={techId !== null} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-lg border-border/80 bg-card/95 text-foreground">
+        <DialogHeader>
+          <DialogTitle>{tech.name}</DialogTitle>
+          <DialogDescription>
+            {RESEARCH_BRANCH_LABELS[tech.branch]} - {formatResearchCostLabel(tech.researchCost, tech.currency)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 text-sm">
+          <div className="rounded-xl border border-border/80 bg-background/60 p-3 text-muted-foreground">
+            {tech.description}
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-border/80 bg-background/50 p-3">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-primary">Status</p>
+              <p className="mt-1 text-sm">{status.status}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{status.reason}</p>
+            </div>
+            <div className="rounded-xl border border-border/80 bg-background/50 p-3">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-primary">Prerequisites</p>
+              <p className="mt-1 text-sm">
+                {tech.prerequisites && tech.prerequisites.length > 0
+                  ? tech.prerequisites.map((prerequisiteId) => getResearchTechById(prerequisiteId)?.name ?? prerequisiteId).join(', ')
+                  : 'None'}
+              </p>
+              {missingPrerequisites.length > 0 ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Missing: {missingPrerequisites.map((item) => item.name).join(', ')}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter showCloseButton>
+          <Button
+            disabled={status.disabled}
+            onClick={() => {
+              buyResearchTech(techId)
+              onClose()
+            }}
+          >
+            Confirm Research
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ResearchBranchSection({
+  branchId,
+  expanded = false,
+  isOpen,
+  onToggle,
+  onSelectTech,
+}: {
+  branchId: ResearchBranchId
+  expanded?: boolean
+  isOpen: boolean
+  onToggle: () => void
+  onSelectTech: (_techId: ResearchTechId) => void
+}) {
+  const gameState = useGameStore((state) => state)
+  const techs = getResearchTechsByBranch(branchId)
+  const { nodes, edges } = useMemo(() => buildBranchGraph(techs, gameState, branchId), [techs, gameState, branchId])
+  const theme = BRANCH_THEMES[branchId]
+  const BranchIcon = theme.icon
+  const graphHeight = Math.max(...nodes.map((node) => node.position.y + ((node.style && typeof node.style.height === 'number') ? node.style.height : 180)), expanded ? 520 : 360)
+  const ToggleIcon = isOpen ? ChevronUp : ChevronDown
+
+  return (
+    <section className={`space-y-2 rounded-xl border border-border/80 bg-gradient-to-br ${theme.background} p-3 ${theme.glow}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-start justify-between gap-3 rounded-lg text-left transition hover:bg-background/30"
+      >
+        <div>
+          <div className="flex items-center gap-2">
+            <BranchIcon className={`size-3.5 ${theme.badge}`} />
+            <p className={`text-[10px] uppercase tracking-[0.22em] ${theme.badge}`}>{RESEARCH_BRANCH_LABELS[branchId]}</p>
+          </div>
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{RESEARCH_BRANCH_DESCRIPTIONS[branchId]}</p>
+        </div>
+        <div className="mt-0.5 flex items-center gap-2 rounded-md border border-border/70 bg-background/40 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          {isOpen ? 'Collapse' : 'Expand'}
+          <ToggleIcon className="size-3.5" />
+        </div>
+      </button>
+
+      {isOpen ? (
+        <div className="rounded-xl border border-border/80 bg-card/70" style={{ height: graphHeight }}>
+          <ReactFlow
+            fitView
+            fitViewOptions={{
+              padding: expanded ? 0.08 : 0.06,
+              minZoom: expanded ? 0.78 : 0.88,
+              maxZoom: 1.15,
+            }}
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            onNodeClick={(_, node) => onSelectTech(node.id as ResearchTechId)}
+            zoomOnDoubleClick={false}
+            selectNodesOnDrag={false}
+            minZoom={0.5}
+            maxZoom={1.2}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="rgba(90,90,90,0.2)" gap={22} size={1} />
+          </ReactFlow>
+        </div>
+      ) : null}
+    </section>
+  )
+}
 
 export function ResearchTreeContent({ expanded = false }: { expanded?: boolean }) {
-  const gameState = useGameStore((state) => state)
-  const buyUpgrade = useGameStore((state) => state.buyUpgrade)
-  const buyResearchTech = useGameStore((state) => state.buyResearchTech)
+  const [selectedTechId, setSelectedTechId] = useState<ResearchTechId | null>(null)
   const researchPoints = useGameStore(selectors.researchPoints)
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
-  const [selectedNodeId, setSelectedNodeId] = useState<ResearchNodeId>('juniorHiringProgram')
-  const [confirmNodeId, setConfirmNodeId] = useState<ResearchNodeId | null>(null)
-
-  const purchasedTechCount = RESEARCH_TECH.filter((tech) => gameState.purchasedResearchTech[tech.id]).length
-  const selectedNode = RESEARCH_TREE.find((node) => node.id === selectedNodeId) ?? RESEARCH_TREE[0]
-
-  const nodeStates = useMemo(() => {
-    return Object.fromEntries(
-      RESEARCH_TREE.map((node) => {
-        if (node.kind === 'upgrade') {
-          const isPurchased = selectors.isUpgradePurchased(node.id as UpgradeId)(gameState)
-          const visible = selectors.isUpgradeVisible(node.id as UpgradeId)(gameState)
-          const shortfall = selectors.upgradeCashShortfall(node.id as UpgradeId)(gameState)
-          return [node.id, {
-            isPurchased,
-            visible,
-            isReady: visible && shortfall <= 0,
-            canAfford: selectors.canAffordUpgrade(node.id as UpgradeId)(gameState),
-            status: isPurchased ? 'Unlocked' : !visible ? getUpgradeLockedStatus(node.id as UpgradeId) : shortfall > 0 ? 'Need cash' : 'Ready',
-            shortfallText: !isPurchased ? (!visible ? getUpgradeLockedReason(node.id as UpgradeId, gameState) : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined) : undefined,
-          }]
-        }
-
-        const isPurchased = selectors.isResearchTechPurchased(node.id as ResearchTechId)(gameState)
-        const visible = selectors.isResearchTechVisible(node.id as ResearchTechId)(gameState)
-        const shortfall = selectors.researchTechShortfall(node.id as ResearchTechId)(gameState)
-        return [node.id, {
-          isPurchased,
-          visible,
-          isReady: visible && shortfall <= 0,
-          canAfford: selectors.canAffordResearchTech(node.id as ResearchTechId)(gameState),
-          status: isPurchased ? 'Unlocked' : !visible ? getTechLockedStatus(node.id as ResearchTechId) : shortfall > 0 ? 'Need RP' : 'Ready',
-          shortfallText: !isPurchased ? (!visible ? getTechLockedReason(node.id as ResearchTechId, gameState) : shortfall > 0 ? `Need ${Math.ceil(shortfall)} more RP.` : undefined) : undefined,
-        }]
-      }),
-    ) as Record<ResearchNodeId, { isPurchased: boolean; visible: boolean; isReady: boolean; canAfford: boolean; status: string; shortfallText?: string }>
-  }, [gameState])
-
-  const flowNodes = useMemo<Node<ResearchGraphData>[]>(() => {
-    return RESEARCH_TREE.map((node) => {
-      const state = nodeStates[node.id]
-
-      return {
-        id: node.id,
-        type: 'researchNode',
-        position: { x: node.x, y: node.y },
-        draggable: false,
-        selectable: false,
-        data: {
-          id: node.id,
-          title: node.title,
-          kind: node.kind,
-          costLabel: node.costLabel,
-          status: state.status,
-          isPurchased: state.isPurchased,
-          isLocked: !state.visible,
-          isReady: state.canAfford && !state.isPurchased,
-          isSelected: selectedNodeId === node.id,
-        },
-      }
-    })
-  }, [nodeStates, selectedNodeId])
-
-  const flowEdges = useMemo<Edge[]>(() => {
-    return TREE_CONNECTIONS.map((connection) => ({
-      id: `${connection.from}-${connection.to}`,
-      source: connection.from,
-      target: connection.to,
-      type: 'smoothstep',
-      animated: false,
-      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: nodeStates[connection.from].isPurchased ? '#ffdd33' : '#666666' },
-      style: {
-        stroke: nodeStates[connection.from].isPurchased ? '#ffdd33' : '#666666',
-        strokeWidth: 1.6,
-      },
-    }))
-  }, [nodeStates])
-
-  const selectedNodeState = nodeStates[selectedNode.id]
-  const confirmNode = confirmNodeId ? RESEARCH_TREE.find((node) => node.id === confirmNodeId) ?? null : null
-  const confirmNodeState = confirmNode ? nodeStates[confirmNode.id] : null
-
-  const openNodeConfirm = (nodeId: ResearchNodeId) => {
-    const state = nodeStates[nodeId]
-
-    setSelectedNodeId(nodeId)
-
-    if (!state || state.isPurchased || !state.canAfford) {
-      return
-    }
-
-    setConfirmNodeId(nodeId)
-  }
-
-  const confirmResearchPurchase = () => {
-    if (!confirmNode || !confirmNodeState || confirmNodeState.isPurchased || !confirmNodeState.canAfford) {
-      setConfirmNodeId(null)
-      return
-    }
-
-    if (confirmNode.kind === 'upgrade') {
-      buyUpgrade(confirmNode.id as UpgradeId)
-    } else {
-      buyResearchTech(confirmNode.id as ResearchTechId)
-    }
-
-    setConfirmNodeId(null)
-  }
+  const internScientists = useGameStore((state) => state.internResearchScientistCount)
+  const juniorScientists = useGameStore((state) => state.juniorResearchScientistCount)
+  const seniorScientists = useGameStore((state) => state.seniorResearchScientistCount)
+  const purchasedTechCount = useGameStore((state) => RESEARCH_TECH.filter((tech) => state.purchasedResearchTech[tech.id]).length)
+  const researchBranchExpanded = useGameStore((state) => state.ui.researchBranchExpanded)
+  const setResearchBranchExpanded = useGameStore((state) => state.setResearchBranchExpanded)
 
   return (
     <>
-        <Dialog open={confirmNode !== null} onOpenChange={(open) => { if (!open) setConfirmNodeId(null) }}>
-          {confirmNode && confirmNodeState ? (
-            <DialogContent className="max-w-lg border-border/80 bg-card/95 text-foreground">
-              <DialogHeader>
-                <DialogTitle>{confirmNode.kind === 'tech' ? 'Confirm research' : 'Confirm unlock purchase'}</DialogTitle>
-                <DialogDescription>
-                  {confirmNode.description}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-3 text-sm text-muted-foreground">
-                <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
-                  Cost: <span className="font-mono text-primary">{confirmNode.costLabel}</span>
-                </div>
-                <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-foreground">
-                  {confirmNode.kind === 'tech'
-                    ? `Research ${confirmNode.title} and add it to your active technology stack?`
-                    : `Purchase ${confirmNode.title} and unlock its effect for this run?`}
-                </div>
-              </div>
-              <DialogFooter className="border-border/70 bg-muted/20">
-                <Button type="button" variant="outline" onClick={() => setConfirmNodeId(null)}>
-                  Cancel
-                </Button>
-                <Button type="button" onClick={confirmResearchPurchase}>
-                  {confirmNode.kind === 'tech' ? 'Research' : 'Purchase'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          ) : null}
-        </Dialog>
+      <div className={`flex h-full min-h-0 flex-col gap-2 ${expanded ? 'min-w-[1180px]' : ''}`}>
+      <div className="grid gap-2 md:grid-cols-4">
+        <SummaryTile label="Research Points" value={formatNumber(researchPoints, { decimalsBelowThreshold: researchPoints < 100 ? 1 : 0 })} icon={BrainCircuit} />
+        <SummaryTile label="Research / Sec" value={formatPlainRate(researchPointsPerSecond)} icon={TrendingUp} />
+        <SummaryTile label="Scientists" value={`${internScientists} / ${juniorScientists} / ${seniorScientists}`} icon={Users} />
+        <SummaryTile label="Tech Unlocked" value={`${purchasedTechCount}/${RESEARCH_TECH.length}`} icon={GitBranch} />
+      </div>
 
-        <div className="grid gap-2 md:grid-cols-3">
-          <SummaryTile label="Research Points" value={Math.floor(researchPoints).toLocaleString()} icon={BrainCircuit} />
-          <SummaryTile label="Research / Sec" value={formatPlainRate(researchPointsPerSecond)} icon={TrendingUp} />
-          <SummaryTile label="Tech Unlocked" value={`${purchasedTechCount}/${RESEARCH_TECH.length}`} icon={Cpu} />
+      <div className="min-h-0 flex-1 overflow-y-auto pr-2">
+        <div className="space-y-3 pb-2">
+          {RESEARCH_BRANCH_ORDER.map((branchId) => (
+            <ResearchBranchSection
+              key={branchId}
+              branchId={branchId}
+              expanded={expanded}
+              isOpen={researchBranchExpanded[branchId] === true}
+              onToggle={() => setResearchBranchExpanded(branchId, researchBranchExpanded[branchId] !== true)}
+              onSelectTech={setSelectedTechId}
+            />
+          ))}
         </div>
-
-        <Card className="rounded-xl border-border/80 bg-background/50">
-          <CardContent className="p-0">
-            <div className={`${expanded ? 'h-[72vh]' : 'h-[440px]'} w-full overflow-hidden rounded-xl`}>
-              <ReactFlow
-                fitView
-                nodes={flowNodes}
-                edges={flowEdges}
-                nodeTypes={nodeTypes}
-                nodesDraggable={false}
-                nodesConnectable={false}
-                elementsSelectable={false}
-                onNodeClick={(_, node) => openNodeConfirm(node.id as ResearchNodeId)}
-                zoomOnDoubleClick={false}
-                selectNodesOnDrag={false}
-                minZoom={expanded ? 0.4 : 0.6}
-                maxZoom={1.2}
-                proOptions={{ hideAttribution: true }}
-              >
-                <Background color="rgba(90,90,90,0.25)" gap={22} size={1} />
-              </ReactFlow>
-            </div>
-          </CardContent>
-        </Card>
-
-          <Card className="rounded-xl border-border/80 bg-background/50">
-          <CardContent className="grid gap-2 p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)] md:items-start">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Selected node</p>
-              <h3 className="mt-1 text-sm font-semibold text-foreground">{selectedNode.title}</h3>
-              <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{selectedNode.description}</p>
-            </div>
-
-            <div className="rounded-xl border border-border/80 bg-background/65 p-3 text-[11px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">Cost</span>
-                <span className="font-mono text-primary">{selectedNode.costLabel}</span>
-              </div>
-              <div className="mt-1.5 flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">Status</span>
-                <span className="font-mono text-primary">{selectedNodeState.status}</span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/80 bg-background/65 p-3 text-[11px] text-muted-foreground md:col-span-2">
-              {selectedNodeState.shortfallText ?? (selectedNodeState.isPurchased ? 'Already unlocked.' : selectedNodeState.canAfford ? 'Click the node to confirm this research purchase.' : 'Click a node to inspect its requirements.')}
-            </div>
-          </CardContent>
-        </Card>
+      </div>
+      </div>
+      <ResearchPurchaseDialog techId={selectedTechId} onClose={() => setSelectedTechId(null)} />
     </>
   )
 }
@@ -432,13 +631,13 @@ export function ResearchTab() {
       <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
         <div>
           <CardTitle className="text-base uppercase tracking-[0.16em]">Research</CardTitle>
-          <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Dependency tree for staffing, systems, infrastructure, and policy unlocks</CardDescription>
+          <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Grouped research graphs for sectors, staffing, automation, power, and institutions</CardDescription>
         </div>
-        <Button size="icon" variant="outline" className="size-8 rounded-md border-border/80 bg-background/60 text-muted-foreground" title="Open larger research map" onClick={() => openModal('researchMap')}>
+        <Button size="icon" variant="outline" className="size-8 rounded-md border-border/80 bg-background/60 text-muted-foreground" title="Open larger research view" onClick={() => openModal('researchMap')}>
           <Expand className="size-4" />
         </Button>
       </CardHeader>
-      <CardContent className="flex h-full min-h-0 flex-col gap-2">
+      <CardContent className="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
         <ResearchTreeContent />
       </CardContent>
     </Card>

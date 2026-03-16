@@ -344,7 +344,7 @@ This section describes the current practical progression path and major gates.
 
 1. Start with manual trading only
 2. Buy `Better Terminal`
-3. Reach `Recruiter`
+3. Reach `Foundations of Finance Training`
 4. Unlock and hire `Interns`
 5. Build toward `Junior Trader Program`
 6. Unlock and hire `Junior Traders`
@@ -377,7 +377,7 @@ This section describes the current practical progression path and major gates.
 
 ### Research Staffing Branch
 
-This branch starts after `Recruiter`.
+This branch starts after `Foundations of Finance Training`.
 
 1. Hire `Intern Scientists`
 2. Unlock `Junior Scientists`
@@ -437,7 +437,7 @@ The currently implemented phase structure is:
 1. Solo Trader
    - Manual trading
    - First manual upgrades
-   - Reach Recruiter
+   - Reach Foundations of Finance Training
 
 2. Junior Desk
    - Interns

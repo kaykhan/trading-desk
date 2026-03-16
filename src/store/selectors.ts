@@ -1,14 +1,17 @@
 import { canAffordCapacityPower, getAvailableDeskSlots, getBulkCapacityInfrastructureCost, getCapacityPowerUsage, getFloorExpansionCost, getNextCapacityCost, getOfficeCost, getOfficeExpansionCost, getTotalDeskSlots, getUsedDeskSlots, isAtDeskCapacity } from '../utils/capacity'
 import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeCost as getRepeatableUpgradeScaledCost, getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank as getRepeatableRank } from '../data/repeatableUpgrades'
-import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
+import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isUnitUnlocked } from '../utils/economy'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
-import { getResearchTechDefinition } from '../data/researchTech'
+import { getResearchTechsByBranch, RESEARCH_BRANCH_ORDER } from '../data/researchTech'
 import { getUpgradeDefinition } from '../data/upgrades'
 import { canPrestige, getLifetimeReputation, getPrestigeGain, getSeedCapitalBonus } from '../utils/prestige'
 import { getProgressionSummary } from '../utils/progression'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
-import type { CapacityInfrastructureId, GameState, HumanAssignableUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId, UpgradeId } from '../types/game'
+import { canBuyResearchTech, getMissingResearchPrerequisites, getResearchTechShortfall, isAutomationUnlocked, isEnergySectorUnlocked, isLobbyingUnlocked, isPowerInfrastructureUnlocked, isResearchTechUnlocked, isResearchTechVisible, isTechnologySectorUnlocked } from '../utils/research'
+import { getAssignedTraderSpecialistsForSector, getGenericTraderCount, getSpecializationResearchUnlockId, getTotalTraderSpecialists, getTraderSpecialistCount, getTraderSpecialistTrainingCost } from '../utils/specialization'
+import { getAssignedInstitutionMandatesForSector, getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateCount, getInstitutionMandateResearchUnlockId, getTotalInstitutionMandates } from '../utils/mandates'
+import type { CapacityInfrastructureId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId, UpgradeId } from '../types/game'
 
 export const selectors = {
   cashPerClick: (state: GameState) => getManualIncome(state),
@@ -17,10 +20,10 @@ export const selectors = {
   researchPointsPerSecond: (state: GameState) => getResearchPointsPerSecond(state),
   influence: (state: GameState) => state.influence,
   influencePerSecond: (state: GameState) => getInfluencePerSecond(state),
-  assignedCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getAssignedCount(state, unitId),
-  assignedCountForSector: (unitId: HumanAssignableUnitId, sectorId: SectorId) => (state: GameState) => getAssignedCountForSector(state, unitId, sectorId),
-  availableCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getAvailableAssignableUnitCount(state, unitId),
-  ownedAssignableCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getOwnedAssignableUnitCount(state, unitId),
+  assignedCount: (unitId: GenericSectorAssignableUnitId) => (state: GameState) => getAssignedCount(state, unitId),
+  assignedCountForSector: (unitId: GenericSectorAssignableUnitId, sectorId: SectorId) => (state: GameState) => getAssignedCountForSector(state, unitId, sectorId),
+  availableCount: (unitId: GenericSectorAssignableUnitId) => (state: GameState) => getAvailableAssignableUnitCount(state, unitId),
+  ownedAssignableCount: (unitId: GenericSectorAssignableUnitId) => (state: GameState) => getOwnedAssignableUnitCount(state, unitId),
   unlockedSectors: (state: GameState) => state.unlockedSectors,
   isSectorUnlocked: (sectorId: SectorId) => (state: GameState) => state.unlockedSectors[sectorId] === true,
   generalDeskCashPerSecond: (state: GameState) => getGeneralDeskCashPerSecond(state),
@@ -82,45 +85,31 @@ export const selectors = {
   canAffordJuniorTrader: (state: GameState) => isUnitUnlocked(state, 'juniorTrader') && state.cash >= getJuniorTraderCost(state),
   canAffordSeniorTrader: (state: GameState) => isUnitUnlocked(state, 'seniorTrader') && state.cash >= getSeniorTraderCost(state),
   canAffordRuleBasedBot: (state: GameState) => isUnitUnlocked(state, 'ruleBasedBot') && state.cash >= getRuleBasedBotCost(state),
-  canAffordJuniorHiringProgram: (state: GameState) => selectors.canAffordUpgrade('juniorHiringProgram')(state),
-  canAffordJuniorTraderProgram: (state: GameState) => selectors.canAffordUpgrade('juniorTraderProgram')(state),
-  canAffordSeniorRecruitment: (state: GameState) => selectors.canAffordUpgrade('seniorRecruitment')(state),
   canAffordSystematicExecution: (state: GameState) => selectors.canAffordUpgrade('systematicExecution')(state),
   powerInfrastructureUnlocked: (state: GameState) => isPowerInfrastructureUnlocked(state),
   canAffordPowerInfrastructure: (infrastructureId: PowerInfrastructureId) => (state: GameState) => isPowerInfrastructureUnlocked(state) && state.cash >= getNextPowerInfrastructureCost(state, infrastructureId),
   isUpgradePurchased: (upgradeId: UpgradeId) => (state: GameState) => state.purchasedUpgrades[upgradeId] === true,
   isResearchTechPurchased: (techId: ResearchTechId) => (state: GameState) => state.purchasedResearchTech[techId] === true,
-  isResearchTechVisible: (techId: ResearchTechId) => (state: GameState) => {
-    const tech = getResearchTechDefinition(techId)
-
-    if (!tech) {
-      return false
-    }
-
-    return tech.visibleWhen ? tech.visibleWhen(state) : true
-  },
-  canAffordResearchTech: (techId: ResearchTechId) => (state: GameState) => {
-    const tech = getResearchTechDefinition(techId)
-
-    if (!tech || state.purchasedResearchTech[techId]) {
-      return false
-    }
-
-    if (tech.visibleWhen && !tech.visibleWhen(state)) {
-      return false
-    }
-
-    return state.researchPoints >= tech.researchCost
-  },
-  researchTechShortfall: (techId: ResearchTechId) => (state: GameState) => {
-    const tech = getResearchTechDefinition(techId)
-
-    if (!tech || state.purchasedResearchTech[techId]) {
-      return 0
-    }
-
-    return Math.max(0, tech.researchCost - state.researchPoints)
-  },
+  isResearchTechVisible: (techId: ResearchTechId) => (state: GameState) => isResearchTechVisible(state, techId),
+  isResearchTechUnlocked: (techId: ResearchTechId) => (state: GameState) => isResearchTechUnlocked(state, techId),
+  canAffordResearchTech: (techId: ResearchTechId) => (state: GameState) => canBuyResearchTech(state, techId),
+  researchTechShortfall: (techId: ResearchTechId) => (state: GameState) => getResearchTechShortfall(state, techId),
+  missingResearchPrerequisites: (techId: ResearchTechId) => (state: GameState) => getMissingResearchPrerequisites(state, techId),
+  researchTechsByBranch: (branchId: (typeof RESEARCH_BRANCH_ORDER)[number]) => (_state: GameState) => getResearchTechsByBranch(branchId),
+  technologySectorUnlocked: (state: GameState) => isTechnologySectorUnlocked(state),
+  energySectorUnlocked: (state: GameState) => isEnergySectorUnlocked(state),
+  traderSpecialistTrainingUnlocked: (specializationId: TraderSpecializationId) => (state: GameState) => state.purchasedResearchTech[getSpecializationResearchUnlockId(specializationId)] === true,
+  traderSpecialistTrainingCost: (unitId: TraderSpecialistUnitId) => (_state: GameState) => getTraderSpecialistTrainingCost(unitId),
+  totalTraderSpecialists: (unitId: TraderSpecialistUnitId) => (state: GameState) => getTotalTraderSpecialists(state, unitId),
+  traderSpecialistCount: (unitId: TraderSpecialistUnitId, specializationId: TraderSpecializationId) => (state: GameState) => getTraderSpecialistCount(state, unitId, specializationId),
+  genericTraderCount: (unitId: TraderSpecialistUnitId) => (state: GameState) => getGenericTraderCount(state, unitId),
+  assignedTraderSpecialistsForSector: (unitId: TraderSpecialistUnitId, specializationId: TraderSpecializationId, sectorId: SectorId) => (state: GameState) => getAssignedTraderSpecialistsForSector(state, unitId, specializationId, sectorId),
+  institutionMandateUnlocked: (mandateId: InstitutionalMandateId) => (state: GameState) => state.purchasedResearchTech[getInstitutionMandateResearchUnlockId(mandateId)] === true,
+  institutionMandateApplicationCost: (unitId: InstitutionalMandateUnitId) => (_state: GameState) => getInstitutionMandateApplicationCost(unitId),
+  totalInstitutionMandates: (unitId: InstitutionalMandateUnitId) => (state: GameState) => getTotalInstitutionMandates(state, unitId),
+  institutionMandateCount: (unitId: InstitutionalMandateUnitId, mandateId: InstitutionalMandateId) => (state: GameState) => getInstitutionMandateCount(state, unitId, mandateId),
+  genericInstitutionCount: (unitId: InstitutionalMandateUnitId) => (state: GameState) => getGenericInstitutionCount(state, unitId),
+  assignedInstitutionMandatesForSector: (unitId: InstitutionalMandateUnitId, mandateId: InstitutionalMandateId, sectorId: SectorId) => (state: GameState) => getAssignedInstitutionMandatesForSector(state, unitId, mandateId, sectorId),
   isUpgradeVisible: (upgradeId: UpgradeId) => (state: GameState) => {
     const upgrade = getUpgradeDefinition(upgradeId)
 
@@ -290,14 +279,14 @@ export const selectors = {
 
     return state.cloudComputeCount
   },
-  algorithmicUnlocked: (state: GameState) => state.purchasedResearchTech.algorithmicTrading === true,
-  lobbyingUnlocked: (state: GameState) => state.discoveredLobbying || state.purchasedResearchTech.regulatoryAffairs === true,
+  algorithmicUnlocked: (state: GameState) => isAutomationUnlocked(state),
+  lobbyingUnlocked: (state: GameState) => isLobbyingUnlocked(state),
   purchasedPolicyCount: (state: GameState) => Object.values(state.purchasedPolicies).filter(Boolean).length,
   isPolicyPurchased: (policyId: LobbyingPolicyId) => (state: GameState) => state.purchasedPolicies[policyId] === true,
   canAffordPolicy: (policyId: LobbyingPolicyId) => (state: GameState) => {
     const policy = getLobbyingPolicyDefinition(policyId)
 
-    if (!policy || state.purchasedPolicies[policyId] || state.purchasedResearchTech.regulatoryAffairs !== true) {
+    if (!policy || state.purchasedPolicies[policyId] || !isLobbyingUnlocked(state)) {
       return false
     }
 

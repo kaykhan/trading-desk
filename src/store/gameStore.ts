@@ -13,7 +13,10 @@ import { getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBul
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, SAVE_KEY, saveStateToStorage } from '../utils/persistence'
 import { createPrestigeResetState } from '../utils/prestige'
-import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, HumanAssignableUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
+import { areResearchTechPrerequisitesMet, isEnergySectorUnlocked, isLobbyingUnlocked, isResearchTechUnlocked } from '../utils/research'
+import { getGenericTraderCount, getSpecializationResearchUnlockId, getTraderSpecialistTrainingCost } from '../utils/specialization'
+import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
+import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -32,14 +35,14 @@ const initialUiState: StoreUiState = {
 }
 
 function getSectorUnlocksAfterResearch(state: GameState, techId: ResearchTechId): Record<SectorId, boolean> {
-  if (techId === 'algorithmicTrading') {
+  if (techId === 'technologyMarkets') {
     return {
       ...state.unlockedSectors,
       technology: true,
     }
   }
 
-  if (techId === 'powerSystemsEngineering') {
+  if (techId === 'energyMarkets') {
     return {
       ...state.unlockedSectors,
       energy: true,
@@ -51,7 +54,7 @@ function getSectorUnlocksAfterResearch(state: GameState, techId: ResearchTechId)
 
 function updateSectorAssignment(
   state: GameState,
-  unitId: HumanAssignableUnitId,
+  unitId: GenericSectorAssignableUnitId,
   sectorId: SectorId,
   nextValue: number,
 ): GameState['sectorAssignments'] {
@@ -98,6 +101,8 @@ function getSnapshot(state: GameStore) {
     cloudComputeCount: state.cloudComputeCount,
     unlockedSectors: state.unlockedSectors,
     sectorAssignments: state.sectorAssignments,
+    traderSpecialists: state.traderSpecialists,
+    institutionMandates: state.institutionMandates,
     purchasedUpgrades: state.purchasedUpgrades,
     purchasedResearchTech: state.purchasedResearchTech,
     purchasedPolicies: state.purchasedPolicies,
@@ -312,6 +317,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   buyFloorSpace: (quantity = 1) => {
     set((state) => {
+      if (state.purchasedResearchTech.floorSpacePlanning !== true) {
+        return state
+      }
+
       const result = getBulkCapacityInfrastructureCost(state, 'floorSpace', quantity, CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage)
 
       if (result.quantity <= 0 || state.cash < result.totalCost || !canAffordCapacityPower(state, CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * result.quantity)) {
@@ -326,6 +335,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   buyOffice: (quantity = 1) => {
     set((state) => {
+      if (state.purchasedResearchTech.officeExpansionPlanning !== true) {
+        return state
+      }
+
       const result = getBulkCapacityInfrastructureCost(state, 'office', quantity, CAPACITY_INFRASTRUCTURE.office.powerUsage)
 
       if (result.quantity <= 0 || state.cash < result.totalCost || !canAffordCapacityPower(state, CAPACITY_INFRASTRUCTURE.office.powerUsage * result.quantity)) {
@@ -427,17 +440,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      if (tech.visibleWhen && !tech.visibleWhen(state)) {
+      if (!isResearchTechUnlocked(state, techId)) {
         return state
       }
 
-      if (state.researchPoints < tech.researchCost) {
+      if (!areResearchTechPrerequisitesMet(state, techId)) {
+        return state
+      }
+
+      const currencyKey = tech.currency === 'cash' ? 'cash' : 'researchPoints'
+
+      if (state[currencyKey] < tech.researchCost) {
         return state
       }
 
       return {
-        researchPoints: state.researchPoints - tech.researchCost,
-        discoveredLobbying: state.discoveredLobbying || techId === 'regulatoryAffairs',
+        [currencyKey]: state[currencyKey] - tech.researchCost,
+        discoveredLobbying: state.discoveredLobbying || isLobbyingUnlocked({ ...state, purchasedResearchTech: { ...state.purchasedResearchTech, [techId]: true } }),
         unlockedSectors: getSectorUnlocksAfterResearch(state, techId),
         purchasedResearchTech: {
           ...state.purchasedResearchTech,
@@ -454,7 +473,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      if (state.purchasedResearchTech.regulatoryAffairs !== true) {
+      if (!isLobbyingUnlocked(state)) {
         return state
       }
 
@@ -703,6 +722,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       },
     }))
   },
+  setResearchBranchExpanded: (branchId, expanded) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        researchBranchExpanded: {
+          ...state.ui.researchBranchExpanded,
+          [branchId]: expanded,
+        },
+      },
+    }))
+  },
   unlockSector: (sectorId) => {
     set((state) => ({
       unlockedSectors: {
@@ -778,6 +808,74 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       return {
         sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned + available),
+      }
+    })
+  },
+  trainTraderSpecialist: (unitId, specializationId, amount = 1) => {
+    set((state) => {
+      const quantity = Math.max(0, Math.floor(amount))
+
+      if (quantity <= 0) {
+        return state
+      }
+
+      const researchUnlockId = getSpecializationResearchUnlockId(specializationId)
+
+      if (state.purchasedResearchTech[researchUnlockId] !== true) {
+        return state
+      }
+
+      const availableGeneric = getGenericTraderCount(state, unitId)
+      const trainingCost = getTraderSpecialistTrainingCost(unitId)
+      const affordableQuantity = Math.min(quantity, availableGeneric, Math.floor(state.cash / trainingCost))
+
+      if (affordableQuantity <= 0) {
+        return state
+      }
+
+      return {
+        cash: state.cash - affordableQuantity * trainingCost,
+        traderSpecialists: {
+          ...state.traderSpecialists,
+          seniorTrader: {
+            ...state.traderSpecialists.seniorTrader,
+            [specializationId]: state.traderSpecialists.seniorTrader[specializationId] + affordableQuantity,
+          },
+        },
+      }
+    })
+  },
+  applyInstitutionMandate: (unitId, mandateId, amount = 1) => {
+    set((state) => {
+      const quantity = Math.max(0, Math.floor(amount))
+
+      if (quantity <= 0) {
+        return state
+      }
+
+      const researchUnlockId = getInstitutionMandateResearchUnlockId(mandateId)
+
+      if (state.purchasedResearchTech[researchUnlockId] !== true) {
+        return state
+      }
+
+      const availableGeneric = getGenericInstitutionCount(state, unitId)
+      const applicationCost = getInstitutionMandateApplicationCost(unitId)
+      const affordableQuantity = Math.min(quantity, availableGeneric, Math.floor(state.cash / applicationCost))
+
+      if (affordableQuantity <= 0) {
+        return state
+      }
+
+      return {
+        cash: state.cash - affordableQuantity * applicationCost,
+        institutionMandates: {
+          ...state.institutionMandates,
+          [unitId]: {
+            ...state.institutionMandates[unitId],
+            [mandateId]: state.institutionMandates[unitId][mandateId] + affordableQuantity,
+          },
+        },
       }
     })
   },

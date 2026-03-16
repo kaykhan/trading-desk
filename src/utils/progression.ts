@@ -33,11 +33,11 @@ export function getProgressionPhase(state: GameState): ProgressionPhaseId {
     return 'bot-era'
   }
 
-  if (state.purchasedUpgrades.seniorRecruitment || state.seniorTraderCount > 0) {
+  if (state.purchasedResearchTech.seniorRecruitment || state.seniorTraderCount > 0) {
     return 'firm-growth'
   }
 
-  if (state.purchasedUpgrades.juniorHiringProgram || state.internCount > 0 || state.juniorTraderCount > 0) {
+  if (state.purchasedResearchTech.foundationsOfFinanceTraining || state.internCount > 0 || state.juniorTraderCount > 0) {
     return 'junior-desk'
   }
 
@@ -55,13 +55,13 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Open your first staffed desk.',
-      objective: 'Manual trades fund the first real unlock. Research Recruiter, then move into Operations through interns.',
-      nextTarget: 'Recruiter in Research for $50.',
+      objective: 'Manual trades fund the first Human Capital unlock. Buy Foundations of Finance Training, then move into Operations through interns and the first research staff.',
+      nextTarget: 'Foundations of Finance Training in Research for $50.',
     }
   }
 
   if (phaseId === 'junior-desk') {
-    if (state.internCount < 5 && !state.purchasedUpgrades.juniorTraderProgram) {
+    if (state.internCount < 5 && !state.purchasedResearchTech.juniorTraderProgram) {
       return {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
@@ -71,12 +71,12 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       }
     }
 
-    if (!state.purchasedUpgrades.juniorTraderProgram) {
+    if (!state.purchasedResearchTech.juniorTraderProgram) {
       return {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
         headline: 'Promote the desk into junior trading.',
-        objective: 'The intern lane is established. Research Junior Trader Program to open the next tier in Operations.',
+        objective: 'The intern lane is established. Complete Junior Trader Program in Human Capital to open the next tier in Operations.',
         nextTarget: 'Junior Trader Program in Research for $400.',
       }
     }
@@ -95,8 +95,8 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Unlock your senior hiring lane.',
-      objective: 'The junior desk is established. Research Senior Recruitment to open the next tier in Operations.',
-      nextTarget: 'Senior Recruitment in Research for $5,000.',
+        objective: 'The junior desk is established. Complete Senior Recruitment in Human Capital to open the next tier in Operations.',
+        nextTarget: 'Senior Recruitment in Research for $3,000.',
     }
   }
 
@@ -117,7 +117,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Open the automation era.',
-      objective: 'Your human desk is strong enough. Research Algorithmic Trading with Research Points to unlock Rule-Based Bots and open the Technology sector.',
+        objective: 'Your human desk is strong enough. Research Algorithmic Trading in the Automation branch to unlock Rule-Based Bots. Markets research now handles sector unlocks separately.',
       nextTarget: 'Algorithmic Trading in Research for 100 RP.',
     }
   }

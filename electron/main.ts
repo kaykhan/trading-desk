@@ -16,7 +16,7 @@ function createWindow(): void {
     minWidth: 1100,
     minHeight: 700,
     backgroundColor: '#08111f',
-    title: 'Stonks',
+    title: 'Trading Desk',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

@@ -38,6 +38,8 @@ export function StatsTab() {
   const juniorAssigned = useGameStore(selectors.assignedCount('juniorTrader'))
   const seniorAssigned = useGameStore(selectors.assignedCount('seniorTrader'))
   const unlockedSectors = useGameStore(selectors.unlockedSectors)
+  const technologySectorUnlocked = useGameStore(selectors.technologySectorUnlocked)
+  const energySectorUnlocked = useGameStore(selectors.energySectorUnlocked)
   const totalDeskSlots = useGameStore(selectors.totalDeskSlots)
   const usedDeskSlots = useGameStore(selectors.usedDeskSlots)
   const availableDeskSlots = useGameStore(selectors.availableDeskSlots)
@@ -71,8 +73,8 @@ export function StatsTab() {
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Offices</span><span className="font-mono text-primary">{officeCount}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">General Desk output</span><span className="font-mono text-primary">{formatRate(generalDeskCashPerSecond)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Finance sector</span><span className="font-mono text-primary">{unlockedSectors.finance ? formatRate(financeSectorCashPerSecond) : 'Locked'}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Technology sector</span><span className="font-mono text-primary">{unlockedSectors.technology ? formatRate(technologySectorCashPerSecond) : 'Locked'}</span></div>
-          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Energy sector</span><span className="font-mono text-primary">{unlockedSectors.energy ? formatRate(energySectorCashPerSecond) : 'Locked'}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Technology sector</span><span className="font-mono text-primary">{technologySectorUnlocked && unlockedSectors.technology ? formatRate(technologySectorCashPerSecond) : 'Locked'}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Energy sector</span><span className="font-mono text-primary">{energySectorUnlocked && unlockedSectors.energy ? formatRate(energySectorCashPerSecond) : 'Locked'}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Rule-based bots</span><span className="font-mono text-primary">{formatRate(ruleBasedBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">ML trading bots</span><span className="font-mono text-primary">{formatRate(mlTradingBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">AI trading bots</span><span className="font-mono text-primary">{formatRate(aiTradingBotIncome)}</span></div>

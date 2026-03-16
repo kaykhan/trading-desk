@@ -1,5 +1,6 @@
 export const GAME_CONSTANTS = {
   baseClickIncome: 1,
+  baseUtilityPowerCapacity: 12,
   internPowerUsage: 0.04,
   mlTradingBotRuleBasedRequirement: 5,
   aiTradingBotMlRequirement: 3,

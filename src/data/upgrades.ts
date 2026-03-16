@@ -2,29 +2,6 @@ import type { UpgradeDefinition } from '../types/game'
 
 export const UPGRADES: UpgradeDefinition[] = [
   {
-    id: 'juniorHiringProgram',
-    name: 'Recruiter',
-    category: 'research',
-    cost: 50,
-    description: 'Unlock Interns in Operations.',
-  },
-  {
-    id: 'juniorTraderProgram',
-    name: 'Junior Trader Program',
-    category: 'research',
-    cost: 400,
-    description: 'Promote the desk into the Junior Trader tier in Operations.',
-    visibleWhen: (state) => state.internCount >= 5,
-  },
-  {
-    id: 'seniorRecruitment',
-    name: 'Senior Recruitment',
-    category: 'research',
-    cost: 3_000,
-    description: 'Unlock Senior Traders in Operations.',
-    visibleWhen: (state) => state.juniorTraderCount >= 5,
-  },
-  {
     id: 'betterTerminal',
     name: 'Better Terminal',
     category: 'trading',

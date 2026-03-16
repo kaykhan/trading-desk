@@ -9,7 +9,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     baseIncomePerSecond: 0.3,
     description: 'Cheap first hires who only bring in a little cash while the desk gets off the ground.',
     tab: 'operations',
-    unlockUpgradeId: 'juniorHiringProgram',
+    unlockUpgradeId: 'foundationsOfFinanceTraining',
   },
   juniorTrader: {
     id: 'juniorTrader',
@@ -110,7 +110,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     baseResearchPointsPerSecond: 0.35,
     description: 'Entry research assistants who generate a small stream of Research Points.',
     tab: 'operations',
-    unlockUpgradeId: 'researchProduction',
+    unlockUpgradeId: 'foundationsOfFinanceTraining',
   },
   juniorResearchScientist: {
     id: 'juniorResearchScientist',
@@ -132,7 +132,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     baseResearchPointsPerSecond: 3.4,
     description: 'Advanced research leadership with stronger RP output.',
     tab: 'operations',
-    unlockUpgradeId: 'researchProduction',
+    unlockUpgradeId: 'seniorScientists',
   },
   juniorPolitician: {
     id: 'juniorPolitician',

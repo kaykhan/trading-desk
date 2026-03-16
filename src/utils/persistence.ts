@@ -5,7 +5,7 @@ import { REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { RESEARCH_TECH } from '../data/researchTech'
 import { DEFAULT_UNLOCKED_SECTORS, SECTOR_IDS } from '../data/sectors'
 import { UPGRADES } from '../data/upgrades'
-import type { GameState, HumanAssignableUnitId, LobbyingPolicyId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UpgradeId } from '../types/game'
+import type { GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
 
 export const SAVE_KEY = 'stock-incremental-save-v1'
 
@@ -63,12 +63,79 @@ function getSafeOwnedAssignableCount(rawState: Record<string, unknown>, unitId: 
   return getNumber(rawState.seniorTraderCount, initialState.seniorTraderCount)
 }
 
+function getSafeOwnedTraderSpecialistCount(rawState: Record<string, unknown>, unitId: TraderSpecialistUnitId): number {
+  return getNumber(rawState.seniorTraderCount, initialState.seniorTraderCount)
+}
+
+function normalizeTraderSpecialistCounts(source: unknown, ownedCount: number): Record<TraderSpecializationId, number> {
+  const sourceRecord = isRecord(source) ? source : {}
+  const specializationIds: TraderSpecializationId[] = ['finance', 'technology', 'energy']
+  let remaining = ownedCount
+
+  return Object.fromEntries(specializationIds.map((specializationId) => {
+    const requested = getNumber(sourceRecord[specializationId], 0)
+    const clamped = Math.min(Math.max(0, Math.floor(requested)), remaining)
+    remaining -= clamped
+    return [specializationId, clamped]
+  })) as Record<TraderSpecializationId, number>
+}
+
+function normalizeTraderSpecialists(source: unknown, rawState: Record<string, unknown>): GameState['traderSpecialists'] {
+  const sourceRecord = isRecord(source) ? source : {}
+
+  return {
+    seniorTrader: normalizeTraderSpecialistCounts(sourceRecord.seniorTrader, getSafeOwnedTraderSpecialistCount(rawState, 'seniorTrader')),
+  }
+}
+
+function normalizeInstitutionMandateCounts(source: unknown, ownedCount: number): Record<InstitutionalMandateId, number> {
+  const sourceRecord = isRecord(source) ? source : {}
+  const mandateIds: InstitutionalMandateId[] = ['finance', 'technology', 'energy']
+  let remaining = ownedCount
+
+  return Object.fromEntries(mandateIds.map((mandateId) => {
+    const requested = getNumber(sourceRecord[mandateId], 0)
+    const clamped = Math.min(Math.max(0, Math.floor(requested)), remaining)
+    remaining -= clamped
+    return [mandateId, clamped]
+  })) as Record<InstitutionalMandateId, number>
+}
+
+function normalizeInstitutionMandates(source: unknown, rawState: Record<string, unknown>): GameState['institutionMandates'] {
+  const sourceRecord = isRecord(source) ? source : {}
+  const getOwned = (unitId: InstitutionalMandateUnitId) => unitId === 'propDesk'
+    ? getNumber(rawState.propDeskCount, initialState.propDeskCount)
+    : unitId === 'institutionalDesk'
+      ? getNumber(rawState.institutionalDeskCount, initialState.institutionalDeskCount)
+      : unitId === 'hedgeFund'
+        ? getNumber(rawState.hedgeFundCount, initialState.hedgeFundCount)
+        : getNumber(rawState.investmentFirmCount, initialState.investmentFirmCount)
+
+  return {
+    propDesk: normalizeInstitutionMandateCounts(sourceRecord.propDesk, getOwned('propDesk')),
+    institutionalDesk: normalizeInstitutionMandateCounts(sourceRecord.institutionalDesk, getOwned('institutionalDesk')),
+    hedgeFund: normalizeInstitutionMandateCounts(sourceRecord.hedgeFund, getOwned('hedgeFund')),
+    investmentFirm: normalizeInstitutionMandateCounts(sourceRecord.investmentFirm, getOwned('investmentFirm')),
+  }
+}
+
+function getSafeOwnedGenericAssignableCount(rawState: Record<string, unknown>, unitId: GenericSectorAssignableUnitId): number {
+  if (unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader') {
+    return getSafeOwnedAssignableCount(rawState, unitId)
+  }
+
+  if (unitId === 'propDesk') return getNumber(rawState.propDeskCount, initialState.propDeskCount)
+  if (unitId === 'institutionalDesk') return getNumber(rawState.institutionalDeskCount, initialState.institutionalDeskCount)
+  if (unitId === 'hedgeFund') return getNumber(rawState.hedgeFundCount, initialState.hedgeFundCount)
+  return getNumber(rawState.investmentFirmCount, initialState.investmentFirmCount)
+}
+
 function normalizeSectorAssignments(source: unknown, rawState: Record<string, unknown>): GameState['sectorAssignments'] {
   const sourceRecord = isRecord(source) ? source : {}
 
-  const normalizeUnitAssignments = (unitId: HumanAssignableUnitId): Record<SectorId, number> => {
+  const normalizeUnitAssignments = (unitId: GenericSectorAssignableUnitId): Record<SectorId, number> => {
     const unitSource = isRecord(sourceRecord[unitId]) ? sourceRecord[unitId] : {}
-    const ownedCount = getSafeOwnedAssignableCount(rawState, unitId)
+    const ownedCount = getSafeOwnedGenericAssignableCount(rawState, unitId)
     let remaining = ownedCount
 
     return Object.fromEntries(SECTOR_IDS.map((sectorId) => {
@@ -84,6 +151,10 @@ function normalizeSectorAssignments(source: unknown, rawState: Record<string, un
     intern: normalizeUnitAssignments('intern'),
     juniorTrader: normalizeUnitAssignments('juniorTrader'),
     seniorTrader: normalizeUnitAssignments('seniorTrader'),
+    propDesk: normalizeUnitAssignments('propDesk'),
+    institutionalDesk: normalizeUnitAssignments('institutionalDesk'),
+    hedgeFund: normalizeUnitAssignments('hedgeFund'),
+    investmentFirm: normalizeUnitAssignments('investmentFirm'),
   }
 }
 
@@ -177,6 +248,9 @@ export function normalizeGameState(value: unknown): GameState | null {
 
   const migratedPurchasedResearchTech: Partial<Record<ResearchTechId, boolean>> = {
     ...purchasedResearchTech,
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.juniorHiringProgram === true ? { foundationsOfFinanceTraining: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.juniorTraderProgram === true ? { juniorTraderProgram: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.seniorRecruitment === true ? { seniorRecruitment: true } : {}),
     ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.tradingServers === true ? { aiTradingSystems: true } : {}),
   }
 
@@ -185,14 +259,16 @@ export function normalizeGameState(value: unknown): GameState | null {
       ? getBoolean(unlockedSectorsSource[sectorId], DEFAULT_UNLOCKED_SECTORS[sectorId])
       : DEFAULT_UNLOCKED_SECTORS[sectorId]
     const autoUnlocked = sectorId === 'technology'
-      ? migratedPurchasedResearchTech.algorithmicTrading === true
+      ? migratedPurchasedResearchTech.technologyMarkets === true || migratedPurchasedResearchTech.algorithmicTrading === true
       : sectorId === 'energy'
-        ? migratedPurchasedResearchTech.powerSystemsEngineering === true
+        ? migratedPurchasedResearchTech.energyMarkets === true || migratedPurchasedResearchTech.powerSystemsEngineering === true
         : false
 
     return [sectorId, explicitValue || autoUnlocked]
   })) as Record<SectorId, boolean>
 
+  const traderSpecialists = normalizeTraderSpecialists(value.traderSpecialists, value)
+  const institutionMandates = normalizeInstitutionMandates(value.institutionMandates, value)
   const sectorAssignments = normalizeSectorAssignments(value.sectorAssignments, value)
 
   return {
@@ -233,6 +309,8 @@ export function normalizeGameState(value: unknown): GameState | null {
     cloudComputeCount: getNumber(value.cloudComputeCount, initialState.cloudComputeCount),
     unlockedSectors,
     sectorAssignments,
+    traderSpecialists,
+    institutionMandates,
     purchasedUpgrades: migratedPurchasedUpgrades,
     purchasedResearchTech: migratedPurchasedResearchTech,
     purchasedPolicies,
@@ -458,6 +536,28 @@ export function normalizeGameState(value: unknown): GameState | null {
           isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.serverEfficiency === 1 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 5 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 10 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 'max')
             ? uiSource.repeatableUpgradeBuyModes.serverEfficiency
             : initialState.ui.repeatableUpgradeBuyModes.serverEfficiency,
+      },
+      researchBranchExpanded: {
+        humanCapital:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.humanCapital === 'boolean'
+            ? uiSource.researchBranchExpanded.humanCapital
+            : initialState.ui.researchBranchExpanded.humanCapital,
+        markets:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.markets === 'boolean'
+            ? uiSource.researchBranchExpanded.markets
+            : initialState.ui.researchBranchExpanded.markets,
+        infrastructure:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.infrastructure === 'boolean'
+            ? uiSource.researchBranchExpanded.infrastructure
+            : initialState.ui.researchBranchExpanded.infrastructure,
+        automation:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.automation === 'boolean'
+            ? uiSource.researchBranchExpanded.automation
+            : initialState.ui.researchBranchExpanded.automation,
+        regulation:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.regulation === 'boolean'
+            ? uiSource.researchBranchExpanded.regulation
+            : initialState.ui.researchBranchExpanded.regulation,
       },
       dismissedSectorUnlocks: {
         finance: true,

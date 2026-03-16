@@ -1,4 +1,4 @@
-# Stonks
+# Trading Desk
 
 Desktop game foundation built with Electron, React, and Vite.
 

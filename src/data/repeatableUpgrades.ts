@@ -124,7 +124,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.24,
     effectPerRank: 0.025,
     description: 'Increase Intern output through repeatable desk-side coaching.',
-    visibleWhen: (state) => state.purchasedUpgrades.juniorTraderProgram === true,
+    visibleWhen: (state) => state.purchasedResearchTech.juniorTraderProgram === true,
     unlockWhen: (state) => state.internCount > 0,
   },
   {
@@ -138,7 +138,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.22,
     effectPerRank: 0.015,
     description: 'Increase Intern output with repeatable desk playbooks and routines.',
-    visibleWhen: (state) => state.purchasedUpgrades.juniorTraderProgram === true,
+    visibleWhen: (state) => state.purchasedResearchTech.juniorTraderProgram === true,
     unlockWhen: (state) => state.internCount > 0,
   },
   {
@@ -180,7 +180,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.23,
     effectPerRank: 0.04,
     description: 'Increase Junior Trader output through repeatable desk-side training.',
-    visibleWhen: (state) => state.purchasedUpgrades.juniorTraderProgram === true,
+    visibleWhen: (state) => state.purchasedResearchTech.juniorTraderProgram === true,
     unlockWhen: (state) => state.juniorTraderCount > 0,
   },
   {
@@ -194,7 +194,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.25,
     effectPerRank: 0.04,
     description: 'Increase Senior Trader output through repeatable desk execution improvements.',
-    visibleWhen: (state) => state.purchasedUpgrades.seniorRecruitment === true,
+    visibleWhen: (state) => state.purchasedResearchTech.seniorRecruitment === true,
     unlockWhen: (state) => state.seniorTraderCount > 0,
   },
   {
@@ -404,7 +404,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.19,
     effectPerRank: 0.02,
     description: 'Increase Senior Trader output with repeatable decision-support systems.',
-    visibleWhen: (state) => state.purchasedUpgrades.seniorRecruitment === true,
+    visibleWhen: (state) => state.purchasedResearchTech.seniorRecruitment === true,
     unlockWhen: (state) => state.seniorTraderCount > 0,
   },
   {
@@ -516,7 +516,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.22,
     effectPerRank: 0.025,
     description: 'Increase Junior Scientist output with repeatable workflow optimization.',
-    visibleWhen: (state) => state.purchasedUpgrades.juniorHiringProgram === true,
+    visibleWhen: (state) => state.purchasedResearchTech.foundationsOfFinanceTraining === true,
     unlockWhen: (state) => state.juniorResearchScientistCount > 0,
   },
   {

@@ -39,6 +39,19 @@ export const initialState: GameState = {
     intern: { finance: 0, technology: 0, energy: 0 },
     juniorTrader: { finance: 0, technology: 0, energy: 0 },
     seniorTrader: { finance: 0, technology: 0, energy: 0 },
+    propDesk: { finance: 0, technology: 0, energy: 0 },
+    institutionalDesk: { finance: 0, technology: 0, energy: 0 },
+    hedgeFund: { finance: 0, technology: 0, energy: 0 },
+    investmentFirm: { finance: 0, technology: 0, energy: 0 },
+  },
+  traderSpecialists: {
+    seniorTrader: { finance: 0, technology: 0, energy: 0 },
+  },
+  institutionMandates: {
+    propDesk: { finance: 0, technology: 0, energy: 0 },
+    institutionalDesk: { finance: 0, technology: 0, energy: 0 },
+    hedgeFund: { finance: 0, technology: 0, energy: 0 },
+    investmentFirm: { finance: 0, technology: 0, energy: 0 },
   },
   purchasedUpgrades: {},
   purchasedResearchTech: {},
@@ -105,6 +118,13 @@ export const initialState: GameState = {
       seniorLabOptimization: 1,
       energyOptimization: 1,
       serverEfficiency: 1,
+    },
+    researchBranchExpanded: {
+      humanCapital: false,
+      markets: false,
+      infrastructure: false,
+      automation: false,
+      regulation: false,
     },
     prestigePurchasePlan: {
       brandRecognition: 0,

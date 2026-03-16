@@ -33,12 +33,22 @@ export type PurchaseCardProps = {
   compact?: boolean
 }
 
-export function SummaryTile({ label, value, icon: Icon }: { label: string; value: string; icon: LucideIcon }) {
+export function SummaryTile({ label, value, icon: Icon, infoTooltip }: { label: string; value: string; icon: LucideIcon; infoTooltip?: string }) {
   return (
     <div className="rounded-xl border border-border/80 bg-background/70 p-2">
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         <Icon className="size-3.5" />
         <span>{label}</span>
+        {infoTooltip ? (
+          <button
+            type="button"
+            title={infoTooltip}
+            aria-label={`More info about ${label}`}
+            className="inline-flex size-4 items-center justify-center rounded-sm border border-border/60 bg-background/50 text-muted-foreground transition hover:text-foreground"
+          >
+            <Info className="size-3" />
+          </button>
+        ) : null}
       </div>
       <p className="mt-1 font-mono text-[13px] font-semibold text-foreground xl:text-sm">{value}</p>
     </div>

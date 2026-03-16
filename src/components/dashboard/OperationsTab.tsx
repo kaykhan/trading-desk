@@ -36,7 +36,7 @@ export function OperationsTab() {
   const botUnlocked = useGameStore(selectors.isUnitUnlocked('ruleBasedBot'))
 
   const nextOperationsGoal = !internUnlocked
-    ? 'Research Recruiter first.'
+    ? 'Research Foundations of Finance Training first.'
     : !juniorUnlocked
       ? 'Scale Interns and unlock Junior Trader Program.'
       : !seniorUnlocked
@@ -56,7 +56,7 @@ export function OperationsTab() {
         : 'Automation scaling'
 
   const unitUnlockProgress = {
-    intern: 'Unlock with Recruiter in Research.',
+    intern: 'Unlock with Foundations of Finance Training in Research.',
     juniorTrader: `Unlock with Junior Trader Program after reaching 5 Interns (${gameState.internCount}/5).`,
     seniorTrader: `Unlock with Senior Recruitment after reaching 5 Juniors (${gameState.juniorTraderCount}/5).`,
     ruleBasedBot: `Unlock with Algorithmic Trading after reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,

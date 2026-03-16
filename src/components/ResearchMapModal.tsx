@@ -3,11 +3,11 @@ import { ResearchTreeContent } from '@/components/dashboard/ResearchTab'
 
 export function ResearchMapModal() {
   return (
-    <DialogContent className="max-w-[96vw] border-border/80 bg-card/95 text-foreground sm:max-w-[94vw]">
+    <DialogContent className="flex max-h-[92vh] max-w-[96vw] flex-col border-border/80 bg-card/95 text-foreground sm:max-w-[94vw]">
       <DialogHeader>
-        <DialogTitle>Research map</DialogTitle>
+        <DialogTitle>Research branches</DialogTitle>
       </DialogHeader>
-      <div className="max-h-[88vh] overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
         <ResearchTreeContent expanded />
       </div>
     </DialogContent>

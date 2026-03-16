@@ -1,17 +1,33 @@
-import { FlaskConical, Lock, MonitorCog, TrendingUp, Users } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { ChevronDown, ChevronUp, FlaskConical, Lock, MonitorCog, TrendingUp, Users } from 'lucide-react'
 import { CAPACITY_INFRASTRUCTURE } from '@/data/capacity'
 import { POWER_INFRASTRUCTURE } from '@/data/powerInfrastructure'
 import { UNITS } from '@/data/units'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
-import type { BuyMode, DeskViewId, UnitId } from '@/types/game'
+import type { BuyMode, DeskViewId, InstitutionalMandateId, InstitutionalMandateUnitId, TraderSpecialistUnitId, TraderSpecializationId, UnitId } from '@/types/game'
 import { formatCurrency, formatNumber, formatPlainRate, formatRate } from '@/utils/formatting'
 import { GAME_CONSTANTS } from '@/data/constants'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SectorsTab } from './SectorsTab'
 import { PurchaseCard } from './DashboardPrimitives'
+
+const SPECIALIZATION_IDS: TraderSpecializationId[] = ['finance', 'technology', 'energy']
+const SPECIALIZATION_LABELS: Record<TraderSpecializationId, string> = {
+  finance: 'Finance',
+  technology: 'Technology',
+  energy: 'Energy',
+}
+
+const MANDATE_IDS: InstitutionalMandateId[] = ['finance', 'technology', 'energy']
+const MANDATE_LABELS: Record<InstitutionalMandateId, string> = {
+  finance: 'Finance Mandate',
+  technology: 'Tech Growth Mandate',
+  energy: 'Energy Exposure',
+}
 
 const BUY_MODES: BuyMode[] = [1, 5, 10, 'max']
 
@@ -37,6 +53,232 @@ type HumanAssignmentSummary = {
   owned: number
   assigned: number
   available: number
+}
+
+function BulkAdjustControls({
+  maxAdd,
+  onAdd,
+  addLabel,
+  compact = false,
+}: {
+  maxAdd: number
+  onAdd: (_amount: number) => void
+  addLabel: string
+  compact?: boolean
+}) {
+  const [selectedAmount, setSelectedAmount] = useState<1 | 5 | 10 | 'max' | 'custom'>(1)
+  const [customAmount, setCustomAmount] = useState('25')
+
+  const maxAmount = maxAdd
+  const parsedCustom = Math.max(0, Math.floor(Number(customAmount) || 0))
+  const resolvedAmount = selectedAmount === 'max'
+    ? maxAmount
+    : selectedAmount === 'custom'
+      ? Math.min(parsedCustom, maxAmount)
+      : Math.min(selectedAmount, maxAmount)
+
+  return (
+    <div className={`rounded-lg border border-border/70 bg-background/40 ${compact ? 'p-2' : 'p-2.5'}`}>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Available {maxAmount}</span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {[1, 5, 10].map((amount) => (
+          <Button
+            key={`bulk-${amount}`}
+            size="xs"
+            variant={selectedAmount === amount ? 'default' : 'outline'}
+            className="rounded-md uppercase tracking-[0.12em]"
+            onClick={() => setSelectedAmount(amount as 1 | 5 | 10)}
+          >
+            {amount}
+          </Button>
+        ))}
+        <Button size="xs" variant={selectedAmount === 'max' ? 'default' : 'outline'} className="rounded-md uppercase tracking-[0.12em]" onClick={() => setSelectedAmount('max')}>
+          Max
+        </Button>
+        <Button size="xs" variant={selectedAmount === 'custom' ? 'default' : 'outline'} className="rounded-md uppercase tracking-[0.12em]" onClick={() => setSelectedAmount('custom')}>
+          Custom
+        </Button>
+        {selectedAmount === 'custom' ? (
+          <input
+            inputMode="numeric"
+            value={customAmount}
+            onChange={(event) => setCustomAmount(event.target.value.replace(/[^0-9]/g, ''))}
+            className="h-7 w-20 rounded-md border border-border/70 bg-background/60 px-2 text-xs text-foreground outline-none ring-0 placeholder:text-muted-foreground"
+            placeholder="25"
+          />
+        ) : null}
+        <Button
+          size="xs"
+          variant={resolvedAmount > 0 ? 'default' : 'outline'}
+          className="rounded-md uppercase tracking-[0.12em]"
+          disabled={resolvedAmount <= 0}
+          onClick={() => {
+            if (resolvedAmount <= 0) {
+              return
+            }
+
+            onAdd(resolvedAmount)
+          }}
+        >
+          {addLabel} {resolvedAmount > 0 ? resolvedAmount : ''}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function TraderSpecialistManager({ unitId }: { unitId: TraderSpecialistUnitId }) {
+  const [open, setOpen] = useState(false)
+  const trainTraderSpecialist = useGameStore((state) => state.trainTraderSpecialist)
+  const gameState = useGameStore((state) => state)
+  const genericCount = useGameStore(selectors.genericTraderCount(unitId))
+  const trainingCost = useGameStore(selectors.traderSpecialistTrainingCost(unitId))
+  const headerLabel = 'Senior Trader Specialization'
+  const ToggleIcon = open ? ChevronUp : ChevronDown
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/35 p-2">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-2 rounded-md text-left"
+      >
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.16em] text-primary">{headerLabel}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Generic pool {genericCount} | Train Senior Trader specialists who automatically deploy into their matching sector.</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background/50 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          {open ? 'Collapse' : 'Expand'}
+          <ToggleIcon className="size-3.5" />
+        </div>
+      </button>
+
+      {open ? (
+        <div className="mt-3 space-y-3">
+          {SPECIALIZATION_IDS.map((specializationId) => {
+            const unlocked = selectors.traderSpecialistTrainingUnlocked(specializationId)(gameState)
+            const trainedCount = selectors.traderSpecialistCount(unitId, specializationId)(gameState)
+            const maxTrainable = unlocked ? Math.min(genericCount, Math.floor(gameState.cash / trainingCost)) : 0
+            const sectorId = specializationId
+            const assigned = selectors.assignedTraderSpecialistsForSector(unitId, specializationId, sectorId)(gameState)
+            const sectorUnlocked = selectors.isSectorUnlocked(sectorId)(gameState)
+            const activeCount = sectorUnlocked ? assigned : 0
+
+            return (
+              <div key={`${unitId}-${specializationId}`} className="rounded-xl border border-border/80 bg-background/55 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-primary">{SPECIALIZATION_LABELS[specializationId]} Specialists</p>
+                  <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Trained {trainedCount}</Badge>
+                  <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Active {activeCount}</Badge>
+                  <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Train {formatCurrency(trainingCost)}</Badge>
+                </div>
+
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {unlocked
+                    ? `Matching ${SPECIALIZATION_LABELS[specializationId]} sector deployments gain a +20% bonus.`
+                    : `Requires ${SPECIALIZATION_LABELS[specializationId]} Specialist Training research.`}
+                </p>
+
+                <div className="mt-2">
+                  <BulkAdjustControls
+                    maxAdd={maxTrainable}
+                    onAdd={(amount) => trainTraderSpecialist(unitId, specializationId, amount)}
+                    addLabel="Train"
+                    compact
+                  />
+                </div>
+
+                <div className="mt-3 border-t border-border/60 pt-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-primary">Auto-Assigned To {SPECIALIZATION_LABELS[sectorId]}</p>
+                    <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Active {assigned}</Badge>
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {sectorUnlocked ? 'Training immediately routes these specialists into the matching sector lane for a +20% bonus.' : 'This specialization will activate automatically once the matching sector is unlocked.'}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function InstitutionalMandateManager({ unitId }: { unitId: InstitutionalMandateUnitId }) {
+  const [open, setOpen] = useState(false)
+  const applyInstitutionMandate = useGameStore((state) => state.applyInstitutionMandate)
+  const gameState = useGameStore((state) => state)
+  const genericCount = useGameStore(selectors.genericInstitutionCount(unitId))
+  const mandateCost = useGameStore(selectors.institutionMandateApplicationCost(unitId))
+  const headerLabel = unitId === 'propDesk'
+    ? 'Prop Desk Mandates'
+    : unitId === 'institutionalDesk'
+      ? 'Institutional Desk Mandates'
+      : unitId === 'hedgeFund'
+        ? 'Hedge Fund Mandates'
+        : 'Investment Firm Mandates'
+  const ToggleIcon = open ? ChevronUp : ChevronDown
+  const bonusLabel = unitId === 'propDesk' ? '+5%' : unitId === 'institutionalDesk' ? '+7.5%' : unitId === 'hedgeFund' ? '+10%' : '+12.5%'
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/35 p-2">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-2 rounded-md text-left"
+      >
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.16em] text-primary">{headerLabel}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Generic pool {genericCount} | Apply mandates, then manually assign institutions to sectors to activate the matching bonus.</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background/50 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          {open ? 'Collapse' : 'Expand'}
+          <ToggleIcon className="size-3.5" />
+        </div>
+      </button>
+
+      {open ? (
+        <div className="mt-3 space-y-3">
+          {MANDATE_IDS.map((mandateId) => {
+            const unlocked = selectors.institutionMandateUnlocked(mandateId)(gameState)
+            const appliedCount = selectors.institutionMandateCount(unitId, mandateId)(gameState)
+            const maxApplicable = unlocked ? Math.min(genericCount, Math.floor(gameState.cash / mandateCost)) : 0
+            const activeCount = selectors.assignedInstitutionMandatesForSector(unitId, mandateId, mandateId)(gameState)
+            const sectorUnlocked = selectors.isSectorUnlocked(mandateId)(gameState)
+
+            return (
+              <div key={`${unitId}-${mandateId}`} className="rounded-xl border border-border/80 bg-background/55 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-primary">{MANDATE_LABELS[mandateId]}</p>
+                  <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Applied {appliedCount}</Badge>
+                  <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Active {activeCount}</Badge>
+                  <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">{bonusLabel}</Badge>
+                  <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Apply {formatCurrency(mandateCost)}</Badge>
+                </div>
+
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {unlocked ? `Matching ${MANDATE_LABELS[mandateId]} deployments gain a ${bonusLabel} bonus.` : `Requires ${MANDATE_LABELS[mandateId]} research.`}
+                </p>
+
+                <div className="mt-2">
+                  <BulkAdjustControls
+                    maxAdd={maxApplicable}
+                    onAdd={(amount) => applyInstitutionMandate(unitId, mandateId, amount)}
+                    addLabel="Apply"
+                    compact
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function DeskUnitBuyControls({ unitId, activeMode, onChange }: { unitId: UnitId; activeMode: BuyMode; onChange: (_mode: BuyMode) => void }) {
@@ -86,7 +328,7 @@ function DeskUnitBuyControls({ unitId, activeMode, onChange }: { unitId: UnitId;
   )
 }
 
-function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode, disabled, unlocked, titleDescription, onBuy, onModeChange, assignmentSummary }: {
+function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode, disabled, unlocked, titleDescription, onBuy, onModeChange, assignmentSummary, extraContent }: {
   config: UnitPanelConfig
   incomeLabel: string
   totalCost: number
@@ -99,6 +341,7 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
   onBuy: () => void
   onModeChange: (_mode: BuyMode) => void
   assignmentSummary?: HumanAssignmentSummary
+  extraContent?: ReactNode
 }) {
   const blockedByDeskCapacity = (config.unitId === 'intern' || config.unitId === 'juniorTrader' || config.unitId === 'seniorTrader') && disabled && totalCost === 0
   const status = unlocked ? (blockedByDeskCapacity ? 'Need Desk Slots' : disabled ? 'Need cash' : 'Ready') : 'Locked'
@@ -123,7 +366,7 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
         disabledReason={!unlocked ? config.lockedReason : blockedByDeskCapacity ? 'Need more Desk Slots for additional human traders.' : disabled ? 'Not enough cash for current buy mode.' : undefined}
         badges={badges}
         onClick={onBuy}
-        footer={<DeskUnitBuyControls unitId={config.unitId} activeMode={buyMode} onChange={onModeChange} />}
+        footer={<div className="space-y-1.5"><DeskUnitBuyControls unitId={config.unitId} activeMode={buyMode} onChange={onModeChange} />{extraContent}</div>}
         compact
       />
     </div>
@@ -154,7 +397,7 @@ export function DeskTab() {
   const aiTradingBotIncome = useGameStore(selectors.aiTradingBotIncome)
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
   const influencePerSecond = useGameStore(selectors.influencePerSecond)
-  const powerUnlocked = useGameStore(selectors.powerInfrastructureUnlocked)
+  const powerResearchUnlocked = useGameStore(selectors.powerInfrastructureUnlocked)
   const powerUsage = useGameStore(selectors.powerUsage)
   const powerCapacity = useGameStore(selectors.powerCapacity)
   const capacityPowerUsage = useGameStore(selectors.capacityPowerUsage)
@@ -225,7 +468,7 @@ export function DeskTab() {
       unitId: 'intern',
       title: 'Intern',
       purchaseLabel: 'Hire',
-      lockedReason: 'Unlock with Recruiter in Research.',
+      lockedReason: 'Unlock with Foundations of Finance Training in Research.',
       totalLabel: 'Desk',
     },
     {
@@ -274,7 +517,7 @@ export function DeskTab() {
       unitId: 'internResearchScientist',
       title: 'Intern Scientist',
       purchaseLabel: 'Hire',
-      lockedReason: 'Unlock with Recruiter in Research.',
+      lockedReason: 'Unlock with Foundations of Finance Training in Research.',
       totalLabel: 'Research',
       extraBadges: ['0.35 RP / sec'],
     },
@@ -472,28 +715,13 @@ export function DeskTab() {
             <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Juniors: {gameState.juniorTraderCount} owned / {juniorAssigned} assigned / {juniorAvailable} available</div>
             <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Seniors: {gameState.seniorTraderCount} owned / {seniorAssigned} assigned / {seniorAvailable} available</div>
           </div>
-          <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-[11px] text-foreground">
+          <div className="rounded-xl border border-border/70 bg-background/35 p-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              <TrendingUp className="size-4 text-primary" />
-              <p className="text-[10px] uppercase tracking-[0.16em] text-primary">Desk Capacity</p>
-              <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Desk Slots: {usedDeskSlots} / {totalDeskSlots} used</Badge>
-              <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{availableDeskSlots} free</Badge>
+              <Users className="size-4 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.16em] text-primary">People Traders</p>
             </div>
-            <p className="mt-1">Human traders no longer consume machine power directly. Human growth is constrained by firm-wide desk allocation, so you must choose when to keep hiring and when to expand the office footprint first.</p>
-            <p className="mt-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Capacity purchases now live under Infrastructure: Desk Space {formatCurrency(deskSpaceCost)}, Floor Space {formatCurrency(floorSpaceCost)}, Office {formatCurrency(officeCost)}.</p>
-            {capacityFullNoticeVisible ? (
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/30 bg-background/60 p-2">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-primary">Desk Capacity Full</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">You have filled every available human desk. Go to Infrastructure and buy Desk Space, Floor Space, or an Office before hiring more traders.</p>
-                </div>
-                <Button size="xs" className="rounded-md uppercase tracking-[0.12em]" onClick={() => acknowledgeCapacityFull()}>
-                  Got it
-                </Button>
-              </div>
-            ) : null}
-          </div>
-          {unitPanelConfigs.filter((item) => item.unitId === 'intern' || item.unitId === 'juniorTrader' || item.unitId === 'seniorTrader' || item.unitId === 'propDesk' || item.unitId === 'institutionalDesk' || item.unitId === 'hedgeFund' || item.unitId === 'investmentFirm').map((config) => {
+            <div className="mt-2 space-y-2">
+          {unitPanelConfigs.filter((item) => item.unitId === 'intern' || item.unitId === 'juniorTrader' || item.unitId === 'seniorTrader').map((config) => {
             const state = getUnitState(config.unitId)
             const assignmentSummary = config.unitId === 'intern'
               ? { owned: gameState.internCount, assigned: internAssigned, available: internAvailable }
@@ -515,21 +743,59 @@ export function DeskTab() {
                 unlocked={state.unlocked}
                 titleDescription={state.description}
                 assignmentSummary={assignmentSummary}
+                extraContent={config.unitId === 'seniorTrader'
+                  ? <TraderSpecialistManager unitId="seniorTrader" />
+                  : config.unitId === 'propDesk' || config.unitId === 'institutionalDesk' || config.unitId === 'hedgeFund' || config.unitId === 'investmentFirm'
+                    ? <InstitutionalMandateManager unitId={config.unitId} />
+                    : undefined}
                 onBuy={() => buyUnit(config.unitId, state.buyMode)}
                 onModeChange={(mode) => setUnitBuyMode(config.unitId, mode)}
               />
             )
           })}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/35 p-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <MonitorCog className="size-4 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.16em] text-primary">Organizational Units</p>
+            </div>
+            <div className="mt-2 space-y-2">
+          {unitPanelConfigs.filter((item) => item.unitId === 'propDesk' || item.unitId === 'institutionalDesk' || item.unitId === 'hedgeFund' || item.unitId === 'investmentFirm').map((config) => {
+            const state = getUnitState(config.unitId)
+            const mandateUnitId = config.unitId === 'propDesk' || config.unitId === 'institutionalDesk' || config.unitId === 'hedgeFund' || config.unitId === 'investmentFirm'
+              ? config.unitId
+              : 'propDesk'
+            return (
+              <UnitPanel
+                key={config.unitId}
+                config={config}
+                incomeLabel={state.totalIncome}
+                totalCost={state.totalCost}
+                nextCost={state.nextCost}
+                quantity={state.count}
+                buyMode={state.buyMode}
+                disabled={state.disabled}
+                unlocked={state.unlocked}
+                titleDescription={state.description}
+                extraContent={<InstitutionalMandateManager unitId={mandateUnitId} />}
+                onBuy={() => buyUnit(config.unitId, state.buyMode)}
+                onModeChange={(mode) => setUnitBuyMode(config.unitId, mode)}
+              />
+            )
+          })}
+            </div>
+          </div>
         </div> : null}
 
         {showSectorsView ? <SectorsTab /> : null}
 
-        {showScientistsView ? <div className={gameState.purchasedUpgrades.juniorHiringProgram ? 'terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5' : 'terminal-panel space-y-2 rounded-xl border-border/60 bg-card/70 p-2.5 opacity-60'}>
+        {showScientistsView ? <div className={gameState.purchasedResearchTech.foundationsOfFinanceTraining ? 'terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5' : 'terminal-panel space-y-2 rounded-xl border-border/60 bg-card/70 p-2.5 opacity-60'}>
           <div className="flex flex-wrap items-center gap-2">
             <FlaskConical className="size-4 text-primary" />
             <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Scientists</h3>
-            <Badge variant="outline" className={gameState.purchasedUpgrades.juniorHiringProgram ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{gameState.purchasedUpgrades.juniorHiringProgram ? 'Unlocked' : 'Locked'}</Badge>
-            {gameState.purchasedUpgrades.juniorHiringProgram ? (
+            <Badge variant="outline" className={gameState.purchasedResearchTech.foundationsOfFinanceTraining ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{gameState.purchasedResearchTech.foundationsOfFinanceTraining ? 'Unlocked' : 'Locked'}</Badge>
+            {gameState.purchasedResearchTech.foundationsOfFinanceTraining ? (
               <>
                 <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatPlainRate(researchPointsPerSecond)} research</Badge>
               </>
@@ -615,19 +881,20 @@ export function DeskTab() {
           })}
         </div> : null}
 
-        {showInfrastructureView ? <div className={powerUnlocked ? 'terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5' : 'terminal-panel space-y-2 rounded-xl border-border/60 bg-card/70 p-2.5 opacity-60'}>
+        {showInfrastructureView ? <div className="terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <Lock className="size-4 text-primary" />
               <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Infrastructure</h3>
-              <Badge variant="outline" className={powerUnlocked ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{powerUnlocked ? 'Unlocked' : 'Locked'}</Badge>
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</Badge> : null}
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
+              <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Office Unlocked</Badge>
+              <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</Badge>
+              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Energy Research Unlocked</Badge> : <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Energy Research Locked</Badge>}
+              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
+              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
+              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
             </div>
-            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Firm growth now splits cleanly between Office capacity for human traders and Energy infrastructure for machine systems. New desk capacity requires both cash and available energy support.</p>
-            {powerUnlocked && machineEfficiencyMultiplier < 1 ? <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-amber-400">Over capacity - powered output {Math.round(machineEfficiencyMultiplier * 100)}%</p> : null}
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Office capacity is available from the start and uses baseline utility power. Energy infrastructure is a separate research-gated lane for machine systems and larger electrical expansion.</p>
+            {machineEfficiencyMultiplier < 1 ? <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-amber-400">Over capacity - powered output {Math.round(machineEfficiencyMultiplier * 100)}%</p> : null}
           </div>
 
           <div className="space-y-2 rounded-xl border border-border/70 bg-background/35 p-2.5">
@@ -640,21 +907,22 @@ export function DeskTab() {
             <p className="text-[11px] leading-4 text-muted-foreground">Buy more space for human traders here. Each purchase requires cash and energy capacity: Desk Space is the cheapest patch for one more hire, Floor Space is the first real expansion, and Office is the large-scale late purchase.</p>
             <div className="space-y-2">
               {[
-              { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= deskSpaceTotalCost && deskSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState) },
-              { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= floorSpaceTotalCost && floorSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState) },
-              { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= officeTotalCost && officeQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState) },
-              ].map((item) => (
+               { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= deskSpaceTotalCost && deskSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState), visible: true, lockedReason: 'Starter office expansion available from the start.' },
+               { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= floorSpaceTotalCost && floorSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: gameState.purchasedResearchTech.floorSpacePlanning === true, lockedReason: 'Requires Floor Space Planning research.' },
+               { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= officeTotalCost && officeQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: gameState.purchasedResearchTech.officeExpansionPlanning === true, lockedReason: 'Requires Office Expansion Planning research.' },
+               ].map((item) => (
                 <PurchaseCard
                   key={item.id}
                   title={item.name}
-                  description={item.description}
-                  status={item.canAffordCash && item.canAffordEnergy ? 'Ready' : !item.canAffordCash ? 'Need cash' : 'Need energy'}
-                  statusTone={item.canAffordCash && item.canAffordEnergy ? 'ready' : 'default'}
+                  description={item.visible ? item.description : item.lockedReason}
+                  status={!item.visible ? 'Locked' : item.canAffordCash && item.canAffordEnergy ? 'Ready' : !item.canAffordCash ? 'Need cash' : 'Need energy'}
+                  statusTone={!item.visible ? 'locked' : item.canAffordCash && item.canAffordEnergy ? 'ready' : 'default'}
                   actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
-                  disabled={!item.canAffordCash || !item.canAffordEnergy}
-                  disabledReason={!item.canAffordCash ? 'Not enough cash for this expansion.' : !item.canAffordEnergy ? 'Need more Energy capacity for this office expansion.' : undefined}
+                  disabled={!item.visible || !item.canAffordCash || !item.canAffordEnergy}
+                  disabledReason={!item.visible ? item.lockedReason : !item.canAffordCash ? 'Not enough cash for this expansion.' : !item.canAffordEnergy ? 'Need more total power capacity for this office expansion.' : undefined}
                   badges={[`${item.count} owned`, `+${item.slotsGranted * Math.max(1, item.quantity)} slots`, `${formatNumber(item.powerUsage * Math.max(1, item.quantity), { decimalsBelowThreshold: 1 })} energy`]}
                   onClick={() => {
+                    if (!item.visible) return
                     if (item.id === 'deskSpace') buyDeskSpace(item.buyMode)
                     if (item.id === 'floorSpace') buyFloorSpace(item.buyMode)
                     if (item.id === 'office') buyOffice(item.buyMode)
@@ -680,7 +948,7 @@ export function DeskTab() {
             <div className="flex flex-wrap items-center gap-2">
               <MonitorCog className="size-4 text-primary" />
               <h4 className="text-[12px] font-semibold leading-none text-foreground">Energy</h4>
-              {powerUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })}</Badge> : null}
+               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })}</Badge> : null}
             </div>
             <p className="text-[11px] leading-4 text-muted-foreground">Machine infrastructure powers bots and compute systems. Expand this lane to support higher bot tiers and avoid over-capacity penalties.</p>
             <div className="space-y-2">
@@ -691,8 +959,8 @@ export function DeskTab() {
               { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: gameState.purchasedResearchTech.aiTradingSystems === true, lockedReason: 'Late-run infrastructure. Requires AI Trading Systems research.' },
               ].map((item) => {
                 const definition = POWER_INFRASTRUCTURE[item.id]
-                const status = item.visible && powerUnlocked ? (item.canAfford ? 'Ready' : 'Need cash') : 'Locked'
-                const statusTone = item.visible && powerUnlocked ? (item.canAfford ? 'ready' : 'default') : 'locked'
+                 const status = item.visible && powerResearchUnlocked ? (item.canAfford ? 'Ready' : 'Need cash') : 'Locked'
+                 const statusTone = item.visible && powerResearchUnlocked ? (item.canAfford ? 'ready' : 'default') : 'locked'
                 return (
                   <div key={item.id} className={!item.visible ? 'opacity-60' : undefined}>
                     <PurchaseCard
@@ -702,8 +970,8 @@ export function DeskTab() {
                       status={status}
                       statusTone={statusTone}
                       actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
-                      disabled={!item.visible || !powerUnlocked || !item.canAfford}
-                      disabledReason={!item.visible ? item.lockedReason : !powerUnlocked ? 'Requires Power Systems Engineering first.' : !item.canAfford ? 'Not enough cash for current buy mode.' : undefined}
+                      disabled={!item.visible || !powerResearchUnlocked || !item.canAfford}
+                      disabledReason={!item.visible ? item.lockedReason : !powerResearchUnlocked ? 'Requires Power Systems Engineering first.' : !item.canAfford ? 'Not enough cash for current buy mode.' : undefined}
                       badges={[`${item.count} owned`, `+${definition.powerCapacity} cap`]}
                       onClick={() => buyPowerInfrastructure(item.id, item.buyMode)}
                       compact

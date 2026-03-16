@@ -3,9 +3,12 @@ import { POWER_INFRASTRUCTURE } from '../data/powerInfrastructure'
 import { getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank } from '../data/repeatableUpgrades'
 import { getSectorDefinition, SECTOR_IDS } from '../data/sectors'
 import { UNITS } from '../data/units'
-import type { BuyMode, GameState, HumanAssignableUnitId, PowerInfrastructureId, RepeatableUpgradeId, SectorId, UpgradeId, UnitId } from '../types/game'
+import type { BuyMode, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, PowerInfrastructureId, RepeatableUpgradeId, SectorId, UpgradeId, UnitId } from '../types/game'
 import { getAvailableDeskSlots, canBuyHumanUnit, getCapacityPowerUsage } from './capacity'
 import { getHumanStaffCostMultiplier, getMachineOutputPrestigeMultiplier, getPowerCapacityPrestigeMultiplier, getProfitPrestigeMultiplier, getResearchPrestigeMultiplier } from './prestige'
+import { isLobbyingUnlocked, isPowerInfrastructureUnlocked as hasPowerInfrastructureResearch } from './research'
+import { getAssignedTraderSpecialistsForSector, getGenericTraderCount, getTraderSpecialistSectorBonus } from './specialization'
+import { getAssignedInstitutionMandatesForSector, getGenericInstitutionCount, getInstitutionMandateBonus } from './mandates'
 
 export function getScaledCost(baseCost: number, scaling: number, owned: number): number {
   return Math.floor(baseCost * Math.pow(scaling, owned))
@@ -262,7 +265,7 @@ export function getSeniorTraderIncome(state: GameState): number {
   return value * getSeniorTraderOptimizationMultiplier(state)
 }
 
-export function getOwnedAssignableUnitCount(state: GameState, unitId: HumanAssignableUnitId): number {
+export function getOwnedAssignableUnitCount(state: GameState, unitId: GenericSectorAssignableUnitId): number {
   if (unitId === 'intern') {
     return state.internCount
   }
@@ -271,10 +274,26 @@ export function getOwnedAssignableUnitCount(state: GameState, unitId: HumanAssig
     return state.juniorTraderCount
   }
 
+  if (unitId === 'propDesk') {
+    return state.propDeskCount
+  }
+
+  if (unitId === 'institutionalDesk') {
+    return state.institutionalDeskCount
+  }
+
+  if (unitId === 'hedgeFund') {
+    return state.hedgeFundCount
+  }
+
+  if (unitId === 'investmentFirm') {
+    return state.investmentFirmCount
+  }
+
   return state.seniorTraderCount
 }
 
-export function getAssignedCountForSector(state: GameState, unitId: HumanAssignableUnitId, sectorId: SectorId): number {
+export function getAssignedCountForSector(state: GameState, unitId: GenericSectorAssignableUnitId, sectorId: SectorId): number {
   if (state.unlockedSectors[sectorId] !== true) {
     return 0
   }
@@ -282,11 +301,19 @@ export function getAssignedCountForSector(state: GameState, unitId: HumanAssigna
   return Math.max(0, state.sectorAssignments[unitId]?.[sectorId] ?? 0)
 }
 
-export function getAssignedCount(state: GameState, unitId: HumanAssignableUnitId): number {
+export function getAssignedCount(state: GameState, unitId: GenericSectorAssignableUnitId): number {
   return SECTOR_IDS.reduce((total, sectorId) => total + getAssignedCountForSector(state, unitId, sectorId), 0)
 }
 
-export function getAvailableAssignableUnitCount(state: GameState, unitId: HumanAssignableUnitId): number {
+export function getAvailableAssignableUnitCount(state: GameState, unitId: GenericSectorAssignableUnitId): number {
+  if (unitId === 'seniorTrader') {
+    return Math.max(0, getGenericTraderCount(state, 'seniorTrader') - getAssignedCount(state, unitId))
+  }
+
+  if (unitId === 'propDesk' || unitId === 'institutionalDesk' || unitId === 'hedgeFund' || unitId === 'investmentFirm') {
+    return Math.max(0, getGenericInstitutionCount(state, unitId) - getAssignedCount(state, unitId))
+  }
+
   return Math.max(0, getOwnedAssignableUnitCount(state, unitId) - getAssignedCount(state, unitId))
 }
 
@@ -462,12 +489,13 @@ export function getAiTradingBotPowerUsage(state: GameState): number {
 }
 
 export function getPowerCapacity(state: GameState): number {
+  const utilityCapacity = GAME_CONSTANTS.baseUtilityPowerCapacity
   const rackCapacity = state.serverRackCount * GAME_CONSTANTS.serverRackPowerCapacity * getServerRackCapacityMultiplier(state) * (state.purchasedUpgrades.rackStacking ? 1.25 : 1)
   const roomCapacity = state.serverRoomCount * GAME_CONSTANTS.serverRoomPowerCapacity * getServerRoomCapacityMultiplier(state) * (state.purchasedUpgrades.roomScaleout ? 1.25 : 1)
   const dataCenterCapacity = state.dataCenterCount * GAME_CONSTANTS.dataCenterPowerCapacity * getDataCenterCapacityMultiplier(state) * (state.purchasedUpgrades.dataCenterFabric ? 1.3 : 1)
   const cloudCapacity = state.cloudComputeCount * GAME_CONSTANTS.cloudComputePowerCapacity * getCloudInfrastructureCapacityMultiplier(state) * (state.purchasedUpgrades.cloudBurstContracts ? 1.35 : 1)
 
-  let capacity = rackCapacity + roomCapacity + dataCenterCapacity + cloudCapacity
+  let capacity = utilityCapacity + rackCapacity + roomCapacity + dataCenterCapacity + cloudCapacity
 
   if (state.purchasedPolicies.priorityGridAccess) {
     capacity *= 1.15
@@ -582,7 +610,7 @@ export function getResearchPointsPerSecond(state: GameState): number {
 }
 
 export function getInfluencePerSecond(state: GameState): number {
-  if (state.purchasedResearchTech.regulatoryAffairs !== true) {
+  if (!isLobbyingUnlocked(state)) {
     return 0
   }
 
@@ -613,9 +641,35 @@ export function getIncomeBreakdown(state: GameState) {
     const sectorDefinition = getSectorDefinition(sectorId)
     const unlocked = state.unlockedSectors[sectorId] === true
     const sectorInternIncome = getAssignedCountForSector(state, 'intern', sectorId) * getInternIncome(state) * infrastructureEfficiency
-    const sectorJuniorIncome = getAssignedCountForSector(state, 'juniorTrader', sectorId) * getJuniorTraderIncome(state) * infrastructureEfficiency
-    const sectorSeniorIncome = getAssignedCountForSector(state, 'seniorTrader', sectorId) * getSeniorTraderIncome(state) * infrastructureEfficiency
-    const totalIncome = unlocked ? (sectorInternIncome + sectorJuniorIncome + sectorSeniorIncome) * sectorDefinition.baseProfitMultiplier : 0
+    const sectorJuniorGenericIncome = getAssignedCountForSector(state, 'juniorTrader', sectorId) * getJuniorTraderIncome(state) * infrastructureEfficiency
+    const sectorSeniorGenericIncome = getAssignedCountForSector(state, 'seniorTrader', sectorId) * getSeniorTraderIncome(state) * infrastructureEfficiency
+    const sectorSeniorSpecialistIncome = (['finance', 'technology', 'energy'] as const).reduce((total, specializationId) => {
+      const assigned = getAssignedTraderSpecialistsForSector(state, 'seniorTrader', specializationId, sectorId)
+      return total + assigned * getSeniorTraderIncome(state) * getTraderSpecialistSectorBonus('seniorTrader', specializationId, sectorId) * infrastructureEfficiency
+    }, 0)
+    const sectorPropDeskGenericIncome = getAssignedCountForSector(state, 'propDesk', sectorId) * getPropDeskIncome(state) * infrastructureEfficiency
+    const sectorInstitutionalDeskGenericIncome = getAssignedCountForSector(state, 'institutionalDesk', sectorId) * getInstitutionalDeskIncome(state) * infrastructureEfficiency
+    const sectorHedgeFundGenericIncome = getAssignedCountForSector(state, 'hedgeFund', sectorId) * getHedgeFundIncome(state) * infrastructureEfficiency
+    const sectorInvestmentFirmGenericIncome = getAssignedCountForSector(state, 'investmentFirm', sectorId) * getInvestmentFirmIncome(state) * infrastructureEfficiency
+    const sectorPropDeskIncome = (['finance', 'technology', 'energy'] as const).reduce((total, mandateId) => {
+      const assigned = getAssignedInstitutionMandatesForSector(state, 'propDesk', mandateId, sectorId)
+      return total + assigned * getPropDeskIncome(state) * getInstitutionMandateBonus('propDesk', mandateId, sectorId) * infrastructureEfficiency
+    }, 0)
+    const sectorInstitutionalDeskIncome = (['finance', 'technology', 'energy'] as const).reduce((total, mandateId) => {
+      const assigned = getAssignedInstitutionMandatesForSector(state, 'institutionalDesk', mandateId, sectorId)
+      return total + assigned * getInstitutionalDeskIncome(state) * getInstitutionMandateBonus('institutionalDesk', mandateId, sectorId) * infrastructureEfficiency
+    }, 0)
+    const sectorHedgeFundIncome = (['finance', 'technology', 'energy'] as const).reduce((total, mandateId) => {
+      const assigned = getAssignedInstitutionMandatesForSector(state, 'hedgeFund', mandateId, sectorId)
+      return total + assigned * getHedgeFundIncome(state) * getInstitutionMandateBonus('hedgeFund', mandateId, sectorId) * infrastructureEfficiency
+    }, 0)
+    const sectorInvestmentFirmIncome = (['finance', 'technology', 'energy'] as const).reduce((total, mandateId) => {
+      const assigned = getAssignedInstitutionMandatesForSector(state, 'investmentFirm', mandateId, sectorId)
+      return total + assigned * getInvestmentFirmIncome(state) * getInstitutionMandateBonus('investmentFirm', mandateId, sectorId) * infrastructureEfficiency
+    }, 0)
+    const sectorJuniorIncome = sectorJuniorGenericIncome
+    const sectorSeniorIncome = sectorSeniorGenericIncome + sectorSeniorSpecialistIncome
+    const totalIncome = unlocked ? (sectorInternIncome + sectorJuniorIncome + sectorSeniorIncome + sectorPropDeskGenericIncome + sectorInstitutionalDeskGenericIncome + sectorHedgeFundGenericIncome + sectorInvestmentFirmGenericIncome + sectorPropDeskIncome + sectorInstitutionalDeskIncome + sectorHedgeFundIncome + sectorInvestmentFirmIncome) * sectorDefinition.baseProfitMultiplier : 0
 
     return [sectorId, {
       sectorId,
@@ -625,6 +679,14 @@ export function getIncomeBreakdown(state: GameState) {
       internIncome: sectorInternIncome,
       juniorIncome: sectorJuniorIncome,
       seniorIncome: sectorSeniorIncome,
+      juniorGenericIncome: sectorJuniorGenericIncome,
+      juniorSpecialistIncome: 0,
+      seniorGenericIncome: sectorSeniorGenericIncome,
+      seniorSpecialistIncome: sectorSeniorSpecialistIncome,
+      propDeskIncome: sectorPropDeskGenericIncome + sectorPropDeskIncome,
+      institutionalDeskIncome: sectorInstitutionalDeskGenericIncome + sectorInstitutionalDeskIncome,
+      hedgeFundIncome: sectorHedgeFundGenericIncome + sectorHedgeFundIncome,
+      investmentFirmIncome: sectorInvestmentFirmGenericIncome + sectorInvestmentFirmIncome,
       totalIncome,
     }]
   })) as Record<SectorId, {
@@ -635,6 +697,14 @@ export function getIncomeBreakdown(state: GameState) {
     internIncome: number
     juniorIncome: number
     seniorIncome: number
+    juniorGenericIncome: number
+    juniorSpecialistIncome: number
+    seniorGenericIncome: number
+    seniorSpecialistIncome: number
+    propDeskIncome: number
+    institutionalDeskIncome: number
+    hedgeFundIncome: number
+    investmentFirmIncome: number
     totalIncome: number
   }>
 
@@ -654,10 +724,10 @@ export function getIncomeBreakdown(state: GameState) {
     internIncome: generalDeskInternIncome + totalSectorInternIncome,
     juniorIncome: generalDeskJuniorIncome + totalSectorJuniorIncome,
     seniorIncome: generalDeskSeniorIncome + totalSectorSeniorIncome,
-    propDeskIncome: state.propDeskCount * getPropDeskIncome(state) * infrastructureEfficiency,
-    institutionalDeskIncome: state.institutionalDeskCount * getInstitutionalDeskIncome(state) * infrastructureEfficiency,
-    hedgeFundIncome: state.hedgeFundCount * getHedgeFundIncome(state) * infrastructureEfficiency,
-    investmentFirmIncome: state.investmentFirmCount * getInvestmentFirmIncome(state) * infrastructureEfficiency,
+    propDeskIncome: getAvailableAssignableUnitCount(state, 'propDesk') * getPropDeskIncome(state) * infrastructureEfficiency,
+    institutionalDeskIncome: getAvailableAssignableUnitCount(state, 'institutionalDesk') * getInstitutionalDeskIncome(state) * infrastructureEfficiency,
+    hedgeFundIncome: getAvailableAssignableUnitCount(state, 'hedgeFund') * getHedgeFundIncome(state) * infrastructureEfficiency,
+    investmentFirmIncome: getAvailableAssignableUnitCount(state, 'investmentFirm') * getInvestmentFirmIncome(state) * infrastructureEfficiency,
     ruleBasedBotIncome: state.ruleBasedBotCount * getRuleBasedBotIncome(state) * infrastructureEfficiency,
     mlTradingBotIncome: state.mlTradingBotCount * getMlTradingBotIncome(state) * infrastructureEfficiency,
     aiTradingBotIncome: state.aiTradingBotCount * getAiTradingBotIncome(state) * infrastructureEfficiency,
@@ -688,12 +758,20 @@ export function getInternCost(state: GameState): number {
 }
 
 export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
+  if (unitId === 'intern') {
+    return state.purchasedResearchTech.foundationsOfFinanceTraining === true
+  }
+
   if (unitId === 'juniorTrader') {
-    return state.purchasedUpgrades.juniorTraderProgram === true
+    return state.purchasedResearchTech.juniorTraderProgram === true
+  }
+
+  if (unitId === 'seniorTrader') {
+    return state.purchasedResearchTech.seniorRecruitment === true
   }
 
   if (unitId === 'internResearchScientist') {
-    return state.purchasedUpgrades.juniorHiringProgram === true
+    return state.purchasedResearchTech.foundationsOfFinanceTraining === true
   }
 
   if (unitId === 'juniorResearchScientist') {
@@ -705,7 +783,7 @@ export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
   }
 
   if (unitId === 'juniorPolitician') {
-    return state.purchasedResearchTech.regulatoryAffairs === true
+    return isLobbyingUnlocked(state)
   }
 
   if (unitId === 'propDesk') {
@@ -736,7 +814,7 @@ export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
     return state.purchasedResearchTech.aiTradingSystems === true && (state.dataCenterCount > 0 || state.cloudComputeCount > 0)
   }
 
-  return state.purchasedUpgrades[UNITS[unitId].unlockUpgradeId as UpgradeId] === true
+  return false
 }
 
 export function getUnitCount(state: GameState, unitId: UnitId): number {
@@ -854,7 +932,7 @@ export function getAiTradingBotCost(state: GameState): number {
 }
 
 export function isPowerInfrastructureUnlocked(_state: GameState): boolean {
-  return true
+  return hasPowerInfrastructureResearch(_state)
 }
 
 export function isPowerInfrastructureVisible(state: GameState, infrastructureId: PowerInfrastructureId): boolean {
@@ -863,7 +941,7 @@ export function isPowerInfrastructureVisible(state: GameState, infrastructureId:
   }
 
   if (infrastructureId === 'serverRoom') {
-    return state.purchasedResearchTech.powerSystemsEngineering === true
+    return hasPowerInfrastructureResearch(state)
   }
 
   if (infrastructureId === 'dataCenter') {

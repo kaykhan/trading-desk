@@ -37,7 +37,7 @@ function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state
       return 'Requires Better Terminal first.'
     case 'internDeskTraining':
     case 'internPlaybooks':
-      return state.purchasedUpgrades.juniorTraderProgram === true
+      return state.purchasedResearchTech.juniorTraderProgram === true
         ? `Requires at least 1 Intern (${state.internCount}/1).`
         : 'Requires Junior Trader Program first.'
     case 'internLabTraining':
@@ -67,7 +67,7 @@ function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state
         : 'Requires Regulatory Affairs research first.'
     case 'seniorDeskPerformance':
     case 'decisionSystems':
-      return state.purchasedUpgrades.seniorRecruitment === true
+      return state.purchasedResearchTech.seniorRecruitment === true
         ? `Requires at least 1 Senior Trader (${state.seniorTraderCount}/1).`
         : 'Requires Senior Recruitment first.'
     case 'propDeskScaling':

@@ -19,9 +19,9 @@ export function HeaderStats() {
   const usedDeskSlots = useGameStore(selectors.usedDeskSlots)
   const totalDeskSlots = useGameStore(selectors.totalDeskSlots)
   const progressionSummary = getProgressionSummary(gameState)
-  const researchVisible = gameState.purchasedUpgrades.juniorHiringProgram === true || gameState.internResearchScientistCount > 0 || gameState.juniorResearchScientistCount > 0 || gameState.seniorResearchScientistCount > 0 || researchPoints > 0
-  const technologySectorUnlocked = gameState.unlockedSectors.technology === true
-  const energySectorUnlocked = gameState.unlockedSectors.energy === true
+  const researchVisible = gameState.purchasedResearchTech.foundationsOfFinanceTraining === true || gameState.internResearchScientistCount > 0 || gameState.juniorResearchScientistCount > 0 || gameState.seniorResearchScientistCount > 0 || researchPoints > 0
+  const technologySectorUnlocked = selectors.technologySectorUnlocked(gameState)
+  const energySectorUnlocked = selectors.energySectorUnlocked(gameState)
   const technologySectorJustUnlocked = technologySectorUnlocked && gameState.ui.dismissedSectorUnlocks.technology !== true
   const energySectorJustUnlocked = energySectorUnlocked && gameState.ui.dismissedSectorUnlocks.energy !== true
 

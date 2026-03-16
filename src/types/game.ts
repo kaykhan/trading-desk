@@ -11,7 +11,39 @@ export type SectorId = 'finance' | 'technology' | 'energy'
 
 export type HumanAssignableUnitId = 'intern' | 'juniorTrader' | 'seniorTrader'
 
+export type GenericSectorAssignableUnitId = HumanAssignableUnitId | InstitutionalMandateUnitId
+
+export type TraderSpecialistUnitId = 'seniorTrader'
+
+export type TraderSpecializationId = 'finance' | 'technology' | 'energy'
+
+export type InstitutionalMandateId = 'finance' | 'technology' | 'energy'
+
+export type InstitutionalMandateUnitId = 'propDesk' | 'institutionalDesk' | 'hedgeFund' | 'investmentFirm'
+
+export type ResearchBranchId = 'humanCapital' | 'markets' | 'infrastructure' | 'automation' | 'regulation'
+
+export type ResearchTechCurrency = 'cash' | 'researchPoints'
+
+export type ResearchGraphPosition = {
+  x: number
+  y: number
+}
+
 export type ResearchTechId =
+  | 'foundationsOfFinanceTraining'
+  | 'juniorTraderProgram'
+  | 'seniorRecruitment'
+  | 'financeSpecialistTraining'
+  | 'technologySpecialistTraining'
+  | 'energySpecialistTraining'
+  | 'floorSpacePlanning'
+  | 'officeExpansionPlanning'
+  | 'financeMandateFramework'
+  | 'techGrowthMandateFramework'
+  | 'energyExposureFramework'
+  | 'technologyMarkets'
+  | 'energyMarkets'
   | 'algorithmicTrading'
   | 'powerSystemsEngineering'
   | 'juniorScientists'
@@ -171,9 +203,21 @@ export type RepeatableUpgradeTarget =
 export type RepeatableUpgradeEffectType = 'output' | 'powerCapacity' | 'powerUsageReduction' | 'costReduction'
 
 export type ResearchUnlockId =
-  | 'juniorHiringProgram'
+  | 'foundationsOfFinanceTraining'
+  | 'juniorTraderProgram'
+  | 'financeSpecialistTraining'
+  | 'technologySpecialistTraining'
+  | 'energySpecialistTraining'
+  | 'floorSpacePlanning'
+  | 'officeExpansionPlanning'
+  | 'financeMandateFramework'
+  | 'techGrowthMandateFramework'
+  | 'energyExposureFramework'
   | 'juniorScientists'
+  | 'seniorScientists'
   | 'seniorRecruitment'
+  | 'technologyMarkets'
+  | 'energyMarkets'
   | 'propDeskOperations'
   | 'institutionalDesks'
   | 'hedgeFundStrategies'
@@ -201,10 +245,31 @@ export type GameUiState = {
   powerBuyModes: Record<PowerInfrastructureId, BuyMode>
   capacityBuyModes: Record<CapacityInfrastructureId, BuyMode>
   repeatableUpgradeBuyModes: Record<RepeatableUpgradeId, BuyMode>
+  researchBranchExpanded: Record<ResearchBranchId, boolean>
   prestigePurchasePlan: Partial<Record<PrestigeUpgradeId, number>>
   dismissedSectorUnlocks: Record<SectorId, boolean>
   dismissedCapacityFull: boolean
   activeDeskView: DeskViewId
+}
+
+export type SectorAssignmentCounts = Record<SectorId, number>
+
+export type TraderSpecialistCounts = Record<TraderSpecializationId, number>
+
+export type TraderSpecialistPool = Record<TraderSpecialistUnitId, TraderSpecialistCounts>
+
+export type InstitutionalMandateCounts = Record<InstitutionalMandateId, number>
+
+export type InstitutionalMandatePool = Record<InstitutionalMandateUnitId, InstitutionalMandateCounts>
+
+export type SectorAssignments = {
+  intern: SectorAssignmentCounts
+  juniorTrader: SectorAssignmentCounts
+  seniorTrader: SectorAssignmentCounts
+  propDesk: SectorAssignmentCounts
+  institutionalDesk: SectorAssignmentCounts
+  hedgeFund: SectorAssignmentCounts
+  investmentFirm: SectorAssignmentCounts
 }
 
 export type GameState = {
@@ -239,7 +304,9 @@ export type GameState = {
   dataCenterCount: number
   cloudComputeCount: number
   unlockedSectors: Record<SectorId, boolean>
-  sectorAssignments: Record<HumanAssignableUnitId, Record<SectorId, number>>
+  sectorAssignments: SectorAssignments
+  traderSpecialists: TraderSpecialistPool
+  institutionMandates: InstitutionalMandatePool
   purchasedUpgrades: Partial<Record<UpgradeId, boolean>>
   purchasedResearchTech: Partial<Record<ResearchTechId, boolean>>
   purchasedPolicies: Partial<Record<LobbyingPolicyId, boolean>>
@@ -278,9 +345,15 @@ export type UpgradeDefinition = {
 export type ResearchTechDefinition = {
   id: ResearchTechId
   name: string
+  branch: ResearchBranchId
+  currency: ResearchTechCurrency
   researchCost: number
   description: string
+  prerequisites?: ResearchTechId[]
+  graphPosition?: ResearchGraphPosition
+  lockedReason?: (_state: GameState) => string
   visibleWhen?: (_state: GameState) => boolean
+  unlockWhen?: (_state: GameState) => boolean
 }
 
 export type PowerInfrastructureDefinition = {
@@ -395,10 +468,13 @@ export type GameStore = GameState & {
   unlockSector: (_sectorId: SectorId) => void
   acknowledgeSectorUnlock: (_sectorId: SectorId) => void
   acknowledgeCapacityFull: () => void
-  assignUnitToSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
-  unassignUnitFromSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
-  clearSectorAssignments: (_unitId: HumanAssignableUnitId, _sectorId: SectorId) => void
-  assignMaxToSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId) => void
+  assignUnitToSector: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
+  unassignUnitFromSector: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
+  clearSectorAssignments: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId) => void
+  assignMaxToSector: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId) => void
+  trainTraderSpecialist: (_unitId: TraderSpecialistUnitId, _specializationId: TraderSpecializationId, _amount?: number) => void
+  applyInstitutionMandate: (_unitId: InstitutionalMandateUnitId, _mandateId: InstitutionalMandateId, _amount?: number) => void
+  setResearchBranchExpanded: (_branchId: ResearchBranchId, _expanded: boolean) => void
   adjustPrestigePurchasePlan: (_upgradeId: PrestigeUpgradeId, _delta: 1 | -1) => void
   clearPrestigePurchasePlan: () => void
   openModal: (_modal: ModalId) => void

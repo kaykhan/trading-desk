@@ -874,7 +874,7 @@ const purchasedOptimizationSummaries = REPEATABLE_UPGRADES
   .filter((upgrade) => upgrade.rank > 0)
 
 console.log('Comprehensive balance check results')
-console.log(`- Recruiter: ${formatMinutes(result.secondsToJuniorUnlock)}`)
+console.log(`- Foundations of Finance Training: ${formatMinutes(result.secondsToJuniorUnlock)}`)
 console.log(`- First Intern: ${formatMinutes(result.secondsToFirstIntern)}`)
 console.log(`- Junior Trader Program: ${formatMinutes(result.secondsToJuniorTraderProgram)}`)
 console.log(`- First Junior Trader: ${formatMinutes(result.secondsToFirstJunior)}`)
