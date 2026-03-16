@@ -1,12 +1,14 @@
+import { canAffordCapacityPower, getAvailableDeskSlots, getBulkCapacityInfrastructureCost, getCapacityPowerUsage, getFloorExpansionCost, getNextCapacityCost, getOfficeCost, getOfficeExpansionCost, getTotalDeskSlots, getUsedDeskSlots, isAtDeskCapacity } from '../utils/capacity'
 import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeCost as getRepeatableUpgradeScaledCost, getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank as getRepeatableRank } from '../data/repeatableUpgrades'
-import { getAiTradingBotCost, getAiTradingBotPowerUsage, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSeniorResearchScientistCost, getSeniorTraderCost, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
+import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getResearchTechDefinition } from '../data/researchTech'
 import { getUpgradeDefinition } from '../data/upgrades'
 import { canPrestige, getLifetimeReputation, getPrestigeGain, getSeedCapitalBonus } from '../utils/prestige'
 import { getProgressionSummary } from '../utils/progression'
-import type { GameState, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, UnitId, UpgradeId } from '../types/game'
+import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
+import type { CapacityInfrastructureId, GameState, HumanAssignableUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId, UpgradeId } from '../types/game'
 
 export const selectors = {
   cashPerClick: (state: GameState) => getManualIncome(state),
@@ -15,6 +17,28 @@ export const selectors = {
   researchPointsPerSecond: (state: GameState) => getResearchPointsPerSecond(state),
   influence: (state: GameState) => state.influence,
   influencePerSecond: (state: GameState) => getInfluencePerSecond(state),
+  assignedCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getAssignedCount(state, unitId),
+  assignedCountForSector: (unitId: HumanAssignableUnitId, sectorId: SectorId) => (state: GameState) => getAssignedCountForSector(state, unitId, sectorId),
+  availableCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getAvailableAssignableUnitCount(state, unitId),
+  ownedAssignableCount: (unitId: HumanAssignableUnitId) => (state: GameState) => getOwnedAssignableUnitCount(state, unitId),
+  unlockedSectors: (state: GameState) => state.unlockedSectors,
+  isSectorUnlocked: (sectorId: SectorId) => (state: GameState) => state.unlockedSectors[sectorId] === true,
+  generalDeskCashPerSecond: (state: GameState) => getGeneralDeskCashPerSecond(state),
+  sectorCashPerSecond: (sectorId: SectorId) => (state: GameState) => getSectorCashPerSecond(state, sectorId),
+  sectorBreakdown: (state: GameState) => getIncomeBreakdown(state).sectorBreakdown,
+  totalDeskSlots: (state: GameState) => getTotalDeskSlots(state),
+  usedDeskSlots: (state: GameState) => getUsedDeskSlots(state),
+  availableDeskSlots: (state: GameState) => getAvailableDeskSlots(state),
+  capacityPowerUsage: (state: GameState) => getCapacityPowerUsage(state),
+  capacityBuyMode: (infrastructureId: CapacityInfrastructureId) => (state: GameState) => state.ui.capacityBuyModes[infrastructureId],
+  officeExpansionCost: (state: GameState) => getOfficeExpansionCost(state),
+  floorExpansionCost: (state: GameState) => getFloorExpansionCost(state),
+  officeCost: (state: GameState) => getOfficeCost(state),
+  nextCapacityInfrastructureCost: (infrastructureId: CapacityInfrastructureId) => (state: GameState) => getNextCapacityCost(state, infrastructureId),
+  bulkCapacityInfrastructureTotalCost: (infrastructureId: CapacityInfrastructureId) => (state: GameState) => getBulkCapacityInfrastructureCost(state, infrastructureId, state.ui.capacityBuyModes[infrastructureId], CAPACITY_INFRASTRUCTURE[infrastructureId].powerUsage).totalCost,
+  bulkCapacityInfrastructureQuantity: (infrastructureId: CapacityInfrastructureId) => (state: GameState) => getBulkCapacityInfrastructureCost(state, infrastructureId, state.ui.capacityBuyModes[infrastructureId], CAPACITY_INFRASTRUCTURE[infrastructureId].powerUsage).quantity,
+  isAtDeskCapacity: (state: GameState) => isAtDeskCapacity(state),
+  canAffordCapacityPower: (powerRequired: number) => (state: GameState) => canAffordCapacityPower(state, powerRequired),
   powerUsage: (state: GameState) => getPowerUsage(state),
   ruleBasedBotPowerUsage: (state: GameState) => getRuleBasedBotPowerUsage(state),
   mlTradingBotPowerUsage: (state: GameState) => getMlTradingBotPowerUsage(state),

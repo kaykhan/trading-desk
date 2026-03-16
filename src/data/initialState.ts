@@ -1,5 +1,7 @@
 import type { GameState } from '../types/game'
+import { CAPACITY_CONSTANTS } from './capacity'
 import { GAME_CONSTANTS } from './constants'
+import { DEFAULT_UNLOCKED_SECTORS } from './sectors'
 
 export const initialState: GameState = {
   cash: 0,
@@ -13,6 +15,10 @@ export const initialState: GameState = {
   internCount: 0,
   juniorTraderCount: 0,
   seniorTraderCount: 0,
+  baseDeskSlots: CAPACITY_CONSTANTS.BASE_DESK_SLOTS,
+  deskSpaceCount: 0,
+  floorSpaceCount: 0,
+  officeCount: 0,
   propDeskCount: 0,
   institutionalDeskCount: 0,
   hedgeFundCount: 0,
@@ -28,6 +34,12 @@ export const initialState: GameState = {
   serverRoomCount: 0,
   dataCenterCount: 0,
   cloudComputeCount: 0,
+  unlockedSectors: { ...DEFAULT_UNLOCKED_SECTORS },
+  sectorAssignments: {
+    intern: { finance: 0, technology: 0, energy: 0 },
+    juniorTrader: { finance: 0, technology: 0, energy: 0 },
+    seniorTrader: { finance: 0, technology: 0, energy: 0 },
+  },
   purchasedUpgrades: {},
   purchasedResearchTech: {},
   purchasedPolicies: {},
@@ -41,6 +53,11 @@ export const initialState: GameState = {
   },
   ui: {
     activeDeskView: 'trading',
+    capacityBuyModes: {
+      deskSpace: 1,
+      floorSpace: 1,
+      office: 1,
+    },
     powerBuyModes: {
       serverRack: 1,
       serverRoom: 1,
@@ -97,6 +114,12 @@ export const initialState: GameState = {
       gridOrchestration: 0,
       tradeMultiplier: 0,
     },
+    dismissedSectorUnlocks: {
+      finance: true,
+      technology: false,
+      energy: false,
+    },
+    dismissedCapacityFull: false,
     unitBuyModes: {
       intern: 1,
       juniorTrader: 1,

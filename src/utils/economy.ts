@@ -1,8 +1,10 @@
 import { GAME_CONSTANTS } from '../data/constants'
 import { POWER_INFRASTRUCTURE } from '../data/powerInfrastructure'
 import { getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank } from '../data/repeatableUpgrades'
+import { getSectorDefinition, SECTOR_IDS } from '../data/sectors'
 import { UNITS } from '../data/units'
-import type { BuyMode, GameState, PowerInfrastructureId, RepeatableUpgradeId, UpgradeId, UnitId } from '../types/game'
+import type { BuyMode, GameState, HumanAssignableUnitId, PowerInfrastructureId, RepeatableUpgradeId, SectorId, UpgradeId, UnitId } from '../types/game'
+import { getAvailableDeskSlots, canBuyHumanUnit, getCapacityPowerUsage } from './capacity'
 import { getHumanStaffCostMultiplier, getMachineOutputPrestigeMultiplier, getPowerCapacityPrestigeMultiplier, getProfitPrestigeMultiplier, getResearchPrestigeMultiplier } from './prestige'
 
 export function getScaledCost(baseCost: number, scaling: number, owned: number): number {
@@ -260,6 +262,34 @@ export function getSeniorTraderIncome(state: GameState): number {
   return value * getSeniorTraderOptimizationMultiplier(state)
 }
 
+export function getOwnedAssignableUnitCount(state: GameState, unitId: HumanAssignableUnitId): number {
+  if (unitId === 'intern') {
+    return state.internCount
+  }
+
+  if (unitId === 'juniorTrader') {
+    return state.juniorTraderCount
+  }
+
+  return state.seniorTraderCount
+}
+
+export function getAssignedCountForSector(state: GameState, unitId: HumanAssignableUnitId, sectorId: SectorId): number {
+  if (state.unlockedSectors[sectorId] !== true) {
+    return 0
+  }
+
+  return Math.max(0, state.sectorAssignments[unitId]?.[sectorId] ?? 0)
+}
+
+export function getAssignedCount(state: GameState, unitId: HumanAssignableUnitId): number {
+  return SECTOR_IDS.reduce((total, sectorId) => total + getAssignedCountForSector(state, unitId, sectorId), 0)
+}
+
+export function getAvailableAssignableUnitCount(state: GameState, unitId: HumanAssignableUnitId): number {
+  return Math.max(0, getOwnedAssignableUnitCount(state, unitId) - getAssignedCount(state, unitId))
+}
+
 export function getRuleBasedBotIncome(state: GameState): number {
   let value = state.purchasedUpgrades.lowLatencyServers ? 160 : UNITS.ruleBasedBot.baseIncomePerSecond
 
@@ -362,24 +392,18 @@ export function getRuleBasedBotPowerUsage(state: GameState): number {
   return state.ruleBasedBotCount * perBotUsage
 }
 
-export function getHumanTradingPowerUsage(state: GameState): number {
-  return state.internCount * GAME_CONSTANTS.internPowerUsage
-    + state.juniorTraderCount * GAME_CONSTANTS.juniorTraderPowerUsage
-    + state.seniorTraderCount * GAME_CONSTANTS.seniorTraderPowerUsage
-    + state.propDeskCount * GAME_CONSTANTS.propDeskPowerUsage
-    + state.institutionalDeskCount * GAME_CONSTANTS.institutionalDeskPowerUsage
-    + state.hedgeFundCount * GAME_CONSTANTS.hedgeFundPowerUsage
-    + state.investmentFirmCount * GAME_CONSTANTS.investmentFirmPowerUsage
+export function getHumanTradingPowerUsage(_state: GameState): number {
+  return 0
 }
 
 export function getUnitPowerUsagePerPurchase(state: GameState, unitId: UnitId): number {
-  if (unitId === 'intern') return GAME_CONSTANTS.internPowerUsage
-  if (unitId === 'juniorTrader') return GAME_CONSTANTS.juniorTraderPowerUsage
-  if (unitId === 'seniorTrader') return GAME_CONSTANTS.seniorTraderPowerUsage
-  if (unitId === 'propDesk') return GAME_CONSTANTS.propDeskPowerUsage
-  if (unitId === 'institutionalDesk') return GAME_CONSTANTS.institutionalDeskPowerUsage
-  if (unitId === 'hedgeFund') return GAME_CONSTANTS.hedgeFundPowerUsage
-  if (unitId === 'investmentFirm') return GAME_CONSTANTS.investmentFirmPowerUsage
+  if (unitId === 'intern') return 0
+  if (unitId === 'juniorTrader') return 0
+  if (unitId === 'seniorTrader') return 0
+  if (unitId === 'propDesk') return 0
+  if (unitId === 'institutionalDesk') return 0
+  if (unitId === 'hedgeFund') return 0
+  if (unitId === 'investmentFirm') return 0
   if (unitId === 'internResearchScientist') return GAME_CONSTANTS.internScientistPowerUsage
   if (unitId === 'juniorResearchScientist') return GAME_CONSTANTS.juniorScientistPowerUsage
   if (unitId === 'seniorResearchScientist') return GAME_CONSTANTS.seniorScientistPowerUsage
@@ -457,7 +481,7 @@ export function getPowerCapacity(state: GameState): number {
 }
 
 export function getPowerUsage(state: GameState): number {
-  return getHumanTradingPowerUsage(state) + getResearchStaffPowerUsage(state) + getRuleBasedBotPowerUsage(state) + getMlTradingBotPowerUsage(state) + getAiTradingBotPowerUsage(state)
+  return getHumanTradingPowerUsage(state) + getCapacityPowerUsage(state) + getResearchStaffPowerUsage(state) + getRuleBasedBotPowerUsage(state) + getMlTradingBotPowerUsage(state) + getAiTradingBotPowerUsage(state)
 }
 
 export function getMachineEfficiencyMultiplier(state: GameState): number {
@@ -581,10 +605,55 @@ export function getInfluencePerSecond(state: GameState): number {
 export function getIncomeBreakdown(state: GameState) {
   const infrastructureEfficiency = getMachineEfficiencyMultiplier(state)
 
+  const generalDeskInternIncome = getAvailableAssignableUnitCount(state, 'intern') * getInternIncome(state) * infrastructureEfficiency
+  const generalDeskJuniorIncome = getAvailableAssignableUnitCount(state, 'juniorTrader') * getJuniorTraderIncome(state) * infrastructureEfficiency
+  const generalDeskSeniorIncome = getAvailableAssignableUnitCount(state, 'seniorTrader') * getSeniorTraderIncome(state) * infrastructureEfficiency
+
+  const sectorBreakdown = Object.fromEntries(SECTOR_IDS.map((sectorId) => {
+    const sectorDefinition = getSectorDefinition(sectorId)
+    const unlocked = state.unlockedSectors[sectorId] === true
+    const sectorInternIncome = getAssignedCountForSector(state, 'intern', sectorId) * getInternIncome(state) * infrastructureEfficiency
+    const sectorJuniorIncome = getAssignedCountForSector(state, 'juniorTrader', sectorId) * getJuniorTraderIncome(state) * infrastructureEfficiency
+    const sectorSeniorIncome = getAssignedCountForSector(state, 'seniorTrader', sectorId) * getSeniorTraderIncome(state) * infrastructureEfficiency
+    const totalIncome = unlocked ? (sectorInternIncome + sectorJuniorIncome + sectorSeniorIncome) * sectorDefinition.baseProfitMultiplier : 0
+
+    return [sectorId, {
+      sectorId,
+      sectorName: sectorDefinition.name,
+      unlocked,
+      multiplier: sectorDefinition.baseProfitMultiplier,
+      internIncome: sectorInternIncome,
+      juniorIncome: sectorJuniorIncome,
+      seniorIncome: sectorSeniorIncome,
+      totalIncome,
+    }]
+  })) as Record<SectorId, {
+    sectorId: SectorId
+    sectorName: string
+    unlocked: boolean
+    multiplier: number
+    internIncome: number
+    juniorIncome: number
+    seniorIncome: number
+    totalIncome: number
+  }>
+
+  const generalDeskIncome = generalDeskInternIncome + generalDeskJuniorIncome + generalDeskSeniorIncome
+  const totalSectorInternIncome = SECTOR_IDS.reduce((total, sectorId) => total + sectorBreakdown[sectorId].internIncome * sectorBreakdown[sectorId].multiplier, 0)
+  const totalSectorJuniorIncome = SECTOR_IDS.reduce((total, sectorId) => total + sectorBreakdown[sectorId].juniorIncome * sectorBreakdown[sectorId].multiplier, 0)
+  const totalSectorSeniorIncome = SECTOR_IDS.reduce((total, sectorId) => total + sectorBreakdown[sectorId].seniorIncome * sectorBreakdown[sectorId].multiplier, 0)
+  const totalSectorIncome = SECTOR_IDS.reduce((total, sectorId) => total + sectorBreakdown[sectorId].totalIncome, 0)
+
   return {
-    internIncome: state.internCount * getInternIncome(state) * infrastructureEfficiency,
-    juniorIncome: state.juniorTraderCount * getJuniorTraderIncome(state) * infrastructureEfficiency,
-    seniorIncome: state.seniorTraderCount * getSeniorTraderIncome(state) * infrastructureEfficiency,
+    generalDeskInternIncome,
+    generalDeskJuniorIncome,
+    generalDeskSeniorIncome,
+    generalDeskIncome,
+    sectorBreakdown,
+    totalSectorIncome,
+    internIncome: generalDeskInternIncome + totalSectorInternIncome,
+    juniorIncome: generalDeskJuniorIncome + totalSectorJuniorIncome,
+    seniorIncome: generalDeskSeniorIncome + totalSectorSeniorIncome,
     propDeskIncome: state.propDeskCount * getPropDeskIncome(state) * infrastructureEfficiency,
     institutionalDeskIncome: state.institutionalDeskCount * getInstitutionalDeskIncome(state) * infrastructureEfficiency,
     hedgeFundIncome: state.hedgeFundCount * getHedgeFundIncome(state) * infrastructureEfficiency,
@@ -600,6 +669,14 @@ export function getCashPerSecond(state: GameState): number {
   const basePassiveIncome = internIncome + juniorIncome + seniorIncome + propDeskIncome + institutionalDeskIncome + hedgeFundIncome + investmentFirmIncome + ruleBasedBotIncome + mlTradingBotIncome + aiTradingBotIncome
 
   return basePassiveIncome * getGlobalMultiplier(state) * getPrestigeMultiplier(state)
+}
+
+export function getGeneralDeskCashPerSecond(state: GameState): number {
+  return getIncomeBreakdown(state).generalDeskIncome * getGlobalMultiplier(state) * getPrestigeMultiplier(state)
+}
+
+export function getSectorCashPerSecond(state: GameState, sectorId: SectorId): number {
+  return getIncomeBreakdown(state).sectorBreakdown[sectorId].totalIncome * getGlobalMultiplier(state) * getPrestigeMultiplier(state)
 }
 
 export function getJuniorTraderCost(state: GameState): number {
@@ -708,6 +785,12 @@ export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyM
   const powerCapacity = getPowerCapacity(state)
   const currentPowerUsage = getPowerUsage(state)
   const powerPerUnit = getUnitPowerUsagePerPurchase(state, unitId)
+  const humanDeskLimited = unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader'
+  const availableDeskSlots = getAvailableDeskSlots(state)
+
+  if (humanDeskLimited && !canBuyHumanUnit(state)) {
+    return { quantity: 0, totalCost: 0 }
+  }
 
   if (quantity === 'max') {
     let totalCost = 0
@@ -718,6 +801,10 @@ export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyM
       const nextCost = getDiscountedUnitCostAtOwned(state, unitId, simulatedOwned)
 
       if (totalCost + nextCost > state.cash) {
+        break
+      }
+
+      if (humanDeskLimited && bought + 1 > availableDeskSlots) {
         break
       }
 
@@ -734,6 +821,10 @@ export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyM
   }
 
   let totalCost = 0
+
+  if (humanDeskLimited && quantity > availableDeskSlots) {
+    return { quantity: 0, totalCost: 0 }
+  }
 
   for (let i = 0; i < quantity; i += 1) {
     if (currentPowerUsage + powerPerUnit * (i + 1) > powerCapacity) {

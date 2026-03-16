@@ -1,16 +1,19 @@
 import { create } from 'zustand'
 import type { AppInfo } from '../../shared/game'
+import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getFloorExpansionCost, getOfficeCost, getOfficeExpansionCost } from '../utils/capacity'
+import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
 import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeDefinition, getRepeatableUpgradeRank } from '../data/repeatableUpgrades'
 import { getResearchTechDefinition } from '../data/researchTech'
+import { DEFAULT_UNLOCKED_SECTORS } from '../data/sectors'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
+import { getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, SAVE_KEY, saveStateToStorage } from '../utils/persistence'
 import { createPrestigeResetState } from '../utils/prestige'
-import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, UnitId } from '../types/game'
+import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, HumanAssignableUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -28,6 +31,39 @@ const initialUiState: StoreUiState = {
   latestTradeFeedback: null,
 }
 
+function getSectorUnlocksAfterResearch(state: GameState, techId: ResearchTechId): Record<SectorId, boolean> {
+  if (techId === 'algorithmicTrading') {
+    return {
+      ...state.unlockedSectors,
+      technology: true,
+    }
+  }
+
+  if (techId === 'powerSystemsEngineering') {
+    return {
+      ...state.unlockedSectors,
+      energy: true,
+    }
+  }
+
+  return state.unlockedSectors
+}
+
+function updateSectorAssignment(
+  state: GameState,
+  unitId: HumanAssignableUnitId,
+  sectorId: SectorId,
+  nextValue: number,
+): GameState['sectorAssignments'] {
+  return {
+    ...state.sectorAssignments,
+    [unitId]: {
+      ...state.sectorAssignments[unitId],
+      [sectorId]: Math.max(0, Math.floor(nextValue)),
+    },
+  }
+}
+
 function getSnapshot(state: GameStore) {
   const snapshot: GameState = {
     cash: state.cash,
@@ -41,6 +77,10 @@ function getSnapshot(state: GameStore) {
     internCount: state.internCount,
     juniorTraderCount: state.juniorTraderCount,
     seniorTraderCount: state.seniorTraderCount,
+    baseDeskSlots: state.baseDeskSlots,
+    deskSpaceCount: state.deskSpaceCount,
+    floorSpaceCount: state.floorSpaceCount,
+    officeCount: state.officeCount,
     propDeskCount: state.propDeskCount,
     institutionalDeskCount: state.institutionalDeskCount,
     hedgeFundCount: state.hedgeFundCount,
@@ -56,6 +96,8 @@ function getSnapshot(state: GameStore) {
     serverRoomCount: state.serverRoomCount,
     dataCenterCount: state.dataCenterCount,
     cloudComputeCount: state.cloudComputeCount,
+    unlockedSectors: state.unlockedSectors,
+    sectorAssignments: state.sectorAssignments,
     purchasedUpgrades: state.purchasedUpgrades,
     purchasedResearchTech: state.purchasedResearchTech,
     purchasedPolicies: state.purchasedPolicies,
@@ -254,6 +296,48 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { ...nextState, cloudComputeCount: state.cloudComputeCount + result.quantity }
     })
   },
+  buyDeskSpace: (quantity = 1) => {
+    set((state) => {
+      const result = getBulkCapacityInfrastructureCost(state, 'deskSpace', quantity, CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage)
+
+      if (result.quantity <= 0 || state.cash < result.totalCost || !canAffordCapacityPower(state, CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * result.quantity)) {
+        return state
+      }
+
+      return {
+        cash: state.cash - result.totalCost,
+        deskSpaceCount: state.deskSpaceCount + result.quantity,
+      }
+    })
+  },
+  buyFloorSpace: (quantity = 1) => {
+    set((state) => {
+      const result = getBulkCapacityInfrastructureCost(state, 'floorSpace', quantity, CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage)
+
+      if (result.quantity <= 0 || state.cash < result.totalCost || !canAffordCapacityPower(state, CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * result.quantity)) {
+        return state
+      }
+
+      return {
+        cash: state.cash - result.totalCost,
+        floorSpaceCount: state.floorSpaceCount + result.quantity,
+      }
+    })
+  },
+  buyOffice: (quantity = 1) => {
+    set((state) => {
+      const result = getBulkCapacityInfrastructureCost(state, 'office', quantity, CAPACITY_INFRASTRUCTURE.office.powerUsage)
+
+      if (result.quantity <= 0 || state.cash < result.totalCost || !canAffordCapacityPower(state, CAPACITY_INFRASTRUCTURE.office.powerUsage * result.quantity)) {
+        return state
+      }
+
+      return {
+        cash: state.cash - result.totalCost,
+        officeCount: state.officeCount + result.quantity,
+      }
+    })
+  },
   buyUpgrade: (upgradeId) => {
     set((state) => {
       const upgrade = getUpgradeDefinition(upgradeId)
@@ -354,6 +438,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return {
         researchPoints: state.researchPoints - tech.researchCost,
         discoveredLobbying: state.discoveredLobbying || techId === 'regulatoryAffairs',
+        unlockedSectors: getSectorUnlocksAfterResearch(state, techId),
         purchasedResearchTech: {
           ...state.purchasedResearchTech,
           [techId]: true,
@@ -596,6 +681,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       },
     }))
   },
+  setCapacityBuyMode: (infrastructureId, mode) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        capacityBuyModes: {
+          ...state.ui.capacityBuyModes,
+          [infrastructureId]: mode,
+        },
+      },
+    }))
+  },
   setRepeatableUpgradeBuyMode: (upgradeId, mode) => {
     set((state) => ({
       ui: {
@@ -604,6 +700,103 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...state.ui.repeatableUpgradeBuyModes,
           [upgradeId]: mode,
         },
+      },
+    }))
+  },
+  unlockSector: (sectorId) => {
+    set((state) => ({
+      unlockedSectors: {
+        ...state.unlockedSectors,
+        [sectorId]: true,
+      },
+    }))
+  },
+  assignUnitToSector: (unitId, sectorId, amount = 1) => {
+    set((state) => {
+      if (state.unlockedSectors[sectorId] !== true) {
+        return state
+      }
+
+      const assignAmount = Math.max(0, Math.floor(amount))
+
+      if (assignAmount <= 0) {
+        return state
+      }
+
+      const available = getAvailableAssignableUnitCount(state, unitId)
+      const quantity = Math.min(assignAmount, available)
+
+      if (quantity <= 0) {
+        return state
+      }
+
+      const currentAssigned = state.sectorAssignments[unitId][sectorId] ?? 0
+
+      return {
+        sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned + quantity),
+      }
+    })
+  },
+  unassignUnitFromSector: (unitId, sectorId, amount = 1) => {
+    set((state) => {
+      const unassignAmount = Math.max(0, Math.floor(amount))
+
+      if (unassignAmount <= 0) {
+        return state
+      }
+
+      const currentAssigned = state.sectorAssignments[unitId][sectorId] ?? 0
+      const quantity = Math.min(unassignAmount, currentAssigned)
+
+      if (quantity <= 0) {
+        return state
+      }
+
+      return {
+        sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned - quantity),
+      }
+    })
+  },
+  clearSectorAssignments: (unitId, sectorId) => {
+    set((state) => ({
+      sectorAssignments: updateSectorAssignment(state, unitId, sectorId, 0),
+    }))
+  },
+  assignMaxToSector: (unitId, sectorId) => {
+    set((state) => {
+      if (state.unlockedSectors[sectorId] !== true) {
+        return state
+      }
+
+      const available = getAvailableAssignableUnitCount(state, unitId)
+
+      if (available <= 0) {
+        return state
+      }
+
+      const currentAssigned = state.sectorAssignments[unitId][sectorId] ?? 0
+
+      return {
+        sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned + available),
+      }
+    })
+  },
+  acknowledgeSectorUnlock: (sectorId) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        dismissedSectorUnlocks: {
+          ...state.ui.dismissedSectorUnlocks,
+          [sectorId]: true,
+        },
+      },
+    }))
+  },
+  acknowledgeCapacityFull: () => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        dismissedCapacityFull: true,
       },
     }))
   },

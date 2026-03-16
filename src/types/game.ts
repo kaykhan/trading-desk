@@ -5,7 +5,11 @@ export type UpgradeGroup = 'tradingDesk' | 'scientists' | 'politics' | 'algorith
 
 export type GameTabId = 'desk' | 'upgrades' | 'optimizations' | 'research' | 'lobbying' | 'prestige' | 'stats' | 'settings'
 
-export type DeskViewId = 'trading' | 'commodities' | 'scientists' | 'infrastructure' | 'politicians'
+export type DeskViewId = 'trading' | 'sectors' | 'commodities' | 'scientists' | 'infrastructure' | 'politicians'
+
+export type SectorId = 'finance' | 'technology' | 'energy'
+
+export type HumanAssignableUnitId = 'intern' | 'juniorTrader' | 'seniorTrader'
 
 export type ResearchTechId =
   | 'algorithmicTrading'
@@ -21,6 +25,8 @@ export type ResearchTechId =
   | 'regulatoryAffairs'
 
 export type PowerInfrastructureId = 'serverRack' | 'serverRoom' | 'dataCenter' | 'cloudCompute'
+
+export type CapacityInfrastructureId = 'deskSpace' | 'floorSpace' | 'office'
 
 export type LobbyingTrack = 'labor' | 'energy' | 'market' | 'technology'
 
@@ -193,8 +199,11 @@ export type GameSettings = {
 export type GameUiState = {
   unitBuyModes: Record<UnitId, BuyMode>
   powerBuyModes: Record<PowerInfrastructureId, BuyMode>
+  capacityBuyModes: Record<CapacityInfrastructureId, BuyMode>
   repeatableUpgradeBuyModes: Record<RepeatableUpgradeId, BuyMode>
   prestigePurchasePlan: Partial<Record<PrestigeUpgradeId, number>>
+  dismissedSectorUnlocks: Record<SectorId, boolean>
+  dismissedCapacityFull: boolean
   activeDeskView: DeskViewId
 }
 
@@ -210,6 +219,10 @@ export type GameState = {
   internCount: number
   juniorTraderCount: number
   seniorTraderCount: number
+  baseDeskSlots: number
+  deskSpaceCount: number
+  floorSpaceCount: number
+  officeCount: number
   propDeskCount: number
   institutionalDeskCount: number
   hedgeFundCount: number
@@ -225,6 +238,8 @@ export type GameState = {
   serverRoomCount: number
   dataCenterCount: number
   cloudComputeCount: number
+  unlockedSectors: Record<SectorId, boolean>
+  sectorAssignments: Record<HumanAssignableUnitId, Record<SectorId, number>>
   purchasedUpgrades: Partial<Record<UpgradeId, boolean>>
   purchasedResearchTech: Partial<Record<ResearchTechId, boolean>>
   purchasedPolicies: Partial<Record<LobbyingPolicyId, boolean>>
@@ -274,6 +289,23 @@ export type PowerInfrastructureDefinition = {
   baseCost: number
   costScaling: number
   powerCapacity: number
+  description: string
+}
+
+export type CapacityInfrastructureDefinition = {
+  id: CapacityInfrastructureId
+  name: string
+  baseCost: number
+  costScaling: number
+  slotsGranted: number
+  powerUsage: number
+  description: string
+}
+
+export type SectorDefinition = {
+  id: SectorId
+  name: string
+  baseProfitMultiplier: number
   description: string
 }
 
@@ -339,6 +371,9 @@ export type GameStore = GameState & {
   tick: (_deltaSeconds: number) => void
   buyUnit: (_unitId: UnitId, _quantity: BuyMode) => void
   buyPowerInfrastructure: (_infrastructureId: PowerInfrastructureId, _quantity: BuyMode) => void
+  buyDeskSpace: (_quantity?: BuyMode) => void
+  buyFloorSpace: (_quantity?: BuyMode) => void
+  buyOffice: (_quantity?: BuyMode) => void
   buyUpgrade: (_upgradeId: UpgradeId) => void
   buyRepeatableUpgrade: (_upgradeId: RepeatableUpgradeId) => void
   buyResearchTech: (_techId: ResearchTechId) => void
@@ -355,7 +390,15 @@ export type GameStore = GameState & {
   setActiveDeskView: (_view: DeskViewId) => void
   setUnitBuyMode: (_unitId: UnitId, _mode: BuyMode) => void
   setPowerBuyMode: (_infrastructureId: PowerInfrastructureId, _mode: BuyMode) => void
+  setCapacityBuyMode: (_infrastructureId: CapacityInfrastructureId, _mode: BuyMode) => void
   setRepeatableUpgradeBuyMode: (_upgradeId: RepeatableUpgradeId, _mode: BuyMode) => void
+  unlockSector: (_sectorId: SectorId) => void
+  acknowledgeSectorUnlock: (_sectorId: SectorId) => void
+  acknowledgeCapacityFull: () => void
+  assignUnitToSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
+  unassignUnitFromSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
+  clearSectorAssignments: (_unitId: HumanAssignableUnitId, _sectorId: SectorId) => void
+  assignMaxToSector: (_unitId: HumanAssignableUnitId, _sectorId: SectorId) => void
   adjustPrestigePurchasePlan: (_upgradeId: PrestigeUpgradeId, _delta: 1 | -1) => void
   clearPrestigePurchasePlan: () => void
   openModal: (_modal: ModalId) => void

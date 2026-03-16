@@ -30,6 +30,20 @@ export function StatsTab() {
   const influencePerSecond = useGameStore(selectors.influencePerSecond)
   const influence = useGameStore(selectors.influence)
   const purchasedPolicyCount = useGameStore(selectors.purchasedPolicyCount)
+  const generalDeskCashPerSecond = useGameStore(selectors.generalDeskCashPerSecond)
+  const financeSectorCashPerSecond = useGameStore(selectors.sectorCashPerSecond('finance'))
+  const technologySectorCashPerSecond = useGameStore(selectors.sectorCashPerSecond('technology'))
+  const energySectorCashPerSecond = useGameStore(selectors.sectorCashPerSecond('energy'))
+  const internAssigned = useGameStore(selectors.assignedCount('intern'))
+  const juniorAssigned = useGameStore(selectors.assignedCount('juniorTrader'))
+  const seniorAssigned = useGameStore(selectors.assignedCount('seniorTrader'))
+  const unlockedSectors = useGameStore(selectors.unlockedSectors)
+  const totalDeskSlots = useGameStore(selectors.totalDeskSlots)
+  const usedDeskSlots = useGameStore(selectors.usedDeskSlots)
+  const availableDeskSlots = useGameStore(selectors.availableDeskSlots)
+  const deskSpaceCount = useGameStore((state) => state.deskSpaceCount)
+  const floorSpaceCount = useGameStore((state) => state.floorSpaceCount)
+  const officeCount = useGameStore((state) => state.officeCount)
 
   return (
     <Card className="terminal-panel h-full rounded-2xl border-border/80 bg-card/92">
@@ -49,6 +63,16 @@ export function StatsTab() {
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Junior desk</span><span className="font-mono text-primary">{formatRate(juniorIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Senior desk</span><span className="font-mono text-primary">{formatRate(seniorIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Traders</span><span className="font-mono text-primary">{internCount} / {juniorTraderCount} / {seniorTraderCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Assigned traders</span><span className="font-mono text-primary">{internAssigned} / {juniorAssigned} / {seniorAssigned}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Desk Slots</span><span className="font-mono text-primary">{usedDeskSlots} / {totalDeskSlots}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Desk Slots free</span><span className="font-mono text-primary">{availableDeskSlots}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Desk Space</span><span className="font-mono text-primary">{deskSpaceCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Floor Space</span><span className="font-mono text-primary">{floorSpaceCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Offices</span><span className="font-mono text-primary">{officeCount}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">General Desk output</span><span className="font-mono text-primary">{formatRate(generalDeskCashPerSecond)}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Finance sector</span><span className="font-mono text-primary">{unlockedSectors.finance ? formatRate(financeSectorCashPerSecond) : 'Locked'}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Technology sector</span><span className="font-mono text-primary">{unlockedSectors.technology ? formatRate(technologySectorCashPerSecond) : 'Locked'}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Energy sector</span><span className="font-mono text-primary">{unlockedSectors.energy ? formatRate(energySectorCashPerSecond) : 'Locked'}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Rule-based bots</span><span className="font-mono text-primary">{formatRate(ruleBasedBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">ML trading bots</span><span className="font-mono text-primary">{formatRate(mlTradingBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">AI trading bots</span><span className="font-mono text-primary">{formatRate(aiTradingBotIncome)}</span></div>
@@ -62,7 +86,7 @@ export function StatsTab() {
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Influence production</span><span className="font-mono text-primary">{formatPlainRate(influencePerSecond)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Policies passed</span><span className="font-mono text-primary">{purchasedPolicyCount}</span></div>
           <Separator className="my-3 bg-border/60" />
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">Research multiplier</span><span className="font-mono text-primary">{formatMultiplier(globalMultiplier)}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">Global profit multiplier</span><span className="font-mono text-primary">{formatMultiplier(globalMultiplier)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Prestige multiplier</span><span className="font-mono text-primary">{formatMultiplier(prestigeMultiplier)}</span></div>
         </div>
       </CardContent>

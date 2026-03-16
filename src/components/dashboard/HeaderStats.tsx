@@ -16,8 +16,14 @@ export function HeaderStats() {
   const researchPointsPerSecond = useGameStore(selectors.researchPointsPerSecond)
   const influence = useGameStore(selectors.influence)
   const influencePerSecond = useGameStore(selectors.influencePerSecond)
+  const usedDeskSlots = useGameStore(selectors.usedDeskSlots)
+  const totalDeskSlots = useGameStore(selectors.totalDeskSlots)
   const progressionSummary = getProgressionSummary(gameState)
   const researchVisible = gameState.purchasedUpgrades.juniorHiringProgram === true || gameState.internResearchScientistCount > 0 || gameState.juniorResearchScientistCount > 0 || gameState.seniorResearchScientistCount > 0 || researchPoints > 0
+  const technologySectorUnlocked = gameState.unlockedSectors.technology === true
+  const energySectorUnlocked = gameState.unlockedSectors.energy === true
+  const technologySectorJustUnlocked = technologySectorUnlocked && gameState.ui.dismissedSectorUnlocks.technology !== true
+  const energySectorJustUnlocked = energySectorUnlocked && gameState.ui.dismissedSectorUnlocks.energy !== true
 
   return (
     <div className="grid gap-2 xl:grid-cols-[minmax(0,0.8fr)_minmax(220px,0.2fr)]">
@@ -35,10 +41,13 @@ export function HeaderStats() {
 
           <div className="flex min-w-0 flex-wrap content-center items-center gap-2 self-center xl:justify-end">
             {researchVisible ? <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Research <span className="ml-1.5 font-mono text-foreground">{formatNumber(researchPoints, { decimalsBelowThreshold: researchPoints < 100 ? 1 : 0 })}</span> <span className="ml-1.5 font-mono text-primary">{formatPlainRate(researchPointsPerSecond)}</span></Badge> : null}
+            <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Desk Slots <span className="ml-1.5 font-mono text-foreground">{usedDeskSlots} / {totalDeskSlots}</span></Badge>
             <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Power <span className="ml-1.5 font-mono text-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use</span> <span className="mx-1 font-mono text-muted-foreground">/</span> <span className="font-mono text-primary">{formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</span></Badge>
             <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Influence <span className="ml-1.5 font-mono text-foreground">{formatNumber(influence, { decimalsBelowThreshold: influence < 100 ? 2 : 1 })}</span> <span className="ml-1.5 font-mono text-primary">{formatPlainRate(influencePerSecond)}</span></Badge>
             <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Reputation <span className="ml-1.5 font-mono text-foreground">{reputation.toLocaleString()}</span></Badge>
             <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-border/80 bg-background/60 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-muted-foreground">Prestiges <span className="ml-1.5 font-mono text-foreground">{prestigeCount.toLocaleString()}</span></Badge>
+            {technologySectorUnlocked ? <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-primary/40 bg-primary/10 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-primary">{technologySectorJustUnlocked ? 'New: Tech Sector' : 'Sector Tech Online'}</Badge> : null}
+            {energySectorUnlocked ? <Badge variant="outline" className="min-h-10 justify-start whitespace-nowrap rounded-md border-primary/40 bg-primary/10 px-3 py-2 text-[11px] font-normal uppercase tracking-[0.12em] text-primary">{energySectorJustUnlocked ? 'New: Energy Sector' : 'Sector Energy Online'}</Badge> : null}
           </div>
         </div>
       </section>

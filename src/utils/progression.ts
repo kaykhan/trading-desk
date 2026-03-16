@@ -46,6 +46,9 @@ export function getProgressionPhase(state: GameState): ProgressionPhaseId {
 
 export function getProgressionSummary(state: GameState): ProgressionSummary {
   const phaseId = getProgressionPhase(state)
+  const deskSlotsUsed = state.internCount + state.juniorTraderCount + state.seniorTraderCount
+  const deskSlotsTotal = state.baseDeskSlots + state.deskSpaceCount + state.floorSpaceCount * 25 + state.officeCount * 100
+  const deskSlotsFree = Math.max(0, deskSlotsTotal - deskSlotsUsed)
 
   if (phaseId === 'solo-trader') {
     return {
@@ -63,7 +66,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
         headline: 'Build the intern desk into a real income floor.',
-        objective: 'Scale Interns until Junior Trader Program appears. This is the bridge from manual trading to the first real desk tier.',
+        objective: 'Scale Interns until Junior Trader Program appears. If Desk Slots run out, Desk Space is the fastest way to squeeze in one more hire before larger buildouts.',
         nextTarget: `Reach 5 Interns (${state.internCount}/5) to reveal Junior Trader Program.`,
       }
     }
@@ -83,7 +86,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
         headline: 'Build the junior desk into a real income floor.',
-        objective: 'Scale Juniors until Senior Recruitment appears. This is the bridge from the training desk to firm growth.',
+        objective: 'Scale Juniors until Senior Recruitment appears. Balance direct hiring against Desk Space for patches, Floor Space for mid-run scaling, and Office when the firm is ready for a major expansion.',
         nextTarget: `Reach 5 Junior Traders (${state.juniorTraderCount}/5) to reveal Senior Recruitment.`,
       }
     }
@@ -103,8 +106,10 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
         phaseId,
         phaseLabel: PHASE_LABELS[phaseId],
         headline: 'Turn seniors into the core growth engine.',
-        objective: 'Seniors accelerate the desk and prepare the automation phase.',
-        nextTarget: `Reach 5 Senior Traders (${state.seniorTraderCount}/5) to reveal Algorithmic Trading.`,
+        objective: 'Seniors accelerate the desk and prepare the automation phase. Sector assignment is optional, while Desk Capacity is firm-wide and forces a hire-versus-expand tradeoff.',
+        nextTarget: deskSlotsFree <= 0
+          ? 'Desk Capacity is full. Buy Desk Space, Floor Space, or an Office under Infrastructure to keep hiring.'
+          : `Reach 5 Senior Traders (${state.seniorTraderCount}/5) to reveal Algorithmic Trading.`,
       }
     }
 
@@ -112,7 +117,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Open the automation era.',
-      objective: 'Your human desk is strong enough. Research Algorithmic Trading with Research Points to unlock Rule-Based Bots.',
+      objective: 'Your human desk is strong enough. Research Algorithmic Trading with Research Points to unlock Rule-Based Bots and open the Technology sector.',
       nextTarget: 'Algorithmic Trading in Research for 100 RP.',
     }
   }
@@ -124,7 +129,7 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Scale automation until reset value appears.',
-      objective: 'Automation is online. Build infrastructure support, push into ML and AI bot tiers, and convert machine scale into a worthwhile prestige.',
+      objective: 'Automation is online. Build infrastructure support, push into ML and AI bot tiers, and use sectors as an optimization layer while converting machine scale into a worthwhile prestige.',
       nextTarget: prestigeGain > 0 ? `You can already claim ${prestigeGain} Reputation after adding at least one bot.` : 'Keep pushing bot income until Reputation becomes available.',
     }
   }
