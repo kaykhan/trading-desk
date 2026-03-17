@@ -27,20 +27,20 @@ export function GameShell() {
       <HeaderStats />
       <MilestoneNotifications />
 
-      <section className="grid min-h-0 flex-1 gap-2 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+      <section className="grid min-h-0 flex-1 gap-2 xl:grid-cols-2">
         <DeskTab />
 
           <Tabs value={safeActiveTab} onValueChange={(value) => setActiveTab(value as typeof safeActiveTab)} className="min-h-0 flex flex-col overflow-hidden">
             <TabsList className="grid h-auto w-full shrink-0 grid-cols-9 gap-1 rounded-xl border border-border/80 bg-card/92 p-1">
-              <TabsTrigger value="upgrades" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><TrendingUp className="size-3.5" />Upgrades</TabsTrigger>
-              <TabsTrigger value="optimizations" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Gauge className="size-3.5" />Optimizations</TabsTrigger>
-              <TabsTrigger value="research" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><BrainCircuit className="size-3.5" />Research</TabsTrigger>
-              <TabsTrigger value="boosts" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Sparkles className="size-3.5" />Boosts</TabsTrigger>
-              <TabsTrigger value="compliance" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Scale className="size-3.5" />Compliance</TabsTrigger>
-              <TabsTrigger value="lobbying" title={lobbyingUnlocked ? 'Lobbying unlocked' : 'Unlock with Regulatory Affairs in Research'} className={`gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground ${!lobbyingUnlocked ? 'bg-background/45 text-muted-foreground' : ''}`}><Landmark className="size-3.5" />Lobbying</TabsTrigger>
-              <TabsTrigger value="prestige" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><BarChart3 className="size-3.5" />Prestige</TabsTrigger>
-              <TabsTrigger value="stats" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Landmark className="size-3.5" />Stats</TabsTrigger>
-              <TabsTrigger value="settings" className="gap-1.5 py-2 text-[10px] uppercase tracking-[0.12em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Settings2 className="size-3.5" />Settings</TabsTrigger>
+              <TabsTrigger value="upgrades" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><TrendingUp className="size-3.5" />Upgrades</TabsTrigger>
+              <TabsTrigger value="optimizations" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Gauge className="size-3.5" />Optimizations</TabsTrigger>
+              <TabsTrigger value="research" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><BrainCircuit className="size-3.5" />Research</TabsTrigger>
+              <TabsTrigger value="boosts" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Sparkles className="size-3.5" />Boosts</TabsTrigger>
+              <TabsTrigger value="compliance" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Scale className="size-3.5" />Compliance</TabsTrigger>
+              <TabsTrigger value="lobbying" title={lobbyingUnlocked ? 'Lobbying unlocked' : 'Unlock with Regulatory Affairs in Research'} className={`gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground ${!lobbyingUnlocked ? 'bg-background/45 text-muted-foreground' : ''}`}><Landmark className="size-3.5" />Lobbying</TabsTrigger>
+              <TabsTrigger value="prestige" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><BarChart3 className="size-3.5" />Prestige</TabsTrigger>
+              <TabsTrigger value="stats" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Landmark className="size-3.5" />Stats</TabsTrigger>
+              <TabsTrigger value="settings" className="gap-1.5 py-2 text-[9px] uppercase tracking-[0.1em] aria-selected:bg-primary aria-selected:text-primary-foreground"><Settings2 className="size-3.5" />Settings</TabsTrigger>
             </TabsList>
 
           <TabsContent value="upgrades" className="min-h-0 overflow-hidden"><UpgradesTab /></TabsContent>
