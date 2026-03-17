@@ -828,16 +828,18 @@ export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyM
 
   let totalCost = 0
 
+  for (let i = 0; i < quantity; i += 1) {
+    totalCost += getDiscountedUnitCostAtOwned(state, unitId, owned + i)
+  }
+
   if (humanDeskLimited && quantity > availableDeskSlots) {
-    return { quantity: 0, totalCost: 0 }
+    return { quantity: 0, totalCost }
   }
 
   for (let i = 0; i < quantity; i += 1) {
     if (currentPowerUsage + powerPerUnit * (i + 1) > powerCapacity) {
-      return { quantity: 0, totalCost: 0 }
+      return { quantity: 0, totalCost }
     }
-
-    totalCost += getDiscountedUnitCostAtOwned(state, unitId, owned + i)
   }
 
   return { quantity, totalCost }

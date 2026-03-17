@@ -715,7 +715,11 @@ export function DeskTab() {
     const disabled = !selectors.canAffordUnitInCurrentMode(unitId)(gameState)
     const totalCost = selectors.bulkUnitTotalCost(unitId)(gameState)
     const quantity = selectors.bulkUnitQuantity(unitId)(gameState)
-    const blockedByDeskCapacity = deskLimited && availableDeskSlots <= 0
+    const currentBuyMode = selectors.unitBuyMode(unitId)(gameState)
+    const blockedByDeskCapacity = deskLimited && (
+      availableDeskSlots <= 0
+      || (typeof currentBuyMode === 'number' && availableDeskSlots < currentBuyMode)
+    )
 
     if (unitId === 'intern') {
       return { unlocked, disabled: disabled || blockedByDeskCapacity, blockedByDeskCapacity, totalCost, quantity, nextCost: nextInternCost, buyMode: internBuyMode, count: gameState.internCount, totalIncome: formatRate(internIncome), description: UNITS.intern.description }

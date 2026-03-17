@@ -47,15 +47,19 @@ function withMilestones(nextState: Partial<GameStore>, baseState: GameStore): Pa
     ...baseState,
     ...nextState,
   } as GameStore
+  const baseDeskSlotsBeforeRewards = stateForEvaluation.baseDeskSlots
   const evaluation = evaluateMilestones(stateForEvaluation)
 
   if (evaluation.newlyUnlockedIds.length <= 0) {
     return nextState
   }
 
+  const rewardState = applyMilestoneRewards(stateForEvaluation, evaluation.rewards)
+
   return {
     ...nextState,
-    ...applyMilestoneRewards(stateForEvaluation, evaluation.rewards),
+    ...rewardState,
+    ...(stateForEvaluation.baseDeskSlots !== baseDeskSlotsBeforeRewards ? { baseDeskSlots: stateForEvaluation.baseDeskSlots } : {}),
     unlockedMilestones: evaluation.unlockedMilestones,
     milestoneUnlockQueue: [...baseState.milestoneUnlockQueue, ...evaluation.newlyUnlockedIds],
   }

@@ -152,12 +152,12 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'firstDeskOptimization': return getOptimisationRanksByFamily(state, 'desk') >= 1
     case 'humanDeskScaled': return state.internCount + state.juniorTraderCount + state.seniorTraderCount >= 25
     case 'unlockResearch': return getResearchUnlocked(state)
-    case 'firstJuniorScientist': return state.juniorResearchScientistCount >= 1
+    case 'firstInternScientist': return state.internResearchScientistCount >= 1
+    case 'firstFloorSpace': return state.floorSpaceCount >= 1
     case 'firstSeniorScientist': return state.seniorResearchScientistCount >= 1
     case 'firstResearchNode': return getPurchasedResearchNodeCount(state) >= 1
     case 'hundredRP': return state.lifetimeResearchPointsEarned >= 100
     case 'fiveResearchNodes': return getPurchasedResearchNodeCount(state) >= 5
-    case 'firstResearchUpgrade': return getPurchasedUpgradeCountByGroup(state, 'research') >= 1
     case 'firstResearchOptimization': return getOptimisationRanksByFamily(state, 'research') >= 1
     case 'firstExtraSector': return getUnlockedSectorCount(state) >= 2
     case 'unlockTechnologySector': return state.unlockedSectors.technology === true
@@ -179,7 +179,7 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'firstInstitutionalDesk': return state.institutionalDeskCount >= 1
     case 'firstHedgeFund': return state.hedgeFundCount >= 1
     case 'firstInvestmentFirm': return state.investmentFirmCount >= 1
-    case 'institutionPortfolio': return getTotalInstitutionUnits(state) >= 3
+    case 'institutionPortfolio': return state.propDeskCount >= 1 && state.institutionalDeskCount >= 1 && state.hedgeFundCount >= 1
     case 'institutionUpgrade': return getPurchasedUpgradeCountByGroup(state, 'institutions') >= 1
     case 'unlockAutomation': return isAutomationUnlocked(state)
     case 'firstQuantTrader': return state.quantTraderCount >= 1
@@ -192,7 +192,6 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'firstAIBot': return state.aiTradingBotCount >= 1
     case 'firstAutomationUpgrade': return getPurchasedUpgradeCountByGroup(state, 'automation') >= 1
     case 'firstAutomationOptimization': return getOptimisationRanksByFamily(state, 'automation') >= 1
-    case 'unlockPowerSystems': return isPowerInfrastructureUnlocked(state)
     case 'firstServerRack': return effectiveServerRackCount >= 1
     case 'firstServerRoom': return state.serverRoomCount >= 1
     case 'firstDataCentre': return state.dataCenterCount >= 1
@@ -281,6 +280,7 @@ export function evaluateMilestones(state: GameState): MilestoneEvaluation {
     rewards.researchPoints = (rewards.researchPoints ?? 0) + (milestone.reward.researchPoints ?? 0)
     rewards.influence = (rewards.influence ?? 0) + (milestone.reward.influence ?? 0)
     rewards.reputation = (rewards.reputation ?? 0) + (milestone.reward.reputation ?? 0)
+    rewards.deskSlots = (rewards.deskSlots ?? 0) + (milestone.reward.deskSlots ?? 0)
   }
 
   return {
@@ -291,6 +291,10 @@ export function evaluateMilestones(state: GameState): MilestoneEvaluation {
 }
 
 export function applyMilestoneRewards(state: GameState, rewards: MilestoneReward): Pick<GameState, 'cash' | 'researchPoints' | 'influence' | 'reputation'> {
+  if (rewards.deskSlots) {
+    state.baseDeskSlots += rewards.deskSlots
+  }
+
   return {
     cash: state.cash + (rewards.cash ?? 0),
     researchPoints: state.researchPoints + (rewards.researchPoints ?? 0),
@@ -318,6 +322,7 @@ export function getMilestoneRewardSummary(reward: MilestoneReward): string {
   if (reward.researchPoints) parts.push(`${Math.floor(reward.researchPoints).toLocaleString()} RP`)
   if (reward.influence) parts.push(`${reward.influence.toLocaleString()} Influence`)
   if (reward.reputation) parts.push(`${reward.reputation.toLocaleString()} Reputation`)
+  if (reward.deskSlots) parts.push(`${reward.deskSlots.toLocaleString()} Desk Slots`)
   if (reward.note) parts.push(reward.note)
   return parts.join(' · ')
 }
@@ -331,6 +336,7 @@ export function getMilestoneProgressLabel(state: GameState, milestoneId: Milesto
     case 'activeDesk': return `${state.lifetimeManualTrades}/25 trades`
     case 'smallTeam': return `${state.internCount}/5 interns`
     case 'juniorDesk': return `${state.juniorTraderCount}/5 juniors`
+    case 'firstFloorSpace': return `${state.floorSpaceCount}/1 floor space`
     case 'tenInterns': return `${state.internCount}/10 interns`
     case 'tenJuniors': return `${state.juniorTraderCount}/10 juniors`
     case 'threeSeniors': return `${state.seniorTraderCount}/3 seniors`

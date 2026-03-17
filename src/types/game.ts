@@ -554,6 +554,7 @@ export type MilestoneReward = {
   researchPoints?: number
   influence?: number
   reputation?: number
+  deskSlots?: number
   note?: string
 }
 

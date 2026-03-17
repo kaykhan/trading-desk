@@ -458,16 +458,15 @@ export function normalizeGameState(value: unknown): GameState | null {
   }
 
   const unlockedSectors = Object.fromEntries(SECTOR_IDS.map((sectorId) => {
-    const explicitValue = isSectorId(sectorId)
-      ? getBoolean(unlockedSectorsSource[sectorId], DEFAULT_UNLOCKED_SECTORS[sectorId])
-      : DEFAULT_UNLOCKED_SECTORS[sectorId]
-    const autoUnlocked = sectorId === 'technology'
-      ? migratedPurchasedResearchTech.technologyMarkets === true || migratedPurchasedResearchTech.algorithmicTrading === true
-      : sectorId === 'energy'
-        ? migratedPurchasedResearchTech.energyMarkets === true || migratedPurchasedResearchTech.powerSystemsEngineering === true || migratedPurchasedResearchTech.serverRoomSystems === true
-        : false
+    if (sectorId === 'finance') {
+      return [sectorId, true]
+    }
 
-    return [sectorId, explicitValue || autoUnlocked]
+    if (sectorId === 'technology') {
+      return [sectorId, migratedPurchasedResearchTech.technologyMarkets === true]
+    }
+
+    return [sectorId, migratedPurchasedResearchTech.energyMarkets === true]
   })) as Record<SectorId, boolean>
 
   const traderSpecialists = normalizeTraderSpecialists(value.traderSpecialists, value)

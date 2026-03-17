@@ -197,7 +197,6 @@ export const RESEARCH_TECH: ResearchTechDefinition[] = [
     currency: 'researchPoints',
     researchCost: 140,
     description: 'Unlock Floor Space office expansion projects.',
-    prerequisites: ['foundationsOfFinanceTraining'],
     graphPosition: { x: -340, y: 180 },
     lockedReason: (state) => `Requires at least 8 active trader seats (${state.internCount + state.juniorTraderCount + state.seniorTraderCount}/8) before larger floor planning makes sense.`,
     visibleWhen: (state) => state.internCount + state.juniorTraderCount + state.seniorTraderCount >= 4 || state.researchPoints >= 40,
@@ -315,7 +314,6 @@ export const RESEARCH_TECH: ResearchTechDefinition[] = [
     currency: 'researchPoints',
     researchCost: 100,
     description: 'Formalize the first machine-power lane and open server-rack expansion for automation support.',
-    prerequisites: ['algorithmicTrading'],
     graphPosition: { x: 540, y: 540 },
   },
   {
