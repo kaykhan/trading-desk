@@ -6,10 +6,12 @@ import { POWER_INFRASTRUCTURE } from '@/data/powerInfrastructure'
 import { UNITS } from '@/data/units'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGameStore } from '@/store/gameStore'
+import { AUTOMATION_STRATEGIES, AUTOMATION_STRATEGY_IDS, AUTOMATION_UNIT_IDS, AUTOMATION_UNITS } from '@/data/automation'
 import { selectors } from '@/store/selectors'
-import type { BuyMode, DeskViewId, InstitutionalMandateId, InstitutionalMandateUnitId, TraderSpecialistUnitId, TraderSpecializationId, UnitId } from '@/types/game'
+import type { AutomationUnitId, BuyMode, DeskViewId, InstitutionalMandateId, InstitutionalMandateUnitId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId } from '@/types/game'
 import { formatCurrency, formatNumber, formatPlainRate, formatRate } from '@/utils/formatting'
 import { GAME_CONSTANTS } from '@/data/constants'
+import { getUnlockedAutomationStrategies } from '@/utils/automation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SectorsTab } from './SectorsTab'
@@ -373,6 +375,121 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
   )
 }
 
+function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
+  const gameState = useGameStore((state) => state)
+  const buyUnit = useGameStore((state) => state.buyUnit)
+  const setUnitBuyMode = useGameStore((state) => state.setUnitBuyMode)
+  const setAutomationMarketTarget = useGameStore((state) => state.setAutomationMarketTarget)
+  const setAutomationStrategy = useGameStore((state) => state.setAutomationStrategy)
+
+  const unlocked = useGameStore(selectors.automationUnitUnlocked(unitId))
+  const owned = useGameStore(selectors.automationUnitOwnedCount(unitId))
+  const buyMode = useGameStore(selectors.automationBuyMode(unitId))
+  const quantity = useGameStore(selectors.automationBulkQuantity(unitId))
+  const totalCost = useGameStore(selectors.automationBulkTotalCost(unitId))
+  const nextCost = useGameStore(selectors.automationNextCost(unitId))
+  const config = useGameStore(selectors.automationConfig(unitId))
+  const runtime = useGameStore(selectors.automationCycleRuntime(unitId))
+  const progressPercent = useGameStore(selectors.automationProgressPercent(unitId))
+  const nextPayout = useGameStore(selectors.automationAdjustedPayout(unitId))
+  const averageIncome = useGameStore(selectors.automationAverageIncomePerSecond(unitId))
+  const timeRemaining = useGameStore(selectors.automationTimeRemaining(unitId))
+  const powerUse = useGameStore(selectors.automationPowerUse(unitId))
+  const unlockedStrategies = getUnlockedAutomationStrategies(gameState)
+  const canAfford = quantity > 0 && gameState.cash >= totalCost
+  const justPaid = runtime.lastCompletedAt !== null && Date.now() - runtime.lastCompletedAt < GAME_CONSTANTS.automationPayoutFlashMs
+  const payoutFlashClass = justPaid
+    ? unitId === 'quantTrader'
+      ? 'border-amber-400/50 bg-amber-500/10 text-amber-100'
+      : unitId === 'ruleBasedBot'
+        ? 'border-sky-400/50 bg-sky-500/10 text-sky-100'
+        : unitId === 'mlTradingBot'
+          ? 'border-emerald-400/50 bg-emerald-500/10 text-emerald-100'
+          : 'border-rose-400/50 bg-rose-500/10 text-rose-100'
+    : null
+  const label = AUTOMATION_UNITS[unitId].name
+  const lockedReason = unitId === 'quantTrader'
+    ? `Requires Quant Trading Systems research after opening Algorithmic Foundations (${gameState.purchasedResearchTech.quantTradingSystems ? 'done' : 'not researched'}).`
+    : unitId === 'ruleBasedBot'
+      ? `Requires Rule-Based Automation research (${gameState.purchasedResearchTech.ruleBasedAutomation ? 'done' : 'not researched'}).`
+      : unitId === 'mlTradingBot'
+        ? `Requires Machine Learning Trading research and at least 1 Data Centre (${gameState.dataCenterCount}/1).`
+        : `Requires AI Trading Systems research and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`
+
+  return (
+    <div className={!unlocked ? 'opacity-60' : undefined}>
+      <div className={`rounded-xl border border-border/80 bg-background/65 p-2 transition-all duration-300 ${justPaid ? 'scale-[1.01] shadow-[0_0_0_1px_rgba(34,197,94,0.35),0_0_28px_rgba(34,197,94,0.12)]' : ''}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">{label}</h3>
+          <Badge variant="outline" className={unlocked ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{unlocked ? 'Online' : 'Locked'}</Badge>
+          <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Owned {owned}</Badge>
+          <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Cycle {AUTOMATION_UNITS[unitId].cycleDurationSeconds}s</Badge>
+          <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUse * owned, { decimalsBelowThreshold: 1 })} power</Badge>
+          {runtime.lastPayout > 0 ? <Badge variant="outline" className={justPaid && payoutFlashClass ? `h-5 rounded-md px-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-300 ${payoutFlashClass}` : 'h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{`+${formatCurrency(runtime.lastPayout, runtime.lastPayout < 100 ? 1 : 0)}`}</Badge> : null}
+        </div>
+        <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{unlocked ? AUTOMATION_UNITS[unitId].description : lockedReason}</p>
+
+        <div className="mt-3 space-y-2">
+          <div className="h-2 overflow-hidden rounded bg-background/80">
+            <div className={`h-full rounded transition-all duration-200 ${justPaid ? 'bg-emerald-400' : 'bg-primary'}`} style={{ width: `${progressPercent * 100}%` }} />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className={`rounded-lg border p-2 text-[11px] transition-all duration-300 ${justPaid && payoutFlashClass ? payoutFlashClass : 'border-border/70 bg-background/45 text-muted-foreground'}`}>Next payout {formatCurrency(nextPayout, nextPayout < 100 ? 1 : 0)}</div>
+            <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Average {formatRate(averageIncome)}</div>
+            <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Remaining {formatNumber(timeRemaining, { decimalsBelowThreshold: 1 })}s</div>
+            <div className={`rounded-lg border p-2 text-[11px] transition-all duration-300 ${justPaid && payoutFlashClass ? payoutFlashClass : 'border-border/70 bg-background/45 text-muted-foreground'}`}>{config.strategy ? 'Strategy armed' : 'Awaiting strategy'}</div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-2 lg:grid-cols-2">
+          <label className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">
+            <span className="block text-[10px] uppercase tracking-[0.16em] text-primary">Target Market</span>
+            <select
+              value={config.marketTarget ?? ''}
+              onChange={(event) => setAutomationMarketTarget(unitId, event.target.value === '' ? null : event.target.value as SectorId)}
+              className="mt-2 h-8 w-full rounded-md border border-border/70 bg-background/70 px-2 text-xs text-foreground outline-none"
+              disabled={!unlocked}
+            >
+              <option value="">Unassigned</option>
+              <option value="finance">Finance</option>
+              <option value="technology">Technology</option>
+              <option value="energy">Energy</option>
+            </select>
+          </label>
+          <label className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">
+            <span className="block text-[10px] uppercase tracking-[0.16em] text-primary">Strategy</span>
+            <select
+              value={config.strategy ?? ''}
+              onChange={(event) => setAutomationStrategy(unitId, event.target.value === '' ? null : event.target.value as typeof config.strategy)}
+              className="mt-2 h-8 w-full rounded-md border border-border/70 bg-background/70 px-2 text-xs text-foreground outline-none"
+              disabled={!unlocked}
+            >
+              <option value="">No strategy</option>
+              {AUTOMATION_STRATEGY_IDS.map((strategyId) => (
+                <option key={`${unitId}-${strategyId}`} value={strategyId} disabled={!unlockedStrategies.includes(strategyId)}>
+                  {AUTOMATION_STRATEGIES[strategyId].name}{!unlockedStrategies.includes(strategyId) ? ' (locked)' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Automation</span>
+          {BUY_MODES.map((mode) => (
+            <Button key={`${unitId}-${String(mode)}`} size="xs" variant={buyMode === mode ? 'default' : 'outline'} className="rounded-md uppercase tracking-[0.12em]" onClick={() => setUnitBuyMode(unitId as UnitId, mode)}>
+              {typeof mode === 'number' ? `x${mode}` : 'Max'}
+            </Button>
+          ))}
+          <Button size="xs" variant={canAfford && unlocked ? 'default' : 'outline'} className="ml-auto rounded-md uppercase tracking-[0.12em]" disabled={!unlocked || !canAfford} onClick={() => buyUnit(unitId as UnitId, buyMode)}>
+            {`${buyMode === 'max' ? `Deploy Max (${quantity})` : `Deploy ${typeof buyMode === 'number' ? `x${buyMode}` : 'Max'}`} ${formatCurrency(totalCost || nextCost)}`}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function DeskTab() {
   const gameState = useGameStore((state) => state)
   const makeTrade = useGameStore((state) => state.makeTrade)
@@ -392,6 +509,7 @@ export function DeskTab() {
   const institutionalDeskIncome = useGameStore(selectors.institutionalDeskIncome)
   const hedgeFundIncome = useGameStore(selectors.hedgeFundIncome)
   const investmentFirmIncome = useGameStore(selectors.investmentFirmIncome)
+  const quantTraderIncome = useGameStore(selectors.quantTraderIncome)
   const ruleBasedBotIncome = useGameStore(selectors.ruleBasedBotIncome)
   const mlTradingBotIncome = useGameStore(selectors.mlTradingBotIncome)
   const aiTradingBotIncome = useGameStore(selectors.aiTradingBotIncome)
@@ -402,6 +520,7 @@ export function DeskTab() {
   const powerCapacity = useGameStore(selectors.powerCapacity)
   const capacityPowerUsage = useGameStore(selectors.capacityPowerUsage)
   const machineEfficiencyMultiplier = useGameStore(selectors.machineEfficiencyMultiplier)
+  const quantTraderPowerUsage = useGameStore(selectors.quantTraderPowerUsage)
   const ruleBasedBotPowerUsage = useGameStore(selectors.ruleBasedBotPowerUsage)
   const mlTradingBotPowerUsage = useGameStore(selectors.mlTradingBotPowerUsage)
   const aiTradingBotPowerUsage = useGameStore(selectors.aiTradingBotPowerUsage)
@@ -436,6 +555,7 @@ export function DeskTab() {
   const nextInternCost = useGameStore(selectors.nextInternCost)
   const nextJuniorTraderCost = useGameStore(selectors.nextJuniorTraderCost)
   const nextSeniorTraderCost = useGameStore(selectors.nextSeniorTraderCost)
+  const nextQuantTraderCost = useGameStore(selectors.nextQuantTraderCost)
   const nextPropDeskCost = useGameStore(selectors.nextPropDeskCost)
   const nextInstitutionalDeskCost = useGameStore(selectors.nextInstitutionalDeskCost)
   const nextHedgeFundCost = useGameStore(selectors.nextHedgeFundCost)
@@ -455,6 +575,7 @@ export function DeskTab() {
   const institutionalDeskBuyMode = useGameStore(selectors.unitBuyMode('institutionalDesk'))
   const hedgeFundBuyMode = useGameStore(selectors.unitBuyMode('hedgeFund'))
   const investmentFirmBuyMode = useGameStore(selectors.unitBuyMode('investmentFirm'))
+  const quantTraderBuyMode = useGameStore(selectors.unitBuyMode('quantTrader'))
   const ruleBasedBotBuyMode = useGameStore(selectors.unitBuyMode('ruleBasedBot'))
   const mlTradingBotBuyMode = useGameStore(selectors.unitBuyMode('mlTradingBot'))
   const aiTradingBotBuyMode = useGameStore(selectors.unitBuyMode('aiTradingBot'))
@@ -484,6 +605,14 @@ export function DeskTab() {
       purchaseLabel: 'Hire',
       lockedReason: `Unlock with Senior Recruitment after reaching 5 Juniors (${gameState.juniorTraderCount}/5).`,
       totalLabel: 'Desk',
+    },
+    {
+      unitId: 'quantTrader',
+      title: 'Quant Trader',
+      purchaseLabel: 'Deploy',
+      lockedReason: `Requires Quant Trading Systems research after opening Algorithmic Foundations (${gameState.purchasedResearchTech.quantTradingSystems ? 'done' : 'not researched'}).`,
+      totalLabel: 'System',
+      extraBadges: ['Cycle-based'],
     },
     {
       unitId: 'propDesk',
@@ -557,7 +686,7 @@ export function DeskTab() {
       unitId: 'mlTradingBot',
       title: 'ML Trading Bot',
       purchaseLabel: 'Deploy',
-      lockedReason: `Requires Data Centre Systems and at least 1 Data Centre or Cloud Compute (${gameState.dataCenterCount + gameState.cloudComputeCount}/1).`,
+      lockedReason: `Requires Machine Learning Trading and at least 1 Data Centre (${gameState.dataCenterCount}/1).`,
       totalLabel: 'Machine',
       extraBadges: ['18 power each'],
     },
@@ -565,7 +694,7 @@ export function DeskTab() {
       unitId: 'aiTradingBot',
       title: 'AI Trading Bot',
       purchaseLabel: 'Deploy',
-      lockedReason: `Late-run machine tier. Requires AI Trading Systems, 3 ML Trading Bots (${gameState.mlTradingBotCount}/3), and at least 1 Data Centre or Cloud Compute (${gameState.dataCenterCount + gameState.cloudComputeCount}/1).`,
+      lockedReason: `Late-run machine tier. Requires AI Trading Systems, 3 ML Trading Bots (${gameState.mlTradingBotCount}/3), and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`,
       totalLabel: 'Machine',
       extraBadges: ['48 power each'],
     },
@@ -593,6 +722,10 @@ export function DeskTab() {
 
     if (unitId === 'propDesk') {
       return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextPropDeskCost, buyMode: propDeskBuyMode, count: gameState.propDeskCount, totalIncome: formatRate(propDeskIncome), description: UNITS.propDesk.description }
+    }
+
+    if (unitId === 'quantTrader') {
+      return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextQuantTraderCost, buyMode: quantTraderBuyMode, count: gameState.quantTraderCount, totalIncome: formatRate(quantTraderIncome), description: UNITS.quantTrader.description }
     }
 
     if (unitId === 'institutionalDesk') {
@@ -853,32 +986,20 @@ export function DeskTab() {
         {showTradingView ? <div className="terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5">
           <div className="flex flex-wrap items-center gap-2">
             <MonitorCog className="size-4 text-primary" />
-            <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Algorithmic Trading</h3>
+            <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Automation Systems</h3>
             <Badge variant="outline" className={selectors.algorithmicUnlocked(gameState) ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{selectors.algorithmicUnlocked(gameState) ? 'Unlocked' : 'Locked'}</Badge>
-            {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatRate(ruleBasedBotIncome + mlTradingBotIncome + aiTradingBotIncome)}</Badge> : null}
+            {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatRate(quantTraderIncome + ruleBasedBotIncome + mlTradingBotIncome + aiTradingBotIncome)} avg</Badge> : null}
+            {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Quant {formatNumber(quantTraderPowerUsage, { decimalsBelowThreshold: 1 })} power</Badge> : null}
             {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })} power</Badge> : null}
             {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })} power</Badge> : null}
             {selectors.algorithmicUnlocked(gameState) ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })} power</Badge> : null}
           </div>
-          {unitPanelConfigs.filter((item) => item.unitId === 'ruleBasedBot' || item.unitId === 'mlTradingBot' || item.unitId === 'aiTradingBot').map((config) => {
-            const state = getUnitState(config.unitId)
-            return (
-              <UnitPanel
-                key={config.unitId}
-                config={config}
-                incomeLabel={state.totalIncome}
-                totalCost={state.totalCost}
-                nextCost={state.nextCost}
-                quantity={state.count}
-                buyMode={state.buyMode}
-                disabled={state.disabled}
-                unlocked={state.unlocked}
-                titleDescription={state.description}
-                onBuy={() => buyUnit(config.unitId, state.buyMode)}
-                onModeChange={(mode) => setUnitBuyMode(config.unitId, mode)}
-              />
-            )
-          })}
+          <p className="text-[11px] leading-4 text-muted-foreground">Automation runs in visible execution cycles. Pick a target market and strategy for each machine class, then watch payout ticks land on completion instead of smooth passive income.</p>
+          <div className="space-y-2">
+            {AUTOMATION_UNIT_IDS.map((unitId) => (
+              <AutomationCard key={unitId} unitId={unitId} />
+            ))}
+          </div>
         </div> : null}
 
         {showInfrastructureView ? <div className="terminal-panel space-y-2 rounded-xl border-border/80 bg-card/92 p-2.5">
@@ -889,6 +1010,7 @@ export function DeskTab() {
               <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Office Unlocked</Badge>
               <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</Badge>
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Energy Research Unlocked</Badge> : <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Energy Research Locked</Badge>}
+              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Quant {formatNumber(quantTraderPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}

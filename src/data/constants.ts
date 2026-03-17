@@ -31,4 +31,5 @@ export const GAME_CONSTANTS = {
   betterHiringPipelineDiscountPerRank: 0.05,
   gridOrchestrationMachineBonusPerRank: 0.05,
   gridOrchestrationPowerBonusPerRank: 0.05,
+  automationPayoutFlashMs: 2200,
 } as const

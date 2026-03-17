@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from '../data/automation'
 import type { AppInfo } from '../../shared/game'
 import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getFloorExpansionCost, getOfficeCost, getOfficeExpansionCost } from '../utils/capacity'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
@@ -9,6 +10,7 @@ import { DEFAULT_UNLOCKED_SECTORS } from '../data/sectors'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
+import { getAutomationBulkCost, processAutomationCycles } from '../utils/automation'
 import { getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, SAVE_KEY, saveStateToStorage } from '../utils/persistence'
@@ -16,7 +18,7 @@ import { createPrestigeResetState } from '../utils/prestige'
 import { areResearchTechPrerequisitesMet, isEnergySectorUnlocked, isLobbyingUnlocked, isResearchTechUnlocked } from '../utils/research'
 import { getGenericTraderCount, getSpecializationResearchUnlockId, getTraderSpecialistTrainingCost } from '../utils/specialization'
 import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
-import type { BuyMode, DeskViewId, GameState, GameStore, GameTabId, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
+import type { AutomationStrategyId, AutomationUnitId, BuyMode, DeskViewId, GameState, GameStore, GameTabId, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -80,6 +82,7 @@ function getSnapshot(state: GameStore) {
     internCount: state.internCount,
     juniorTraderCount: state.juniorTraderCount,
     seniorTraderCount: state.seniorTraderCount,
+    quantTraderCount: state.quantTraderCount,
     baseDeskSlots: state.baseDeskSlots,
     deskSpaceCount: state.deskSpaceCount,
     floorSpaceCount: state.floorSpaceCount,
@@ -100,6 +103,8 @@ function getSnapshot(state: GameStore) {
     dataCenterCount: state.dataCenterCount,
     cloudComputeCount: state.cloudComputeCount,
     unlockedSectors: state.unlockedSectors,
+    automationConfig: state.automationConfig,
+    automationCycleState: state.automationCycleState,
     sectorAssignments: state.sectorAssignments,
     traderSpecialists: state.traderSpecialists,
     institutionMandates: state.institutionMandates,
@@ -143,16 +148,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const gain = getCashPerSecond(state) * deltaSeconds
       const researchGain = getResearchPointsPerSecond(state) * deltaSeconds
       const influenceGain = getInfluencePerSecond(state) * deltaSeconds
+      const automationResult = processAutomationCycles(state, deltaSeconds, Date.now())
 
-      if (gain <= 0 && researchGain <= 0 && influenceGain <= 0) {
+      const automationCashGain = automationResult.cash - state.cash
+
+      if (gain <= 0 && researchGain <= 0 && influenceGain <= 0 && automationCashGain <= 0) {
         return { lastSaveTimestamp: Date.now() }
       }
 
       return {
-        cash: state.cash + gain,
+        cash: automationResult.cash + gain,
         researchPoints: state.researchPoints + researchGain,
         influence: state.influence + influenceGain,
-        lifetimeCashEarned: state.lifetimeCashEarned + gain,
+        lifetimeCashEarned: automationResult.lifetimeCashEarned + gain,
+        automationCycleState: automationResult.automationCycleState,
         lastSaveTimestamp: Date.now(),
       }
     })
@@ -201,6 +210,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
+      if (unitId === 'quantTrader') {
+        const automationResult = getAutomationBulkCost(state, 'quantTrader', quantity)
+
+        if (automationResult.quantity <= 0 || state.cash < automationResult.totalCost) {
+          return state
+        }
+
+        return {
+          cash: state.cash - automationResult.totalCost,
+          quantTraderCount: state.quantTraderCount + automationResult.quantity,
+        }
+      }
+
       if (unitId === 'propDesk') {
         return {
           ...nextState,
@@ -230,9 +252,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (unitId === 'ruleBasedBot') {
+        const automationResult = getAutomationBulkCost(state, 'ruleBasedBot', quantity)
+
+        if (automationResult.quantity <= 0 || state.cash < automationResult.totalCost) {
+          return state
+        }
+
         return {
-          ...nextState,
-          ruleBasedBotCount: state.ruleBasedBotCount + result.quantity,
+          cash: state.cash - automationResult.totalCost,
+          ruleBasedBotCount: state.ruleBasedBotCount + automationResult.quantity,
         }
       }
 
@@ -258,16 +286,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (unitId === 'mlTradingBot') {
+        const automationResult = getAutomationBulkCost(state, 'mlTradingBot', quantity)
+
+        if (automationResult.quantity <= 0 || state.cash < automationResult.totalCost) {
+          return state
+        }
+
         return {
-          ...nextState,
-          mlTradingBotCount: state.mlTradingBotCount + result.quantity,
+          cash: state.cash - automationResult.totalCost,
+          mlTradingBotCount: state.mlTradingBotCount + automationResult.quantity,
         }
       }
 
-      return {
-        ...nextState,
-        aiTradingBotCount: state.aiTradingBotCount + result.quantity,
+      if (unitId === 'aiTradingBot') {
+        const automationResult = getAutomationBulkCost(state, 'aiTradingBot', quantity)
+
+        if (automationResult.quantity <= 0 || state.cash < automationResult.totalCost) {
+          return state
+        }
+
+        return {
+          cash: state.cash - automationResult.totalCost,
+          aiTradingBotCount: state.aiTradingBotCount + automationResult.quantity,
+        }
       }
+
+      return state
     })
   },
   buyPowerInfrastructure: (infrastructureId: PowerInfrastructureId, quantity: BuyMode) => {
@@ -521,9 +565,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   applyOfflineProgress: (secondsAway) => {
     set((state) => {
       const appliedSeconds = Math.min(secondsAway, getOfflineSecondsApplied(Date.now() - secondsAway * 1000, Date.now()))
-      const cashEarned = getCashPerSecond(state) * appliedSeconds
+      const passiveCashEarned = getCashPerSecond(state) * appliedSeconds
       const researchEarned = getResearchPointsPerSecond(state) * appliedSeconds
       const influenceEarned = getInfluencePerSecond(state) * appliedSeconds
+      const automationResult = processAutomationCycles(state, appliedSeconds, Date.now())
+      const cashEarned = passiveCashEarned + (automationResult.cash - state.cash)
 
       if (appliedSeconds <= 0 || (cashEarned <= 0 && researchEarned <= 0 && influenceEarned <= 0)) {
         return {
@@ -536,6 +582,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         researchPoints: state.researchPoints + researchEarned,
         influence: state.influence + influenceEarned,
         lifetimeCashEarned: state.lifetimeCashEarned + cashEarned,
+        automationCycleState: automationResult.automationCycleState,
         totalOfflineSecondsApplied: state.totalOfflineSecondsApplied + appliedSeconds,
         lastSaveTimestamp: Date.now(),
         offlineSummary: {
@@ -574,9 +621,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const now = Date.now()
       const secondsAway = getElapsedOfflineSeconds(savedState.lastSaveTimestamp, now)
       const appliedSeconds = getOfflineSecondsApplied(savedState.lastSaveTimestamp, now)
-      const cashEarned = getCashPerSecond(savedState) * appliedSeconds
+      const passiveCashEarned = getCashPerSecond(savedState) * appliedSeconds
       const researchEarned = getResearchPointsPerSecond(savedState) * appliedSeconds
       const influenceEarned = getInfluencePerSecond(savedState) * appliedSeconds
+      const automationResult = processAutomationCycles(savedState, appliedSeconds, now)
+      const cashEarned = passiveCashEarned + (automationResult.cash - savedState.cash)
 
       return {
         ...savedState,
@@ -597,6 +646,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         researchPoints: savedState.researchPoints + researchEarned,
         influence: savedState.influence + influenceEarned,
         lifetimeCashEarned: savedState.lifetimeCashEarned + cashEarned,
+        automationCycleState: automationResult.automationCycleState,
         totalOfflineSecondsApplied: savedState.totalOfflineSecondsApplied + appliedSeconds,
         lastSaveTimestamp: now,
       }
@@ -624,9 +674,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const now = Date.now()
     const secondsAway = getElapsedOfflineSeconds(importedState.lastSaveTimestamp, now)
     const appliedSeconds = getOfflineSecondsApplied(importedState.lastSaveTimestamp, now)
-    const cashEarned = getCashPerSecond(importedState) * appliedSeconds
+    const passiveCashEarned = getCashPerSecond(importedState) * appliedSeconds
     const researchEarned = getResearchPointsPerSecond(importedState) * appliedSeconds
     const influenceEarned = getInfluencePerSecond(importedState) * appliedSeconds
+    const automationResult = processAutomationCycles(importedState, appliedSeconds, now)
+    const cashEarned = passiveCashEarned + (automationResult.cash - importedState.cash)
     const activeModal: ModalId | null = cashEarned > 0 || researchEarned > 0 || influenceEarned > 0 ? 'offlineEarnings' : null
 
     const hydratedState: Partial<GameStore> = {
@@ -648,6 +700,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       researchPoints: importedState.researchPoints + researchEarned,
       influence: importedState.influence + influenceEarned,
       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
+      automationCycleState: automationResult.automationCycleState,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
     }
@@ -658,6 +711,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       researchPoints: importedState.researchPoints + researchEarned,
       influence: importedState.influence + influenceEarned,
       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
+      automationCycleState: automationResult.automationCycleState,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
     })
@@ -811,6 +865,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     })
   },
+  setAutomationMarketTarget: (unitId: AutomationUnitId, sectorId: SectorId | null) => {
+    set((state) => ({
+      automationConfig: {
+        ...state.automationConfig,
+        [unitId]: {
+          ...state.automationConfig[unitId],
+          marketTarget: sectorId,
+        },
+      },
+    }))
+  },
+  setAutomationStrategy: (unitId: AutomationUnitId, strategyId: AutomationStrategyId | null) => {
+    set((state) => ({
+      automationConfig: {
+        ...state.automationConfig,
+        [unitId]: {
+          ...state.automationConfig[unitId],
+          strategy: strategyId,
+        },
+      },
+    }))
+  },
   trainTraderSpecialist: (unitId, specializationId, amount = 1) => {
     set((state) => {
       const quantity = Math.max(0, Math.floor(amount))
@@ -933,6 +1009,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     window.localStorage.removeItem(SAVE_KEY)
     set((state) => ({
       ...initialState,
+      automationConfig: { ...DEFAULT_AUTOMATION_CONFIG },
+      automationCycleState: { ...DEFAULT_AUTOMATION_CYCLE_STATE },
       ...initialUiState,
       appInfo: state.appInfo,
       lastSaveTimestamp: Date.now(),

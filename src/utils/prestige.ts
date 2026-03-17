@@ -49,7 +49,7 @@ export function getPowerCapacityPrestigeMultiplier(state: GameState): number {
 }
 
 export function canPrestige(state: GameState): boolean {
-  return getPrestigeGain(state.lifetimeCashEarned) > 0 && state.ruleBasedBotCount > 0
+  return getPrestigeGain(state.lifetimeCashEarned) > 0 && (state.quantTraderCount > 0 || state.ruleBasedBotCount > 0)
 }
 
 export function createPrestigeResetState(state: GameState, plannedPurchases?: Partial<Record<PrestigeUpgradeId, number>>): GameState {

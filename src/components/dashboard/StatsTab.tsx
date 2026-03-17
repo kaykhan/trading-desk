@@ -12,6 +12,7 @@ export function StatsTab() {
   const internCount = useGameStore((state) => state.internCount)
   const juniorTraderCount = useGameStore((state) => state.juniorTraderCount)
   const seniorTraderCount = useGameStore((state) => state.seniorTraderCount)
+  const quantTraderCount = useGameStore((state) => state.quantTraderCount)
   const ruleBasedBotCount = useGameStore((state) => state.ruleBasedBotCount)
   const mlTradingBotCount = useGameStore((state) => state.mlTradingBotCount)
   const aiTradingBotCount = useGameStore((state) => state.aiTradingBotCount)
@@ -21,6 +22,7 @@ export function StatsTab() {
   const internIncome = useGameStore(selectors.internIncome)
   const juniorIncome = useGameStore(selectors.juniorIncome)
   const seniorIncome = useGameStore(selectors.seniorIncome)
+  const quantTraderIncome = useGameStore(selectors.quantTraderIncome)
   const ruleBasedBotIncome = useGameStore(selectors.ruleBasedBotIncome)
   const mlTradingBotIncome = useGameStore(selectors.mlTradingBotIncome)
   const aiTradingBotIncome = useGameStore(selectors.aiTradingBotIncome)
@@ -58,7 +60,7 @@ export function StatsTab() {
           <SummaryTile label="Lifetime Cash" value={formatCurrency(lifetimeCashEarned, lifetimeCashEarned < 100 ? 1 : 0)} icon={TrendingUp} />
           <SummaryTile label="Build" value={appInfo ? appInfo.version : 'Preview'} icon={Landmark} />
           <SummaryTile label="Interns" value={internCount.toString()} icon={Users} />
-          <SummaryTile label="Algo Bots" value={`${ruleBasedBotCount} / ${mlTradingBotCount} / ${aiTradingBotCount}`} icon={Cpu} />
+          <SummaryTile label="Automation" value={`${quantTraderCount} / ${ruleBasedBotCount} / ${mlTradingBotCount} / ${aiTradingBotCount}`} icon={Cpu} />
         </div>
         <div className="rounded-xl border border-border/80 bg-background/65 p-2.5 text-[11px]">
           <div className="flex items-center justify-between"><span className="text-muted-foreground">Intern desk</span><span className="font-mono text-primary">{formatRate(internIncome)}</span></div>
@@ -75,6 +77,7 @@ export function StatsTab() {
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Finance sector</span><span className="font-mono text-primary">{unlockedSectors.finance ? formatRate(financeSectorCashPerSecond) : 'Locked'}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Technology sector</span><span className="font-mono text-primary">{technologySectorUnlocked && unlockedSectors.technology ? formatRate(technologySectorCashPerSecond) : 'Locked'}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Energy sector</span><span className="font-mono text-primary">{energySectorUnlocked && unlockedSectors.energy ? formatRate(energySectorCashPerSecond) : 'Locked'}</span></div>
+          <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Quant traders</span><span className="font-mono text-primary">{formatRate(quantTraderIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">Rule-based bots</span><span className="font-mono text-primary">{formatRate(ruleBasedBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">ML trading bots</span><span className="font-mono text-primary">{formatRate(mlTradingBotIncome)}</span></div>
           <div className="mt-1.5 flex items-center justify-between"><span className="text-muted-foreground">AI trading bots</span><span className="font-mono text-primary">{formatRate(aiTradingBotIncome)}</span></div>

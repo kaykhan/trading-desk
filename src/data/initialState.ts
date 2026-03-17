@@ -1,4 +1,5 @@
 import type { GameState } from '../types/game'
+import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from './automation'
 import { CAPACITY_CONSTANTS } from './capacity'
 import { GAME_CONSTANTS } from './constants'
 import { DEFAULT_UNLOCKED_SECTORS } from './sectors'
@@ -15,6 +16,7 @@ export const initialState: GameState = {
   internCount: 0,
   juniorTraderCount: 0,
   seniorTraderCount: 0,
+  quantTraderCount: 0,
   baseDeskSlots: CAPACITY_CONSTANTS.BASE_DESK_SLOTS,
   deskSpaceCount: 0,
   floorSpaceCount: 0,
@@ -35,6 +37,8 @@ export const initialState: GameState = {
   dataCenterCount: 0,
   cloudComputeCount: 0,
   unlockedSectors: { ...DEFAULT_UNLOCKED_SECTORS },
+  automationConfig: { ...DEFAULT_AUTOMATION_CONFIG },
+  automationCycleState: { ...DEFAULT_AUTOMATION_CYCLE_STATE },
   sectorAssignments: {
     intern: { finance: 0, technology: 0, energy: 0 },
     juniorTrader: { finance: 0, technology: 0, energy: 0 },
@@ -144,6 +148,7 @@ export const initialState: GameState = {
       intern: 1,
       juniorTrader: 1,
       seniorTrader: 1,
+      quantTrader: 1,
       propDesk: 1,
       institutionalDesk: 1,
       hedgeFund: 1,

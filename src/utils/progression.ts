@@ -5,7 +5,7 @@ export type ProgressionPhaseId =
   | 'solo-trader'
   | 'junior-desk'
   | 'firm-growth'
-  | 'bot-era'
+  | 'automation-era'
   | 'prestige-decision'
 
 export type ProgressionSummary = {
@@ -20,17 +20,17 @@ const PHASE_LABELS: Record<ProgressionPhaseId, string> = {
   'solo-trader': 'Solo Trader',
   'junior-desk': 'Junior Desk',
   'firm-growth': 'Firm Growth',
-  'bot-era': 'Bot Era',
+  'automation-era': 'Automation Era',
   'prestige-decision': 'Prestige Decision',
 }
 
 export function getProgressionPhase(state: GameState): ProgressionPhaseId {
-  if (getPrestigeGain(state.lifetimeCashEarned) > 0 && state.ruleBasedBotCount > 0) {
+  if (getPrestigeGain(state.lifetimeCashEarned) > 0 && (state.quantTraderCount > 0 || state.ruleBasedBotCount > 0)) {
     return 'prestige-decision'
   }
 
-  if (state.purchasedResearchTech.algorithmicTrading || state.ruleBasedBotCount > 0) {
-    return 'bot-era'
+  if (state.purchasedResearchTech.quantTradingSystems || state.quantTraderCount > 0 || state.ruleBasedBotCount > 0) {
+    return 'automation-era'
   }
 
   if (state.purchasedResearchTech.seniorRecruitment || state.seniorTraderCount > 0) {
@@ -117,20 +117,20 @@ export function getProgressionSummary(state: GameState): ProgressionSummary {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Open the automation era.',
-        objective: 'Your human desk is strong enough. Research Algorithmic Trading in the Automation branch to unlock Rule-Based Bots. Markets research now handles sector unlocks separately.',
-      nextTarget: 'Algorithmic Trading in Research for 100 RP.',
+        objective: 'Your human desk is strong enough. Open the automation branch, unlock Quant Trading Systems, and start moving into strategy-based machine execution.',
+      nextTarget: 'Research Algorithmic Foundations, then Quant Trading Systems in the Automation branch.',
     }
   }
 
-  if (phaseId === 'bot-era') {
+  if (phaseId === 'automation-era') {
     const prestigeGain = getPrestigeGain(state.lifetimeCashEarned)
 
     return {
       phaseId,
       phaseLabel: PHASE_LABELS[phaseId],
       headline: 'Scale automation until reset value appears.',
-      objective: 'Automation is online. Build infrastructure support, push into ML and AI bot tiers, and use sectors as an optimization layer while converting machine scale into a worthwhile prestige.',
-      nextTarget: prestigeGain > 0 ? `You can already claim ${prestigeGain} Reputation after adding at least one bot.` : 'Keep pushing bot income until Reputation becomes available.',
+      objective: 'Automation is online. Configure targets and strategies, scale cycle payouts through ML and AI tiers, and build enough infrastructure to keep machine execution efficient.',
+      nextTarget: prestigeGain > 0 ? `You can already claim ${prestigeGain} Reputation after adding at least one automation unit.` : 'Keep pushing automation income until Reputation becomes available.',
     }
   }
 

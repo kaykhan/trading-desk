@@ -55,9 +55,9 @@ function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state
         : 'Requires Regulatory Affairs research first.'
     case 'automationSubsidies':
       return state.purchasedResearchTech.regulatoryAffairs === true
-        ? state.purchasedResearchTech.algorithmicTrading === true
+        ? state.purchasedResearchTech.quantTradingSystems === true
           ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
-          : 'Requires Algorithmic Trading research first.'
+          : 'Requires Quant Trading Systems research first.'
         : 'Requires Regulatory Affairs research first.'
     case 'infrastructureGrants':
       return state.purchasedResearchTech.regulatoryAffairs === true
@@ -93,14 +93,14 @@ function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state
     case 'ruleBasedExecution':
     case 'signalRefinement':
     case 'energyOptimization':
-      return state.purchasedResearchTech.algorithmicTrading === true
+      return state.purchasedResearchTech.ruleBasedAutomation === true
         ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
-        : 'Requires Algorithmic Trading research first.'
+        : 'Requires Rule-Based Automation research first.'
     case 'mlModelDeployment':
     case 'mlFeaturePipelines':
-      return state.purchasedResearchTech.dataCenterSystems === true
+      return state.purchasedResearchTech.machineLearningTrading === true
         ? `Requires at least 1 ML Trading Bot (${state.mlTradingBotCount}/1).`
-        : 'Requires Data Centre Systems research first.'
+        : 'Requires Machine Learning Trading research first.'
     case 'aiClusterOrchestration':
     case 'aiTrainingSystems':
     case 'serverEfficiency':

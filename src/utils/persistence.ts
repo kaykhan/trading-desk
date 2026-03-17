@@ -1,3 +1,4 @@
+import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from '../data/automation'
 import { initialState } from '../data/initialState'
 import { LOBBYING_POLICIES } from '../data/lobbyingPolicies'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
@@ -5,7 +6,7 @@ import { REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { RESEARCH_TECH } from '../data/researchTech'
 import { DEFAULT_UNLOCKED_SECTORS, SECTOR_IDS } from '../data/sectors'
 import { UPGRADES } from '../data/upgrades'
-import type { GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
+import type { AutomationStrategyId, AutomationUnitId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
 
 export const SAVE_KEY = 'stock-incremental-save-v1'
 
@@ -41,6 +42,14 @@ function isSectorId(value: string): value is SectorId {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+function isAutomationUnitId(value: string): value is AutomationUnitId {
+  return value === 'quantTrader' || value === 'ruleBasedBot' || value === 'mlTradingBot' || value === 'aiTradingBot'
+}
+
+function isAutomationStrategyId(value: string): value is AutomationStrategyId {
+  return value === 'meanReversion' || value === 'momentum' || value === 'arbitrage' || value === 'marketMaking' || value === 'scalping'
 }
 
 function getNumber(value: unknown, fallback: number): number {
@@ -158,6 +167,45 @@ function normalizeSectorAssignments(source: unknown, rawState: Record<string, un
   }
 }
 
+function normalizeAutomationConfig(source: unknown): GameState['automationConfig'] {
+  const sourceRecord = isRecord(source) ? source : {}
+
+  const normalizeEntry = (unitId: AutomationUnitId) => {
+    const entry = isRecord(sourceRecord[unitId]) ? sourceRecord[unitId] : {}
+    return {
+      strategy: typeof entry.strategy === 'string' && isAutomationStrategyId(entry.strategy) ? entry.strategy : DEFAULT_AUTOMATION_CONFIG[unitId].strategy,
+      marketTarget: typeof entry.marketTarget === 'string' && isSectorId(entry.marketTarget) ? entry.marketTarget : DEFAULT_AUTOMATION_CONFIG[unitId].marketTarget,
+    }
+  }
+
+  return {
+    quantTrader: normalizeEntry('quantTrader'),
+    ruleBasedBot: normalizeEntry('ruleBasedBot'),
+    mlTradingBot: normalizeEntry('mlTradingBot'),
+    aiTradingBot: normalizeEntry('aiTradingBot'),
+  }
+}
+
+function normalizeAutomationCycleState(source: unknown): GameState['automationCycleState'] {
+  const sourceRecord = isRecord(source) ? source : {}
+
+  const normalizeEntry = (unitId: AutomationUnitId) => {
+    const entry = isRecord(sourceRecord[unitId]) ? sourceRecord[unitId] : {}
+    return {
+      progressSeconds: getNumber(entry.progressSeconds, DEFAULT_AUTOMATION_CYCLE_STATE[unitId].progressSeconds),
+      lastPayout: getNumber(entry.lastPayout, DEFAULT_AUTOMATION_CYCLE_STATE[unitId].lastPayout),
+      lastCompletedAt: typeof entry.lastCompletedAt === 'number' && Number.isFinite(entry.lastCompletedAt) ? entry.lastCompletedAt : DEFAULT_AUTOMATION_CYCLE_STATE[unitId].lastCompletedAt,
+    }
+  }
+
+  return {
+    quantTrader: normalizeEntry('quantTrader'),
+    ruleBasedBot: normalizeEntry('ruleBasedBot'),
+    mlTradingBot: normalizeEntry('mlTradingBot'),
+    aiTradingBot: normalizeEntry('aiTradingBot'),
+  }
+}
+
 function encodeBase64(value: string): string {
   const bytes = new TextEncoder().encode(value)
   let binary = ''
@@ -270,6 +318,8 @@ export function normalizeGameState(value: unknown): GameState | null {
   const traderSpecialists = normalizeTraderSpecialists(value.traderSpecialists, value)
   const institutionMandates = normalizeInstitutionMandates(value.institutionMandates, value)
   const sectorAssignments = normalizeSectorAssignments(value.sectorAssignments, value)
+  const automationConfig = normalizeAutomationConfig(value.automationConfig)
+  const automationCycleState = normalizeAutomationCycleState(value.automationCycleState)
 
   return {
     cash: getNumber(value.cash, initialState.cash),
@@ -285,6 +335,7 @@ export function normalizeGameState(value: unknown): GameState | null {
     internCount: getNumber(value.internCount, initialState.internCount),
     juniorTraderCount: getNumber(value.juniorTraderCount, initialState.juniorTraderCount),
     seniorTraderCount: getNumber(value.seniorTraderCount, initialState.seniorTraderCount),
+    quantTraderCount: getNumber(value.quantTraderCount, initialState.quantTraderCount),
     baseDeskSlots: getNumber(value.baseDeskSlots, initialState.baseDeskSlots),
     deskSpaceCount: getNumber(value.deskSpaceCount, getNumber(value.officeExpansionCount, initialState.deskSpaceCount)),
     floorSpaceCount: getNumber(value.floorSpaceCount, getNumber(value.floorExpansionCount, initialState.floorSpaceCount)),
@@ -308,6 +359,8 @@ export function normalizeGameState(value: unknown): GameState | null {
     dataCenterCount: getNumber(value.dataCenterCount, getNumber(value.gridExpansionCount, initialState.dataCenterCount)),
     cloudComputeCount: getNumber(value.cloudComputeCount, initialState.cloudComputeCount),
     unlockedSectors,
+    automationConfig,
+    automationCycleState,
     sectorAssignments,
     traderSpecialists,
     institutionMandates,
@@ -591,6 +644,10 @@ export function normalizeGameState(value: unknown): GameState | null {
           isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.seniorTrader === 1 || uiSource.unitBuyModes.seniorTrader === 5 || uiSource.unitBuyModes.seniorTrader === 10 || uiSource.unitBuyModes.seniorTrader === 'max')
             ? uiSource.unitBuyModes.seniorTrader
             : initialState.ui.unitBuyModes.seniorTrader,
+        quantTrader:
+          isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.quantTrader === 1 || uiSource.unitBuyModes.quantTrader === 5 || uiSource.unitBuyModes.quantTrader === 10 || uiSource.unitBuyModes.quantTrader === 'max')
+            ? uiSource.unitBuyModes.quantTrader
+            : initialState.ui.unitBuyModes.quantTrader,
         propDesk:
           isRecord(uiSource.unitBuyModes) && (uiSource.unitBuyModes.propDesk === 1 || uiSource.unitBuyModes.propDesk === 5 || uiSource.unitBuyModes.propDesk === 10 || uiSource.unitBuyModes.propDesk === 'max')
             ? uiSource.unitBuyModes.propDesk

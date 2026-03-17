@@ -82,7 +82,7 @@ export function TradingPanel() {
 
         <div className="grid gap-2 md:grid-cols-[1fr_1fr_1.2fr]">
           <SummaryTile label="Click Yield" value={formatCurrency(cashPerClick, cashPerClick < 100 ? 1 : 0)} icon={TrendingUp} />
-          <SummaryTile label="Passive Rate" value={formatRate(cashPerSecond)} icon={Cpu} />
+          <SummaryTile label="Total Rate" value={formatRate(cashPerSecond)} icon={Cpu} />
           <div className="rounded-xl border border-primary/30 bg-primary/10 p-2">
             <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-primary">
               <ArrowRight className="size-3.5" />

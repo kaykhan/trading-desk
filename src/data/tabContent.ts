@@ -18,6 +18,6 @@ export const ALGORITHMIC_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group =
 
 export const INFRASTRUCTURE_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'infrastructure')
 
-export const OPERATIONS_UNITS = [UNITS.intern, UNITS.juniorTrader, UNITS.seniorTrader, UNITS.ruleBasedBot]
+export const OPERATIONS_UNITS = [UNITS.intern, UNITS.juniorTrader, UNITS.seniorTrader, UNITS.quantTrader]
 
 export const PRESTIGE_TAB_UPGRADES = PRESTIGE_UPGRADES

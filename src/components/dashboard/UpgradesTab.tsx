@@ -24,8 +24,8 @@ const UPGRADE_SECTIONS = [
     upgrades: POLITICS_UPGRADES,
   },
   {
-    title: 'Algorithmic Trading Upgrades',
-    description: 'Increase rule-based, ML, and AI bot efficiency once the machine stack is online.',
+    title: 'Automation Upgrades',
+    description: 'Increase quant, rule-based, ML, and AI system efficiency once the automation stack is online.',
     upgrades: ALGORITHMIC_UPGRADES,
   },
   {
@@ -74,14 +74,14 @@ function getUpgradeLockedReason(upgradeId: string, state: ReturnType<typeof useG
     case 'systematicExecution':
     case 'botTelemetry':
     case 'lowLatencyServers':
-      return state.purchasedResearchTech.algorithmicTrading
+      return state.purchasedResearchTech.ruleBasedAutomation
         ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
-        : 'Requires Algorithmic Trading research first.'
+        : 'Requires Rule-Based Automation research first.'
     case 'executionCluster':
     case 'modelOpsPipeline':
-      return state.purchasedResearchTech.dataCenterSystems
+      return state.purchasedResearchTech.machineLearningTrading
         ? `Requires at least 1 ML Trading Bot (${state.mlTradingBotCount}/1).`
-        : 'Requires Data Centre Systems research first.'
+        : 'Requires Machine Learning Trading research first.'
     case 'aiRiskStack':
       return state.purchasedResearchTech.aiTradingSystems
         ? `Requires at least 1 AI Trading Bot (${state.aiTradingBotCount}/1).`

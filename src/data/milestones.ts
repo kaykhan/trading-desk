@@ -21,9 +21,9 @@ export const MILESTONES: MilestoneDefinition[] = [
   },
   {
     id: 'bot-era',
-    label: 'Phase 4: Trading Bot Era',
+    label: 'Phase 4: Automation Era',
     rangeLabel: '60-85 min',
-    objective: 'Build a real Senior desk, then open algorithmic trading and push into late-run automation.',
+    objective: 'Build a real Senior desk, then open automation systems and push into quant, rule-based, ML, and AI execution.',
   },
   {
     id: 'prestige-decision',

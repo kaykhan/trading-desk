@@ -95,8 +95,8 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     baseCost: 30,
     costScaling: 1.36,
     effectPerRank: 0.02,
-    description: 'Reduce algorithmic unit deployment costs through regulatory and procurement advantages.',
-    visibleWhen: (state) => state.purchasedResearchTech.regulatoryAffairs === true && state.purchasedResearchTech.algorithmicTrading === true,
+    description: 'Reduce automation unit deployment costs through regulatory and procurement advantages.',
+    visibleWhen: (state) => state.purchasedResearchTech.regulatoryAffairs === true && state.purchasedResearchTech.quantTradingSystems === true,
     unlockWhen: (state) => state.juniorPoliticianCount > 0 && state.ruleBasedBotCount > 0,
   },
   {
@@ -264,7 +264,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.28,
     effectPerRank: 0.05,
     description: 'Increase Rule-Based Bot output by tightening live execution rules.',
-    visibleWhen: (state) => state.purchasedResearchTech.algorithmicTrading === true,
+    visibleWhen: (state) => state.purchasedResearchTech.ruleBasedAutomation === true,
     unlockWhen: (state) => state.ruleBasedBotCount > 0,
   },
   {
@@ -278,7 +278,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.29,
     effectPerRank: 0.05,
     description: 'Increase ML Trading Bot output with repeatable model rollout tuning.',
-    visibleWhen: (state) => state.purchasedResearchTech.dataCenterSystems === true,
+    visibleWhen: (state) => state.purchasedResearchTech.machineLearningTrading === true,
     unlockWhen: (state) => state.mlTradingBotCount > 0,
   },
   {
@@ -474,7 +474,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.21,
     effectPerRank: 0.03,
     description: 'Increase Rule-Based Bot output with repeatable signal refinement.',
-    visibleWhen: (state) => state.purchasedResearchTech.algorithmicTrading === true,
+    visibleWhen: (state) => state.purchasedResearchTech.ruleBasedAutomation === true,
     unlockWhen: (state) => state.ruleBasedBotCount > 0,
   },
   {
@@ -488,7 +488,7 @@ export const REPEATABLE_UPGRADES: RepeatableUpgradeDefinition[] = [
     costScaling: 1.22,
     effectPerRank: 0.03,
     description: 'Increase ML Trading Bot output with repeatable feature and routing research.',
-    visibleWhen: (state) => state.purchasedResearchTech.dataCenterSystems === true,
+    visibleWhen: (state) => state.purchasedResearchTech.machineLearningTrading === true,
     unlockWhen: (state) => state.mlTradingBotCount > 0,
   },
   {

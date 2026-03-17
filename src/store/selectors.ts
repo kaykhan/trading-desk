@@ -1,6 +1,8 @@
 import { canAffordCapacityPower, getAvailableDeskSlots, getBulkCapacityInfrastructureCost, getCapacityPowerUsage, getFloorExpansionCost, getNextCapacityCost, getOfficeCost, getOfficeExpansionCost, getTotalDeskSlots, getUsedDeskSlots, isAtDeskCapacity } from '../utils/capacity'
+import { AUTOMATION_STRATEGY_IDS, AUTOMATION_UNIT_IDS } from '../data/automation'
 import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeCost as getRepeatableUpgradeScaledCost, getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank as getRepeatableRank } from '../data/repeatableUpgrades'
-import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isUnitUnlocked } from '../utils/economy'
+import { getAutomationAdjustedPayout, getAutomationAverageIncomePerSecond, getAutomationBulkCost, getAutomationNextCost, getAutomationPowerUse, getAutomationProgressPercent, getAutomationStrategyLabel, getAutomationTimeRemaining, getAutomationUnitLabel, getAutomationOwnedCount, getUnlockedAutomationStrategies, isAutomationStrategyUnlocked, isAutomationUnitUnlocked } from '../utils/automation'
+import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getQuantTraderCost, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isUnitUnlocked } from '../utils/economy'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getResearchTechsByBranch, RESEARCH_BRANCH_ORDER } from '../data/researchTech'
@@ -11,11 +13,15 @@ import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { canBuyResearchTech, getMissingResearchPrerequisites, getResearchTechShortfall, isAutomationUnlocked, isEnergySectorUnlocked, isLobbyingUnlocked, isPowerInfrastructureUnlocked, isResearchTechUnlocked, isResearchTechVisible, isTechnologySectorUnlocked } from '../utils/research'
 import { getAssignedTraderSpecialistsForSector, getGenericTraderCount, getSpecializationResearchUnlockId, getTotalTraderSpecialists, getTraderSpecialistCount, getTraderSpecialistTrainingCost } from '../utils/specialization'
 import { getAssignedInstitutionMandatesForSector, getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateCount, getInstitutionMandateResearchUnlockId, getTotalInstitutionMandates } from '../utils/mandates'
-import type { CapacityInfrastructureId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId, UpgradeId } from '../types/game'
+import type { AutomationStrategyId, AutomationUnitId, CapacityInfrastructureId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId, UpgradeId } from '../types/game'
 
 export const selectors = {
   cashPerClick: (state: GameState) => getManualIncome(state),
-  cashPerSecond: (state: GameState) => getCashPerSecond(state),
+  cashPerSecond: (state: GameState) => getCashPerSecond(state)
+    + getAutomationAverageIncomePerSecond(state, 'quantTrader')
+    + getAutomationAverageIncomePerSecond(state, 'ruleBasedBot')
+    + getAutomationAverageIncomePerSecond(state, 'mlTradingBot')
+    + getAutomationAverageIncomePerSecond(state, 'aiTradingBot'),
   researchPoints: (state: GameState) => state.researchPoints,
   researchPointsPerSecond: (state: GameState) => getResearchPointsPerSecond(state),
   influence: (state: GameState) => state.influence,
@@ -43,6 +49,7 @@ export const selectors = {
   isAtDeskCapacity: (state: GameState) => isAtDeskCapacity(state),
   canAffordCapacityPower: (powerRequired: number) => (state: GameState) => canAffordCapacityPower(state, powerRequired),
   powerUsage: (state: GameState) => getPowerUsage(state),
+  quantTraderPowerUsage: (_state: GameState) => 0,
   ruleBasedBotPowerUsage: (state: GameState) => getRuleBasedBotPowerUsage(state),
   mlTradingBotPowerUsage: (state: GameState) => getMlTradingBotPowerUsage(state),
   aiTradingBotPowerUsage: (state: GameState) => getAiTradingBotPowerUsage(state),
@@ -52,6 +59,7 @@ export const selectors = {
   juniorIncome: (state: GameState) => getIncomeBreakdown(state).juniorIncome,
   internIncome: (state: GameState) => getIncomeBreakdown(state).internIncome,
   seniorIncome: (state: GameState) => getIncomeBreakdown(state).seniorIncome,
+  quantTraderIncome: (state: GameState) => getAutomationAverageIncomePerSecond(state, 'quantTrader'),
   propDeskIncome: (state: GameState) => getIncomeBreakdown(state).propDeskIncome,
   institutionalDeskIncome: (state: GameState) => getIncomeBreakdown(state).institutionalDeskIncome,
   hedgeFundIncome: (state: GameState) => getIncomeBreakdown(state).hedgeFundIncome,
@@ -64,6 +72,7 @@ export const selectors = {
   nextInternCost: (state: GameState) => getInternCost(state),
   nextJuniorTraderCost: (state: GameState) => getJuniorTraderCost(state),
   nextSeniorTraderCost: (state: GameState) => getSeniorTraderCost(state),
+  nextQuantTraderCost: (state: GameState) => getQuantTraderCost(state),
   nextRuleBasedBotCost: (state: GameState) => getRuleBasedBotCost(state),
   nextMlTradingBotCost: (state: GameState) => getMlTradingBotCost(state),
   nextAiTradingBotCost: (state: GameState) => getAiTradingBotCost(state),
@@ -84,6 +93,7 @@ export const selectors = {
   canAffordIntern: (state: GameState) => isUnitUnlocked(state, 'intern') && state.cash >= getInternCost(state),
   canAffordJuniorTrader: (state: GameState) => isUnitUnlocked(state, 'juniorTrader') && state.cash >= getJuniorTraderCost(state),
   canAffordSeniorTrader: (state: GameState) => isUnitUnlocked(state, 'seniorTrader') && state.cash >= getSeniorTraderCost(state),
+  canAffordQuantTrader: (state: GameState) => isUnitUnlocked(state, 'quantTrader') && state.cash >= getQuantTraderCost(state),
   canAffordRuleBasedBot: (state: GameState) => isUnitUnlocked(state, 'ruleBasedBot') && state.cash >= getRuleBasedBotCost(state),
   canAffordSystematicExecution: (state: GameState) => selectors.canAffordUpgrade('systematicExecution')(state),
   powerInfrastructureUnlocked: (state: GameState) => isPowerInfrastructureUnlocked(state),
@@ -280,6 +290,24 @@ export const selectors = {
     return state.cloudComputeCount
   },
   algorithmicUnlocked: (state: GameState) => isAutomationUnlocked(state),
+  automationUnitOwnedCount: (unitId: AutomationUnitId) => (state: GameState) => getAutomationOwnedCount(state, unitId),
+  automationUnitLabel: (unitId: AutomationUnitId) => (_state: GameState) => getAutomationUnitLabel(unitId),
+  automationUnitUnlocked: (unitId: AutomationUnitId) => (state: GameState) => isAutomationUnitUnlocked(state, unitId),
+  automationStrategyUnlocked: (strategyId: AutomationStrategyId) => (state: GameState) => isAutomationStrategyUnlocked(state, strategyId),
+  automationUnlockedStrategies: (state: GameState) => getUnlockedAutomationStrategies(state),
+  automationStrategyLabel: (strategyId: AutomationStrategyId) => (_state: GameState) => getAutomationStrategyLabel(strategyId),
+  automationConfig: (unitId: AutomationUnitId) => (state: GameState) => state.automationConfig[unitId],
+  automationCycleRuntime: (unitId: AutomationUnitId) => (state: GameState) => state.automationCycleState[unitId],
+  automationProgressPercent: (unitId: AutomationUnitId) => (state: GameState) => getAutomationProgressPercent(state, unitId),
+  automationAdjustedPayout: (unitId: AutomationUnitId) => (state: GameState) => getAutomationAdjustedPayout(state, unitId),
+  automationAverageIncomePerSecond: (unitId: AutomationUnitId) => (state: GameState) => getAutomationAverageIncomePerSecond(state, unitId),
+  automationTimeRemaining: (unitId: AutomationUnitId) => (state: GameState) => getAutomationTimeRemaining(state, unitId),
+  automationPowerUse: (unitId: AutomationUnitId) => (state: GameState) => getAutomationPowerUse(state, unitId),
+  automationBuyMode: (unitId: AutomationUnitId) => (state: GameState) => state.ui.unitBuyModes[unitId],
+  automationBulkCost: (unitId: AutomationUnitId) => (state: GameState) => getAutomationBulkCost(state, unitId, state.ui.unitBuyModes[unitId]),
+  automationBulkQuantity: (unitId: AutomationUnitId) => (state: GameState) => getAutomationBulkCost(state, unitId, state.ui.unitBuyModes[unitId]).quantity,
+  automationBulkTotalCost: (unitId: AutomationUnitId) => (state: GameState) => getAutomationBulkCost(state, unitId, state.ui.unitBuyModes[unitId]).totalCost,
+  automationNextCost: (unitId: AutomationUnitId) => (state: GameState) => getAutomationNextCost(state, unitId),
   lobbyingUnlocked: (state: GameState) => isLobbyingUnlocked(state),
   purchasedPolicyCount: (state: GameState) => Object.values(state.purchasedPolicies).filter(Boolean).length,
   isPolicyPurchased: (policyId: LobbyingPolicyId) => (state: GameState) => state.purchasedPolicies[policyId] === true,

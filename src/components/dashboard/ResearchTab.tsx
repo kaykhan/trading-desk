@@ -90,6 +90,28 @@ const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
       variant: 'energy',
     },
   ],
+  automation: [
+    {
+      id: 'automation-unit-ladder',
+      title: 'Automation Units',
+      subtitle: 'Bottom-up execution ladder from foundations to ML systems',
+      techIds: ['algorithmicTrading', 'quantTradingSystems', 'ruleBasedAutomation', 'machineLearningTrading'],
+      paddingTop: 56,
+      paddingBottom: 64,
+      paddingX: 38,
+      variant: 'default',
+    },
+    {
+      id: 'automation-strategy-family',
+      title: 'Strategy Subflow',
+      subtitle: 'Separate strategy progression for shared automation models',
+      techIds: ['meanReversionModels', 'momentumModels', 'arbitrageEngine', 'marketMakingEngine', 'scalpingFramework'],
+      paddingTop: 56,
+      paddingBottom: 64,
+      paddingX: 38,
+      variant: 'energy',
+    },
+  ],
 }
 
 const BRANCH_THEMES: Record<ResearchBranchId, {

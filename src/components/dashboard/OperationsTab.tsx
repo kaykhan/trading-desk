@@ -17,23 +17,23 @@ export function OperationsTab() {
   const nextInternCost = useGameStore(selectors.nextInternCost)
   const nextJuniorTraderCost = useGameStore(selectors.nextJuniorTraderCost)
   const nextSeniorTraderCost = useGameStore(selectors.nextSeniorTraderCost)
-  const nextRuleBasedBotCost = useGameStore(selectors.nextRuleBasedBotCost)
+  const nextQuantTraderCost = useGameStore(selectors.nextQuantTraderCost)
   const internBulkQuantity = useGameStore(selectors.bulkUnitQuantity('intern'))
   const internBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('intern'))
   const juniorBulkQuantity = useGameStore(selectors.bulkUnitQuantity('juniorTrader'))
   const juniorBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('juniorTrader'))
   const seniorBulkQuantity = useGameStore(selectors.bulkUnitQuantity('seniorTrader'))
   const seniorBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('seniorTrader'))
-  const botBulkQuantity = useGameStore(selectors.bulkUnitQuantity('ruleBasedBot'))
-  const botBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('ruleBasedBot'))
+  const botBulkQuantity = useGameStore(selectors.bulkUnitQuantity('quantTrader'))
+  const botBulkTotalCost = useGameStore(selectors.bulkUnitTotalCost('quantTrader'))
   const internBuyMode = useGameStore(selectors.unitBuyMode('intern'))
   const juniorBuyMode = useGameStore(selectors.unitBuyMode('juniorTrader'))
   const seniorBuyMode = useGameStore(selectors.unitBuyMode('seniorTrader'))
-  const botBuyMode = useGameStore(selectors.unitBuyMode('ruleBasedBot'))
+  const botBuyMode = useGameStore(selectors.unitBuyMode('quantTrader'))
   const internUnlocked = useGameStore(selectors.isUnitUnlocked('intern'))
   const juniorUnlocked = useGameStore(selectors.isUnitUnlocked('juniorTrader'))
   const seniorUnlocked = useGameStore(selectors.isUnitUnlocked('seniorTrader'))
-  const botUnlocked = useGameStore(selectors.isUnitUnlocked('ruleBasedBot'))
+  const botUnlocked = useGameStore(selectors.isUnitUnlocked('quantTrader'))
 
   const nextOperationsGoal = !internUnlocked
     ? 'Research Foundations of Finance Training first.'
@@ -42,8 +42,8 @@ export function OperationsTab() {
       : !seniorUnlocked
         ? 'Scale Juniors and unlock Senior Recruitment.'
       : !botUnlocked
-        ? 'Grow Seniors until Algorithmic Trading becomes available.'
-        : 'Scale bots with bulk buying and infrastructure upgrades.'
+        ? 'Grow Seniors until the automation branch becomes available.'
+        : 'Scale automation systems with bulk buying and infrastructure upgrades.'
 
   const currentLane = !internUnlocked
     ? 'Desk not started'
@@ -59,7 +59,7 @@ export function OperationsTab() {
     intern: 'Unlock with Foundations of Finance Training in Research.',
     juniorTrader: `Unlock with Junior Trader Program after reaching 5 Interns (${gameState.internCount}/5).`,
     seniorTrader: `Unlock with Senior Recruitment after reaching 5 Juniors (${gameState.juniorTraderCount}/5).`,
-    ruleBasedBot: `Unlock with Algorithmic Trading after reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,
+    quantTrader: `Unlock with Quant Trading Systems after opening Algorithmic Foundations and reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,
   } as const
 
   const getUnitRow = (unitId: (typeof OPERATIONS_UNITS)[number]['id']) => {
@@ -114,18 +114,18 @@ export function OperationsTab() {
       }
     }
 
-    const unlocked = selectors.isUnitUnlocked('ruleBasedBot')(gameState)
-    const shortfall = Math.max(0, nextRuleBasedBotCost - gameState.cash)
+    const unlocked = selectors.isUnitUnlocked('quantTrader')(gameState)
+    const shortfall = Math.max(0, nextQuantTraderCost - gameState.cash)
 
     return {
-      title: `Buy ${UNITS.ruleBasedBot.name}`,
-      description: unlocked ? UNITS.ruleBasedBot.description : `${UNITS.ruleBasedBot.description} ${unitUnlockProgress.ruleBasedBot}`,
-      cost: `${botBuyMode === 'max' ? 'Max' : `x${botBuyMode}`} costs ${formatCurrency(botBulkTotalCost || nextRuleBasedBotCost)}${botBuyMode !== 'max' ? ` | Next ${formatCurrency(nextRuleBasedBotCost)}` : ''}`,
+      title: `Buy ${UNITS.quantTrader.name}`,
+      description: unlocked ? UNITS.quantTrader.description : `${UNITS.quantTrader.description} ${unitUnlockProgress.quantTrader}`,
+      cost: `${botBuyMode === 'max' ? 'Max' : `x${botBuyMode}`} costs ${formatCurrency(botBulkTotalCost || nextQuantTraderCost)}${botBuyMode !== 'max' ? ` | Next ${formatCurrency(nextQuantTraderCost)}` : ''}`,
       status: unlocked ? (shortfall > 0 ? 'Need cash' : 'Ready') : 'Locked',
       actionLabel: botBuyMode === 'max' ? `Deploy Max (${botBulkQuantity})` : `Deploy x${botBuyMode}`,
-      disabled: !selectors.canAffordUnitInCurrentMode('ruleBasedBot')(gameState),
-      disabledReason: !unlocked ? unitUnlockProgress.ruleBasedBot : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash for the next bot.` : undefined,
-      onClick: () => buyUnit('ruleBasedBot', botBuyMode),
+      disabled: !selectors.canAffordUnitInCurrentMode('quantTrader')(gameState),
+      disabledReason: !unlocked ? unitUnlockProgress.quantTrader : shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash for the next quant.` : undefined,
+      onClick: () => buyUnit('quantTrader', botBuyMode),
     }
   }
 
@@ -136,7 +136,7 @@ export function OperationsTab() {
         <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Deployment and scaling layer</CardDescription>
         <CardAction>
           <Badge variant="outline" className="rounded-md border-border/80 bg-background/70 text-[10px] uppercase tracking-[0.18em] text-primary">
-            {gameState.internCount} interns / {gameState.juniorTraderCount} juniors / {gameState.seniorTraderCount} seniors / {gameState.ruleBasedBotCount} bots
+            {gameState.internCount} interns / {gameState.juniorTraderCount} juniors / {gameState.seniorTraderCount} seniors / {gameState.quantTraderCount} quants
           </Badge>
         </CardAction>
       </CardHeader>
@@ -145,7 +145,7 @@ export function OperationsTab() {
           <SummaryTile label="Interns" value={gameState.internCount.toString()} icon={Users} />
           <SummaryTile label="Juniors" value={gameState.juniorTraderCount.toString()} icon={Users} />
           <SummaryTile label="Seniors" value={gameState.seniorTraderCount.toString()} icon={BriefcaseBusiness} />
-          <SummaryTile label="Bots" value={gameState.ruleBasedBotCount.toString()} icon={Cpu} />
+          <SummaryTile label="Quants" value={gameState.quantTraderCount.toString()} icon={Cpu} />
         </div>
         <div className="rounded-xl border border-primary/25 bg-primary/10 p-2 text-xs text-foreground">
           <div className="flex flex-wrap items-center justify-between gap-2">

@@ -9,6 +9,21 @@ export type DeskViewId = 'trading' | 'sectors' | 'commodities' | 'scientists' | 
 
 export type SectorId = 'finance' | 'technology' | 'energy'
 
+export type AutomationUnitId = 'quantTrader' | 'ruleBasedBot' | 'mlTradingBot' | 'aiTradingBot'
+
+export type AutomationStrategyId = 'meanReversion' | 'momentum' | 'arbitrage' | 'marketMaking' | 'scalping'
+
+export type AutomationConfig = {
+  strategy: AutomationStrategyId | null
+  marketTarget: SectorId | null
+}
+
+export type AutomationCycleRuntime = {
+  progressSeconds: number
+  lastPayout: number
+  lastCompletedAt: number | null
+}
+
 export type HumanAssignableUnitId = 'intern' | 'juniorTrader' | 'seniorTrader'
 
 export type GenericSectorAssignableUnitId = HumanAssignableUnitId | InstitutionalMandateUnitId
@@ -45,6 +60,14 @@ export type ResearchTechId =
   | 'technologyMarkets'
   | 'energyMarkets'
   | 'algorithmicTrading'
+  | 'quantTradingSystems'
+  | 'ruleBasedAutomation'
+  | 'machineLearningTrading'
+  | 'meanReversionModels'
+  | 'momentumModels'
+  | 'arbitrageEngine'
+  | 'marketMakingEngine'
+  | 'scalpingFramework'
   | 'powerSystemsEngineering'
   | 'juniorScientists'
   | 'seniorScientists'
@@ -80,6 +103,7 @@ export type UnitId =
   | 'intern'
   | 'juniorTrader'
   | 'seniorTrader'
+  | 'quantTrader'
   | 'propDesk'
   | 'institutionalDesk'
   | 'hedgeFund'
@@ -219,6 +243,14 @@ export type ResearchUnlockId =
   | 'technologyMarkets'
   | 'energyMarkets'
   | 'propDeskOperations'
+  | 'quantTradingSystems'
+  | 'ruleBasedAutomation'
+  | 'machineLearningTrading'
+  | 'meanReversionModels'
+  | 'momentumModels'
+  | 'arbitrageEngine'
+  | 'marketMakingEngine'
+  | 'scalpingFramework'
   | 'institutionalDesks'
   | 'hedgeFundStrategies'
   | 'investmentFirms'
@@ -284,6 +316,7 @@ export type GameState = {
   internCount: number
   juniorTraderCount: number
   seniorTraderCount: number
+  quantTraderCount: number
   baseDeskSlots: number
   deskSpaceCount: number
   floorSpaceCount: number
@@ -304,6 +337,8 @@ export type GameState = {
   dataCenterCount: number
   cloudComputeCount: number
   unlockedSectors: Record<SectorId, boolean>
+  automationConfig: Record<AutomationUnitId, AutomationConfig>
+  automationCycleState: Record<AutomationUnitId, AutomationCycleRuntime>
   sectorAssignments: SectorAssignments
   traderSpecialists: TraderSpecialistPool
   institutionMandates: InstitutionalMandatePool
@@ -472,6 +507,8 @@ export type GameStore = GameState & {
   unassignUnitFromSector: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId, _amount?: number) => void
   clearSectorAssignments: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId) => void
   assignMaxToSector: (_unitId: GenericSectorAssignableUnitId, _sectorId: SectorId) => void
+  setAutomationMarketTarget: (_unitId: AutomationUnitId, _sectorId: SectorId | null) => void
+  setAutomationStrategy: (_unitId: AutomationUnitId, _strategyId: AutomationStrategyId | null) => void
   trainTraderSpecialist: (_unitId: TraderSpecialistUnitId, _specializationId: TraderSpecializationId, _amount?: number) => void
   applyInstitutionMandate: (_unitId: InstitutionalMandateUnitId, _mandateId: InstitutionalMandateId, _amount?: number) => void
   setResearchBranchExpanded: (_branchId: ResearchBranchId, _expanded: boolean) => void

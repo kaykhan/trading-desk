@@ -96,8 +96,8 @@ export const UPGRADES: UpgradeDefinition[] = [
     category: 'operations',
     group: 'algorithmic',
     cost: 100_000,
-    description: 'Rule-Based Bots gain 15 percent output once the algorithmic desk is online.',
-    visibleWhen: (state) => state.purchasedResearchTech.algorithmicTrading === true || state.ruleBasedBotCount > 0,
+    description: 'Quant Traders and Rule-Based Bots gain stronger systematic execution efficiency.',
+    visibleWhen: (state) => state.purchasedResearchTech.quantTradingSystems === true || state.quantTraderCount > 0 || state.ruleBasedBotCount > 0,
   },
   {
     id: 'labAutomation',
@@ -196,7 +196,7 @@ export const UPGRADES: UpgradeDefinition[] = [
     group: 'algorithmic',
     cost: 450_000,
     description: 'ML Trading Bots gain 40 percent output from dedicated model serving infrastructure.',
-    visibleWhen: (state) => state.purchasedResearchTech.dataCenterSystems === true || state.mlTradingBotCount > 0,
+    visibleWhen: (state) => state.purchasedResearchTech.machineLearningTrading === true || state.mlTradingBotCount > 0,
   },
   {
     id: 'modelOpsPipeline',
@@ -205,7 +205,7 @@ export const UPGRADES: UpgradeDefinition[] = [
     group: 'algorithmic',
     cost: 700_000,
     description: 'ML Trading Bots gain another 25 percent output.',
-    visibleWhen: (state) => state.purchasedResearchTech.dataCenterSystems === true || state.mlTradingBotCount > 0,
+    visibleWhen: (state) => state.purchasedResearchTech.machineLearningTrading === true || state.mlTradingBotCount > 0,
   },
   {
     id: 'aiRiskStack',

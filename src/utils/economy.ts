@@ -265,6 +265,10 @@ export function getSeniorTraderIncome(state: GameState): number {
   return value * getSeniorTraderOptimizationMultiplier(state)
 }
 
+export function getQuantTraderIncome(_state: GameState): number {
+  return 0
+}
+
 export function getOwnedAssignableUnitCount(state: GameState, unitId: GenericSectorAssignableUnitId): number {
   if (unitId === 'intern') {
     return state.internCount
@@ -427,6 +431,7 @@ export function getUnitPowerUsagePerPurchase(state: GameState, unitId: UnitId): 
   if (unitId === 'intern') return 0
   if (unitId === 'juniorTrader') return 0
   if (unitId === 'seniorTrader') return 0
+  if (unitId === 'quantTrader') return 0
   if (unitId === 'propDesk') return 0
   if (unitId === 'institutionalDesk') return 0
   if (unitId === 'hedgeFund') return 0
@@ -587,11 +592,11 @@ function getDiscountedUnitCostAtOwned(state: GameState, unitId: UnitId, owned: n
     discount -= politicalStaffReduction
   }
 
-  if ((unitId === 'ruleBasedBot' || unitId === 'mlTradingBot' || unitId === 'aiTradingBot') && state.purchasedPolicies.automationTaxCredit) {
+  if ((unitId === 'quantTrader' || unitId === 'ruleBasedBot' || unitId === 'mlTradingBot' || unitId === 'aiTradingBot') && state.purchasedPolicies.automationTaxCredit) {
     discount -= 0.1
   }
 
-  if (unitId === 'ruleBasedBot' || unitId === 'mlTradingBot' || unitId === 'aiTradingBot') {
+  if (unitId === 'quantTrader' || unitId === 'ruleBasedBot' || unitId === 'mlTradingBot' || unitId === 'aiTradingBot') {
     discount -= machineReduction
   }
 
@@ -735,8 +740,8 @@ export function getIncomeBreakdown(state: GameState) {
 }
 
 export function getCashPerSecond(state: GameState): number {
-  const { internIncome, juniorIncome, seniorIncome, propDeskIncome, institutionalDeskIncome, hedgeFundIncome, investmentFirmIncome, ruleBasedBotIncome, mlTradingBotIncome, aiTradingBotIncome } = getIncomeBreakdown(state)
-  const basePassiveIncome = internIncome + juniorIncome + seniorIncome + propDeskIncome + institutionalDeskIncome + hedgeFundIncome + investmentFirmIncome + ruleBasedBotIncome + mlTradingBotIncome + aiTradingBotIncome
+  const { internIncome, juniorIncome, seniorIncome, propDeskIncome, institutionalDeskIncome, hedgeFundIncome, investmentFirmIncome } = getIncomeBreakdown(state)
+  const basePassiveIncome = internIncome + juniorIncome + seniorIncome + propDeskIncome + institutionalDeskIncome + hedgeFundIncome + investmentFirmIncome
 
   return basePassiveIncome * getGlobalMultiplier(state) * getPrestigeMultiplier(state)
 }
@@ -768,6 +773,10 @@ export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
 
   if (unitId === 'seniorTrader') {
     return state.purchasedResearchTech.seniorRecruitment === true
+  }
+
+  if (unitId === 'quantTrader') {
+    return state.purchasedResearchTech.quantTradingSystems === true
   }
 
   if (unitId === 'internResearchScientist') {
@@ -803,15 +812,15 @@ export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
   }
 
   if (unitId === 'ruleBasedBot') {
-    return state.purchasedResearchTech.algorithmicTrading === true
+    return state.purchasedResearchTech.ruleBasedAutomation === true
   }
 
   if (unitId === 'mlTradingBot') {
-    return state.purchasedResearchTech.dataCenterSystems === true && (state.dataCenterCount > 0 || state.cloudComputeCount > 0)
+    return state.purchasedResearchTech.machineLearningTrading === true && state.dataCenterCount > 0
   }
 
   if (unitId === 'aiTradingBot') {
-    return state.purchasedResearchTech.aiTradingSystems === true && (state.dataCenterCount > 0 || state.cloudComputeCount > 0)
+    return state.purchasedResearchTech.aiTradingSystems === true && state.cloudComputeCount > 0
   }
 
   return false
@@ -825,6 +834,8 @@ export function getUnitCount(state: GameState, unitId: UnitId): number {
       return state.juniorTraderCount
     case 'seniorTrader':
       return state.seniorTraderCount
+    case 'quantTrader':
+      return state.quantTraderCount
     case 'propDesk':
       return state.propDeskCount
     case 'institutionalDesk':
@@ -917,6 +928,10 @@ export function getBulkUnitCost(state: GameState, unitId: UnitId, quantity: BuyM
 
 export function getSeniorTraderCost(state: GameState): number {
   return getDiscountedUnitCostAtOwned(state, 'seniorTrader', state.seniorTraderCount)
+}
+
+export function getQuantTraderCost(state: GameState): number {
+  return getDiscountedUnitCostAtOwned(state, 'quantTrader', state.quantTraderCount)
 }
 
 export function getRuleBasedBotCost(state: GameState): number {
