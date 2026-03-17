@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils'
 export type ActionRowProps = {
   title: string
   description: string
+  detail?: ReactNode
   cost?: string
   status: string
-  statusTone?: 'default' | 'ready' | 'locked' | 'done'
+  statusTone?: 'default' | 'ready' | 'locked' | 'done' | 'warning'
   actionLabel: string
   disabled: boolean
   disabledReason?: string
@@ -20,14 +21,15 @@ export type ActionRowProps = {
 export type PurchaseCardProps = {
   title: string
   description: string
+  detail?: ReactNode
   cost?: string
   infoTooltip?: string
   status: string
-  statusTone?: 'default' | 'ready' | 'locked' | 'done'
+  statusTone?: 'default' | 'ready' | 'locked' | 'done' | 'warning'
   actionLabel: string
   disabled: boolean
   disabledReason?: string
-  badges?: string[]
+  badges?: Array<string | { label: string; tone?: 'default' | 'success' | 'accent' }>
   onClick?: () => void
   footer?: ReactNode
   compact?: boolean
@@ -60,11 +62,19 @@ const statusToneClasses = {
   ready: 'border-primary/40 bg-primary/10 text-primary',
   locked: 'border-border/70 bg-background/50 text-muted-foreground',
   done: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
+  warning: 'border-red-500/50 bg-red-500/10 text-red-300',
+} as const
+
+const badgeToneClasses = {
+  default: 'border-border/80 bg-background/60 text-muted-foreground',
+  success: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
+  accent: 'border-primary/40 bg-primary/10 text-primary',
 } as const
 
 export function PurchaseCard({
   title,
   description,
+  detail,
   cost,
   infoTooltip,
   status,
@@ -102,13 +112,19 @@ export function PurchaseCard({
             >
               {status}
             </Badge>
-            {badges?.map((badge) => (
-              <Badge key={badge} variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                {badge}
-              </Badge>
-            ))}
+            {badges?.map((badge) => {
+              const label = typeof badge === 'string' ? badge : badge.label
+              const tone = typeof badge === 'string' ? 'default' : (badge.tone ?? 'default')
+
+              return (
+                <Badge key={label} variant="outline" className={cn('h-5 rounded-md px-1.5 text-[10px] uppercase tracking-[0.12em]', badgeToneClasses[tone])}>
+                  {label}
+                </Badge>
+              )
+            })}
           </div>
           {!infoTooltip ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground xl:text-xs">{description}</p> : null}
+          {!infoTooltip && detail ? <div className="mt-1">{detail}</div> : null}
           {!infoTooltip && cost ? <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.08em] text-primary">{cost}</p> : null}
           {disabled && disabledReason ? <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{disabledReason}</p> : null}
         </div>
@@ -121,6 +137,6 @@ export function PurchaseCard({
   )
 }
 
-export function ActionRow({ title, description, cost, status, statusTone = 'default', actionLabel, disabled, disabledReason, onClick }: ActionRowProps) {
-  return <PurchaseCard title={title} description={description} cost={cost} status={status} statusTone={statusTone} actionLabel={actionLabel} disabled={disabled} disabledReason={disabledReason} onClick={onClick} />
+export function ActionRow({ title, description, detail, cost, status, statusTone = 'default', actionLabel, disabled, disabledReason, onClick }: ActionRowProps) {
+  return <PurchaseCard title={title} description={description} detail={detail} cost={cost} status={status} statusTone={statusTone} actionLabel={actionLabel} disabled={disabled} disabledReason={disabledReason} onClick={onClick} />
 }

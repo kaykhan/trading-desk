@@ -38,7 +38,12 @@ export function getTotalDeskSlots(state: GameState): number {
 }
 
 export function getUsedDeskSlots(state: GameState): number {
-  return state.internCount + state.juniorTraderCount + state.seniorTraderCount
+  return state.internCount
+    + state.juniorTraderCount
+    + state.seniorTraderCount
+    + state.internResearchScientistCount
+    + state.juniorResearchScientistCount
+    + state.seniorResearchScientistCount
 }
 
 export function getAvailableDeskSlots(state: GameState): number {

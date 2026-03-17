@@ -4,7 +4,7 @@ import { TRADING_UPGRADES } from '@/data/tabContent'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import { formatCurrency, formatRate } from '@/utils/formatting'
-import { getProgressionSummary } from '@/utils/progression'
+import { getNextRecommendedMilestoneSummary } from '@/utils/milestones'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,8 +18,10 @@ export function TradingPanel() {
   const clearTradeFeedback = useGameStore((state) => state.clearTradeFeedback)
   const cashPerClick = useGameStore(selectors.cashPerClick)
   const cashPerSecond = useGameStore(selectors.cashPerSecond)
+  const unlockedMilestoneCount = useGameStore(selectors.unlockedMilestoneCount)
+  const totalMilestoneCount = useGameStore(selectors.totalMilestoneCount)
   const gameState = useGameStore((state) => state)
-  const progressionSummary = getProgressionSummary(gameState)
+  const nextMilestone = getNextRecommendedMilestoneSummary(gameState)
 
   useEffect(() => {
     if (!latestTradeFeedback) {
@@ -40,7 +42,7 @@ export function TradingPanel() {
         <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Always-visible execution layer</CardDescription>
         <CardAction>
           <Badge variant="outline" className="rounded-md border-primary/40 bg-primary/10 text-[10px] uppercase tracking-[0.18em] text-primary">
-            {progressionSummary.phaseLabel}
+            {unlockedMilestoneCount} / {totalMilestoneCount} milestones
           </Badge>
         </CardAction>
       </CardHeader>
@@ -52,7 +54,7 @@ export function TradingPanel() {
               <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">Click to generate instant cash, then convert it into research and scaling.</p>
             </div>
             <Badge variant="outline" className="rounded-md border-primary/35 bg-background/60 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-primary">
-              {progressionSummary.phaseLabel}
+              {nextMilestone?.categoryLabel ?? 'All Clear'}
             </Badge>
           </div>
 
@@ -88,7 +90,8 @@ export function TradingPanel() {
               <ArrowRight className="size-3.5" />
               <span>Next target</span>
             </div>
-            <p className="mt-1 text-[11px] leading-4 text-foreground">{progressionSummary.nextTarget}</p>
+            <p className="mt-1 text-[11px] leading-4 text-foreground">{nextMilestone?.name ?? 'All milestones unlocked.'}</p>
+            {nextMilestone?.progressLabel ? <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-primary/85">{nextMilestone.progressLabel}</p> : null}
           </div>
         </div>
 
@@ -96,7 +99,7 @@ export function TradingPanel() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Manual upgrades</p>
-              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{progressionSummary.headline} Improve click value before you move more cash into the next tier.</p>
+              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{nextMilestone?.description ?? 'Improve click value before you move more cash into the next tier.'}</p>
             </div>
           </div>
         </div>
@@ -119,7 +122,7 @@ export function TradingPanel() {
                   description={upgrade.description}
                   cost={`Cost ${formatCurrency(upgrade.cost)}`}
                   status={isPurchased ? 'Purchased' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                  statusTone={isPurchased ? 'done' : shortfall > 0 ? 'default' : 'ready'}
+                  statusTone={isPurchased ? 'done' : shortfall > 0 ? 'warning' : 'ready'}
                   actionLabel={isPurchased ? 'Purchased' : 'Upgrade'}
                   disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
                   disabledReason={!isPurchased && shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined}

@@ -1,3 +1,4 @@
+import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import type { GameState, SectorId, TraderSpecialistUnitId, TraderSpecializationId } from '../types/game'
 
 const SPECIALIZATION_IDS: TraderSpecializationId[] = ['finance', 'technology', 'energy']
@@ -27,12 +28,12 @@ export function getAssignedTraderSpecialistsForSector(state: GameState, unitId: 
   return getTraderSpecialistCount(state, unitId, specializationId)
 }
 
-export function getTraderSpecialistSectorBonus(unitId: TraderSpecialistUnitId, specializationId: TraderSpecializationId, sectorId: SectorId): number {
+export function getTraderSpecialistSectorBonus(state: GameState, unitId: TraderSpecialistUnitId, specializationId: TraderSpecializationId, sectorId: SectorId): number {
   if (specializationId !== sectorId) {
     return 1
   }
 
-  return 1.2
+  return 1.2 * getRepeatableUpgradeMultiplier(state, 'trainingMethodology')
 }
 
 export function getSpecializationResearchUnlockId(specializationId: TraderSpecializationId): 'financeSpecialistTraining' | 'technologySpecialistTraining' | 'energySpecialistTraining' {

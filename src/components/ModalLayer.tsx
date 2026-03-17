@@ -1,5 +1,7 @@
 import { Dialog } from '@/components/ui/dialog'
 import { useGameStore } from '../store/gameStore'
+import { MarketEventsModal } from './MarketEventsModal'
+import { MilestonesModal } from './MilestonesModal'
 import { OfflineEarningsModal } from './OfflineEarningsModal'
 import { PrestigeConfirmModal } from './PrestigeConfirmModal'
 import { ResetConfirmModal } from './ResetConfirmModal'
@@ -21,6 +23,8 @@ export function ModalLayer() {
       {activeModal === 'resetConfirm' && <ResetConfirmModal onClose={closeModal} />}
       {activeModal === 'offlineEarnings' && <OfflineEarningsModal onClose={closeModal} />}
       {activeModal === 'researchMap' && <ResearchMapModal />}
+      {activeModal === 'marketEvents' && <MarketEventsModal />}
+      {activeModal === 'milestones' && <MilestonesModal />}
     </Dialog>
   )
 }

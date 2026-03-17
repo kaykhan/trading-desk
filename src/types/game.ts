@@ -1,9 +1,9 @@
 import type { AppInfo } from '../../shared/game'
 
 export type UpgradeCategory = 'trading' | 'operations' | 'research' | 'prestige'
-export type UpgradeGroup = 'tradingDesk' | 'scientists' | 'politics' | 'algorithmic' | 'infrastructure'
+export type UpgradeGroup = 'tradingDesk' | 'research' | 'institutions' | 'automation' | 'infrastructure' | 'complianceLobbying'
 
-export type GameTabId = 'desk' | 'upgrades' | 'optimizations' | 'research' | 'lobbying' | 'prestige' | 'stats' | 'settings'
+export type GameTabId = 'desk' | 'upgrades' | 'optimizations' | 'research' | 'boosts' | 'compliance' | 'lobbying' | 'prestige' | 'stats' | 'settings'
 
 export type DeskViewId = 'trading' | 'sectors' | 'commodities' | 'scientists' | 'infrastructure' | 'politicians'
 
@@ -36,13 +36,110 @@ export type InstitutionalMandateId = 'finance' | 'technology' | 'energy'
 
 export type InstitutionalMandateUnitId = 'propDesk' | 'institutionalDesk' | 'hedgeFund' | 'investmentFirm'
 
-export type ResearchBranchId = 'humanCapital' | 'markets' | 'infrastructure' | 'automation' | 'regulation'
+export type ResearchBranchId = 'humanCapital' | 'markets' | 'infrastructure' | 'automation' | 'boosts' | 'regulation'
 
 export type ResearchTechCurrency = 'cash' | 'researchPoints'
 
 export type ResearchGraphPosition = {
   x: number
   y: number
+}
+
+export type MarketEventId =
+  | 'techRally'
+  | 'energyBoom'
+  | 'financialTightening'
+  | 'volatilitySpike'
+  | 'liquidityCrunch'
+  | 'gridStressWarning'
+
+export type MarketEventCategory = 'sector' | 'systemic'
+
+export type MarketEventDefinition = {
+  id: MarketEventId
+  name: string
+  category: MarketEventCategory
+  durationSeconds: number
+  description: string
+  affectedSector?: SectorId
+  sectorOutputMultiplier?: number
+  automationOutputMultiplier?: number
+  machineEfficiencyMultiplier?: number
+  globalOutputMultiplier?: number
+}
+
+export type MarketEventHistoryEntry = {
+  eventId: MarketEventId
+  endedAt: number
+  durationSeconds: number
+}
+
+export type ComplianceCostBreakdown = {
+  staff: number
+  energy: number
+  automation: number
+  institutional: number
+  total: number
+}
+
+export type CompliancePaymentCategoryId = 'staff' | 'energy' | 'automation' | 'institutional'
+
+export type CompliancePaymentStatus = 'current' | 'due' | 'overdue'
+
+export type CompliancePaymentEntry = {
+  overdueAmount: number
+  paidThisCycle: number
+  lastPayment: number
+}
+
+export type CompliancePaymentState = Record<CompliancePaymentCategoryId, CompliancePaymentEntry>
+
+export type ComplianceSourceSummary = {
+  label: string
+  value: number
+}
+
+export type TimedBoostId =
+  | 'aggressiveTradingWindow'
+  | 'deployReserveCapital'
+  | 'overclockServers'
+  | 'researchSprint'
+  | 'complianceFreeze'
+
+export type TimedBoostUnlockId =
+  | 'aggressiveTradingWindowProtocols'
+  | 'deployReserveCapitalProtocols'
+  | 'overclockServersProtocols'
+  | 'researchSprintProtocols'
+  | 'complianceFreezeProtocols'
+
+export type TimedBoostDefinition = {
+  id: TimedBoostId
+  name: string
+  durationSeconds: number
+  cooldownSeconds: number
+  description: string
+  unlockResearchTechId: TimedBoostUnlockId
+}
+
+export type GlobalBoostId =
+  | 'globalProfitBoost'
+  | 'globalEnergySupplyBoost'
+  | 'globalInfluenceBoost'
+  | 'globalReputationBoost'
+
+export type GlobalBoostDefinition = {
+  id: GlobalBoostId
+  name: string
+  description: string
+  multiplier: number
+}
+
+export type TimedBoostRuntime = {
+  isActive: boolean
+  remainingActiveSeconds: number
+  remainingCooldownSeconds: number
+  autoEnabled: boolean
 }
 
 export type ResearchTechId =
@@ -60,7 +157,6 @@ export type ResearchTechId =
   | 'technologyMarkets'
   | 'energyMarkets'
   | 'algorithmicTrading'
-  | 'quantTradingSystems'
   | 'ruleBasedAutomation'
   | 'machineLearningTrading'
   | 'meanReversionModels'
@@ -69,6 +165,7 @@ export type ResearchTechId =
   | 'marketMakingEngine'
   | 'scalpingFramework'
   | 'powerSystemsEngineering'
+  | 'serverRoomSystems'
   | 'juniorScientists'
   | 'seniorScientists'
   | 'propDeskOperations'
@@ -77,7 +174,14 @@ export type ResearchTechId =
   | 'investmentFirms'
   | 'dataCenterSystems'
   | 'aiTradingSystems'
+  | 'cloudInfrastructure'
   | 'regulatoryAffairs'
+  | 'aggressiveTradingWindowProtocols'
+  | 'deployReserveCapitalProtocols'
+  | 'overclockServersProtocols'
+  | 'researchSprintProtocols'
+  | 'complianceFreezeProtocols'
+  | 'boostAutomationProtocols'
 
 export type PowerInfrastructureId = 'serverRack' | 'serverRoom' | 'dataCenter' | 'cloudCompute'
 
@@ -118,113 +222,62 @@ export type UnitId =
 
 export type UpgradeId =
   | 'betterTerminal'
-  | 'hotkeyMacros'
+  | 'tradeShortcuts'
   | 'premiumDataFeed'
-  | 'marketScanner'
-  | 'juniorHiringProgram'
-  | 'juniorTraderProgram'
-  | 'seniorRecruitment'
-  | 'deskUpgrade'
-  | 'trainingProgram'
-  | 'internCohort'
-  | 'juniorAnalystProgram'
-  | 'executiveTraining'
-  | 'firmwideDeskStandards'
+  | 'deskAnalytics'
+  | 'crossDeskCoordination'
+  | 'structuredOnboarding'
   | 'systematicExecution'
+  | 'botTelemetry'
+  | 'executionRoutingStack'
+  | 'modelServingCluster'
+  | 'inferenceBatching'
+  | 'aiRiskStack'
   | 'labAutomation'
   | 'researchGrants'
-  | 'policyAnalysisDesk'
-  | 'donorRoundtables'
-  | 'propDeskMandates'
-  | 'institutionalRelationships'
-  | 'fundOfFundsNetwork'
-  | 'globalDistribution'
-  | 'botTelemetry'
-  | 'lowLatencyServers'
-  | 'executionCluster'
-  | 'modelOpsPipeline'
-  | 'aiRiskStack'
+  | 'sharedResearchLibrary'
+  | 'backtestingSuite'
+  | 'institutionalResearchNetwork'
+  | 'crossDisciplinaryModels'
+  | 'propDeskOperatingModel'
+  | 'institutionalClientBook'
+  | 'fundStrategyCommittee'
+  | 'globalDistributionNetwork'
+  | 'institutionalOperatingStandards'
+  | 'mandateAlignmentFramework'
   | 'rackStacking'
+  | 'coolingSystems'
   | 'roomScaleout'
+  | 'powerDistribution'
   | 'dataCenterFabric'
   | 'cloudBurstContracts'
-  | 'coolingSystems'
-  | 'powerDistribution'
+  | 'policyAnalysisDesk'
+  | 'regulatoryCounsel'
+  | 'donorNetwork'
+  | 'complianceSoftwareSuite'
+  | 'governmentRelationsOffice'
+  | 'filingAutomation'
 
 export type RepeatableUpgradeId =
-  | 'manualTradeRefinement'
-  | 'politicalNetworking'
-  | 'constituencyResearch'
-  | 'talentHeadhunters'
-  | 'researchEndowments'
-  | 'patronageMachine'
-  | 'automationSubsidies'
-  | 'infrastructureGrants'
-  | 'internDeskTraining'
-  | 'internPlaybooks'
-  | 'internLabTraining'
-  | 'internResearchNotes'
-  | 'juniorTraderTraining'
-  | 'seniorDeskPerformance'
-  | 'propDeskScaling'
-  | 'institutionalDeskCoordination'
-  | 'hedgeFundExecution'
-  | 'investmentFirmOperations'
-  | 'ruleBasedExecution'
-  | 'mlModelDeployment'
-  | 'aiClusterOrchestration'
-  | 'juniorLabProtocols'
-  | 'seniorLabMethods'
-  | 'rackDensity'
-  | 'serverRoomExpansion'
-  | 'dataCenterOverbuild'
-  | 'cloudFailover'
-  | 'behavioralModeling'
-  | 'decisionSystems'
-  | 'propDeskResearch'
-  | 'institutionalAnalytics'
-  | 'hedgeFundResearch'
-  | 'firmWideSystems'
-  | 'signalRefinement'
-  | 'mlFeaturePipelines'
-  | 'aiTrainingSystems'
-  | 'juniorLabOptimization'
-  | 'seniorLabOptimization'
-  | 'energyOptimization'
-  | 'serverEfficiency'
+  | 'manualExecutionRefinement'
+  | 'humanDeskTuning'
+  | 'institutionalProcessRefinement'
+  | 'sectorAllocationEfficiency'
+  | 'researchThroughput'
+  | 'trainingMethodology'
+  | 'analyticalModeling'
+  | 'executionStackTuning'
+  | 'modelEfficiency'
+  | 'computeOptimization'
+  | 'signalQualityControl'
+  | 'complianceSystems'
+  | 'filingEfficiency'
+  | 'policyReach'
+  | 'institutionalAccess'
 
 export type RepeatableUpgradeCurrency = 'cash' | 'researchPoints' | 'influence'
 
-export type RepeatableUpgradeFamily = 'operations' | 'research' | 'influence'
-
-export type RepeatableUpgradeTarget =
-  | 'manualTrade'
-  | 'juniorPolitician'
-  | 'humanTrading'
-  | 'researchStaff'
-  | 'politicalStaff'
-  | 'machineProcurement'
-  | 'infrastructureProcurement'
-  | 'intern'
-  | 'internResearchScientist'
-  | 'juniorTrader'
-  | 'seniorTrader'
-  | 'propDesk'
-  | 'institutionalDesk'
-  | 'hedgeFund'
-  | 'investmentFirm'
-  | 'ruleBasedBot'
-  | 'mlTradingBot'
-  | 'aiTradingBot'
-  | 'juniorResearchScientist'
-  | 'seniorResearchScientist'
-  | 'serverRack'
-  | 'serverRoom'
-  | 'dataCenter'
-  | 'cloudCompute'
-  | 'machineSystems'
-
-export type RepeatableUpgradeEffectType = 'output' | 'powerCapacity' | 'powerUsageReduction' | 'costReduction'
+export type RepeatableUpgradeFamily = 'desk' | 'research' | 'automation' | 'governance'
 
 export type ResearchUnlockId =
   | 'foundationsOfFinanceTraining'
@@ -243,7 +296,6 @@ export type ResearchUnlockId =
   | 'technologyMarkets'
   | 'energyMarkets'
   | 'propDeskOperations'
-  | 'quantTradingSystems'
   | 'ruleBasedAutomation'
   | 'machineLearningTrading'
   | 'meanReversionModels'
@@ -251,24 +303,39 @@ export type ResearchUnlockId =
   | 'arbitrageEngine'
   | 'marketMakingEngine'
   | 'scalpingFramework'
+  | 'serverRoomSystems'
   | 'institutionalDesks'
   | 'hedgeFundStrategies'
   | 'investmentFirms'
   | 'algorithmicTrading'
   | 'dataCenterSystems'
   | 'aiTradingSystems'
+  | 'cloudInfrastructure'
   | 'regulatoryAffairs'
 
 export type UnitUnlockId = ResearchUnlockId | UpgradeId | 'researchProduction'
 
-export type PrestigeUpgradeId = 'brandRecognition' | 'seedCapital' | 'betterHiringPipeline' | 'institutionalKnowledge' | 'gridOrchestration' | 'tradeMultiplier'
+export type PrestigeTierId = 'iron' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'titanium' | 'sapphire' | 'ruby' | 'diamond' | 'onyx'
 
-export type ModalId = 'saveImport' | 'prestigeConfirm' | 'resetConfirm' | 'offlineEarnings' | 'researchMap'
+export type PrestigeUpgradeId =
+  | 'globalRecognition'
+  | 'seedCapital'
+  | 'betterHiringPipeline'
+  | 'institutionalKnowledge'
+  | 'gridOrchestration'
+  | 'complianceFrameworks'
+  | 'policyCapital'
+  | 'marketReputation'
+  | 'deskEfficiency'
+  | 'strategicReserves'
+
+export type ModalId = 'saveImport' | 'prestigeConfirm' | 'resetConfirm' | 'offlineEarnings' | 'researchMap' | 'marketEvents' | 'milestones'
 
 export type BuyMode = 1 | 5 | 10 | 'max'
 
 export type GameSettings = {
   autosaveEnabled: boolean
+  complianceAutoPayEnabled: Record<CompliancePaymentCategoryId, boolean>
   shortNumberThreshold: number
 }
 
@@ -308,7 +375,20 @@ export type GameState = {
   cash: number
   researchPoints: number
   influence: number
+  unlockedMilestones: Partial<Record<MilestoneId, boolean>>
+  lifetimeManualTrades: number
+  lifetimeResearchPointsEarned: number
+  totalComplianceReviewsTriggered: number
+  totalCompliancePaymentsMade: number
+  complianceTabOpened: boolean
+  totalTimedBoostActivations: number
   discoveredLobbying: boolean
+  complianceVisible: boolean
+  complianceReviewRemainingSeconds: number
+  compliancePayments: CompliancePaymentState
+  lastCompliancePayment: number
+  timedBoosts: Record<TimedBoostId, TimedBoostRuntime>
+  globalBoostsOwned: Record<GlobalBoostId, boolean>
   lifetimeCashEarned: number
   reputation: number
   reputationSpent: number
@@ -336,6 +416,10 @@ export type GameState = {
   serverRoomCount: number
   dataCenterCount: number
   cloudComputeCount: number
+  activeMarketEvent: MarketEventId | null
+  activeMarketEventRemainingSeconds: number
+  nextMarketEventCooldownSeconds: number
+  marketEventHistory: MarketEventHistoryEntry[]
   unlockedSectors: Record<SectorId, boolean>
   automationConfig: Record<AutomationUnitId, AutomationConfig>
   automationCycleState: Record<AutomationUnitId, AutomationCycleRuntime>
@@ -429,7 +513,6 @@ export type PrestigeUpgradeDefinition = {
   id: PrestigeUpgradeId
   name: string
   category: 'prestige'
-  baseCost: number
   maxRank: number
   description: string
 }
@@ -439,21 +522,50 @@ export type RepeatableUpgradeDefinition = {
   name: string
   family: RepeatableUpgradeFamily
   currency: RepeatableUpgradeCurrency
-  target: RepeatableUpgradeTarget
-  effectType: RepeatableUpgradeEffectType
+  maxRank: number
+  perRankDescription: string
   baseCost: number
   costScaling: number
   effectPerRank: number
   description: string
+  unlockConditionDescription: string
   visibleWhen?: (_state: GameState) => boolean
   unlockWhen?: (_state: GameState) => boolean
 }
 
+export type MilestoneCategoryId =
+  | 'gettingStarted'
+  | 'tradingDesk'
+  | 'research'
+  | 'marketsSectors'
+  | 'specialization'
+  | 'institutions'
+  | 'automation'
+  | 'infrastructure'
+  | 'complianceLobbying'
+  | 'boosts'
+  | 'prestige'
+  | 'optimisations'
+
+export type MilestoneId = string
+
+export type MilestoneReward = {
+  cash?: number
+  researchPoints?: number
+  influence?: number
+  reputation?: number
+  note?: string
+}
+
 export type MilestoneDefinition = {
-  id: string
-  label: string
-  rangeLabel: string
-  objective: string
+  id: MilestoneId
+  category: MilestoneCategoryId
+  displayOrder: number
+  name: string
+  description: string
+  visibleByDefault: boolean
+  reward: MilestoneReward
+  achievementKey?: string
 }
 
 export type OfflineSummary = {
@@ -475,6 +587,7 @@ export type GameStore = GameState & {
   activeModal: ModalId | null
   offlineSummary: OfflineSummary | null
   latestTradeFeedback: TradeFeedback | null
+  milestoneUnlockQueue: MilestoneId[]
   makeTrade: () => void
   tick: (_deltaSeconds: number) => void
   buyUnit: (_unitId: UnitId, _quantity: BuyMode) => void
@@ -495,6 +608,11 @@ export type GameStore = GameState & {
   importSave: (_encodedSave: string) => boolean
   setAppInfo: (_appInfo: AppInfo | null) => void
   setActiveTab: (_tab: GameTabId) => void
+  activateTimedBoost: (_boostId: TimedBoostId) => void
+  toggleTimedBoostAutoMode: (_boostId: TimedBoostId, _enabled: boolean) => void
+  setGlobalBoostOwned: (_boostId: GlobalBoostId, _owned: boolean) => void
+  payComplianceCategory: (_category: CompliancePaymentCategoryId) => void
+  setComplianceAutoPayEnabled: (_category: CompliancePaymentCategoryId, _enabled: boolean) => void
   setActiveDeskView: (_view: DeskViewId) => void
   setUnitBuyMode: (_unitId: UnitId, _mode: BuyMode) => void
   setPowerBuyMode: (_infrastructureId: PowerInfrastructureId, _mode: BuyMode) => void
@@ -518,5 +636,6 @@ export type GameStore = GameState & {
   closeModal: () => void
   setOfflineSummary: (_summary: OfflineSummary | null) => void
   clearTradeFeedback: () => void
+  dismissMilestoneNotification: () => void
   resetFoundation: () => void
 }

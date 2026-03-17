@@ -1,12 +1,16 @@
 import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from '../data/automation'
+import { DEFAULT_GLOBAL_BOOSTS_OWNED, DEFAULT_TIMED_BOOSTS } from '../data/boosts'
 import { initialState } from '../data/initialState'
 import { LOBBYING_POLICIES } from '../data/lobbyingPolicies'
+import { MARKET_EVENT_HISTORY_LIMIT, MARKET_EVENTS } from '../data/marketEvents'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
-import { REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
+import { REPEATABLE_UPGRADE_IDS, REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { RESEARCH_TECH } from '../data/researchTech'
 import { DEFAULT_UNLOCKED_SECTORS, SECTOR_IDS } from '../data/sectors'
 import { UPGRADES } from '../data/upgrades'
-import type { AutomationStrategyId, AutomationUnitId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
+import { MILESTONES } from '../data/milestones'
+import type { AutomationStrategyId, AutomationUnitId, BuyMode, CompliancePaymentCategoryId, GameState, GenericSectorAssignableUnitId, GlobalBoostId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, MarketEventHistoryEntry, MarketEventId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TimedBoostId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
+import { inferCompliancePaymentsMadeFromState, inferComplianceReviewCountFromState, inferTimedBoostActivationsFromState } from './milestones'
 
 export const SAVE_KEY = 'stock-incremental-save-v1'
 
@@ -14,8 +18,7 @@ const UPGRADE_IDS = UPGRADES.map((upgrade) => upgrade.id)
 const PRESTIGE_UPGRADE_IDS = PRESTIGE_UPGRADES.map((upgrade) => upgrade.id)
 const RESEARCH_TECH_IDS = RESEARCH_TECH.map((tech) => tech.id)
 const LOBBYING_POLICY_IDS = LOBBYING_POLICIES.map((policy) => policy.id)
-const REPEATABLE_UPGRADE_IDS = REPEATABLE_UPGRADES.map((upgrade) => upgrade.id)
-
+const MILESTONE_IDS = MILESTONES.map((milestone) => milestone.id)
 function isUpgradeId(value: string): value is UpgradeId {
   return UPGRADE_IDS.includes(value as UpgradeId)
 }
@@ -36,6 +39,10 @@ function isRepeatableUpgradeId(value: string): value is RepeatableUpgradeId {
   return REPEATABLE_UPGRADE_IDS.includes(value as RepeatableUpgradeId)
 }
 
+function isMilestoneId(value: string): boolean {
+  return MILESTONE_IDS.includes(value)
+}
+
 function isSectorId(value: string): value is SectorId {
   return SECTOR_IDS.includes(value as SectorId)
 }
@@ -52,12 +59,82 @@ function isAutomationStrategyId(value: string): value is AutomationStrategyId {
   return value === 'meanReversion' || value === 'momentum' || value === 'arbitrage' || value === 'marketMaking' || value === 'scalping'
 }
 
+function isMarketEventId(value: string): value is MarketEventId {
+  return value in MARKET_EVENTS
+}
+
 function getNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
 function getBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback
+}
+
+function isBuyMode(value: unknown): value is BuyMode {
+  return value === 1 || value === 5 || value === 10 || value === 'max'
+}
+
+function getLegacyRepeatableRank(source: Record<string, unknown>, keys: string[]): number {
+  const values = keys
+    .map((key) => source[key])
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
+    .map((value) => Math.floor(value))
+
+  if (values.length === 0) {
+    return 0
+  }
+
+  return Math.min(100, Math.max(...values))
+}
+
+const LEGACY_REPEATABLE_RANK_MIGRATION: Record<RepeatableUpgradeId, string[]> = {
+  manualExecutionRefinement: ['manualExecutionRefinement', 'manualTradeRefinement'],
+  humanDeskTuning: ['humanDeskTuning', 'internDeskTraining', 'internPlaybooks', 'juniorTraderTraining', 'seniorDeskPerformance', 'behavioralModeling'],
+  institutionalProcessRefinement: ['institutionalProcessRefinement', 'propDeskScaling', 'institutionalDeskCoordination', 'hedgeFundExecution', 'investmentFirmOperations', 'propDeskResearch', 'institutionalAnalytics', 'hedgeFundResearch', 'firmWideSystems'],
+  sectorAllocationEfficiency: ['sectorAllocationEfficiency'],
+  researchThroughput: ['researchThroughput', 'internLabTraining', 'internResearchNotes', 'juniorLabProtocols', 'seniorLabMethods', 'juniorLabOptimization', 'seniorLabOptimization'],
+  trainingMethodology: ['trainingMethodology'],
+  analyticalModeling: ['analyticalModeling', 'signalRefinement', 'mlFeaturePipelines', 'aiTrainingSystems', 'algorithmRefinement', 'exchangeColocationModels'],
+  executionStackTuning: ['executionStackTuning', 'ruleBasedExecution', 'mlModelDeployment', 'aiClusterOrchestration', 'botDeploymentTuning', 'tradingServerThroughput'],
+  modelEfficiency: ['modelEfficiency'],
+  computeOptimization: ['computeOptimization', 'energyOptimization', 'serverEfficiency'],
+  signalQualityControl: ['signalQualityControl', 'signalRefinement', 'mlFeaturePipelines', 'aiTrainingSystems', 'algorithmRefinement', 'exchangeColocationModels'],
+  complianceSystems: ['complianceSystems'],
+  filingEfficiency: ['filingEfficiency'],
+  policyReach: ['policyReach', 'politicalNetworking', 'constituencyResearch'],
+  institutionalAccess: ['institutionalAccess'],
+}
+
+const LEGACY_REPEATABLE_BUY_MODE_ALIASES: Record<RepeatableUpgradeId, string[]> = {
+  manualExecutionRefinement: ['manualTradeRefinement'],
+  humanDeskTuning: ['internDeskTraining', 'internPlaybooks', 'juniorTraderTraining', 'seniorDeskPerformance', 'behavioralModeling'],
+  institutionalProcessRefinement: ['propDeskScaling', 'institutionalDeskCoordination', 'hedgeFundExecution', 'investmentFirmOperations', 'propDeskResearch', 'institutionalAnalytics', 'hedgeFundResearch', 'firmWideSystems'],
+  sectorAllocationEfficiency: [],
+  researchThroughput: ['internLabTraining', 'internResearchNotes', 'juniorLabProtocols', 'seniorLabMethods', 'juniorLabOptimization', 'seniorLabOptimization'],
+  trainingMethodology: [],
+  analyticalModeling: ['signalRefinement', 'mlFeaturePipelines', 'aiTrainingSystems', 'algorithmRefinement', 'exchangeColocationModels'],
+  executionStackTuning: ['ruleBasedExecution', 'mlModelDeployment', 'aiClusterOrchestration', 'botDeploymentTuning', 'tradingServerThroughput'],
+  modelEfficiency: [],
+  computeOptimization: ['energyOptimization', 'serverEfficiency'],
+  signalQualityControl: ['signalRefinement', 'mlFeaturePipelines', 'aiTrainingSystems', 'algorithmRefinement', 'exchangeColocationModels'],
+  complianceSystems: [],
+  filingEfficiency: [],
+  policyReach: ['politicalNetworking', 'constituencyResearch'],
+  institutionalAccess: [],
+}
+
+function normalizeRepeatableUpgradeBuyModes(source: unknown): Record<RepeatableUpgradeId, BuyMode> {
+  const sourceRecord = isRecord(source) ? source : {}
+
+  return Object.fromEntries(REPEATABLE_UPGRADE_IDS.map((upgradeId) => {
+    const aliases = [upgradeId, ...LEGACY_REPEATABLE_BUY_MODE_ALIASES[upgradeId]]
+    const matchedMode = aliases
+      .map((alias) => sourceRecord[alias])
+      .find((value): value is BuyMode => isBuyMode(value))
+
+    return [upgradeId, matchedMode ?? initialState.ui.repeatableUpgradeBuyModes[upgradeId]]
+  })) as Record<RepeatableUpgradeId, BuyMode>
 }
 
 function getSafeOwnedAssignableCount(rawState: Record<string, unknown>, unitId: HumanAssignableUnitId): number {
@@ -206,6 +283,73 @@ function normalizeAutomationCycleState(source: unknown): GameState['automationCy
   }
 }
 
+function normalizeMarketEventHistory(source: unknown): MarketEventHistoryEntry[] {
+  if (!Array.isArray(source)) {
+    return []
+  }
+
+  return source
+    .filter((entry): entry is Record<string, unknown> => isRecord(entry))
+    .map((entry) => ({
+      eventId: typeof entry.eventId === 'string' && isMarketEventId(entry.eventId) ? entry.eventId : null,
+      endedAt: getNumber(entry.endedAt, 0),
+      durationSeconds: getNumber(entry.durationSeconds, 0),
+    }))
+    .filter((entry): entry is MarketEventHistoryEntry => entry.eventId !== null && entry.endedAt >= 0 && entry.durationSeconds > 0)
+    .slice(0, MARKET_EVENT_HISTORY_LIMIT)
+}
+
+function normalizeCompliancePayments(source: unknown, legacyDueAmount: number): GameState['compliancePayments'] {
+  const sourceRecord = isRecord(source) ? source : {}
+  const categoryIds: CompliancePaymentCategoryId[] = ['staff', 'energy', 'automation', 'institutional']
+  const legacyCarry = legacyDueAmount > 0 ? legacyDueAmount / categoryIds.length : 0
+
+  return Object.fromEntries(categoryIds.map((categoryId) => {
+    const entry = isRecord(sourceRecord[categoryId]) ? sourceRecord[categoryId] : {}
+    return [categoryId, {
+      overdueAmount: Math.max(0, getNumber(entry.overdueAmount, legacyCarry)),
+      paidThisCycle: Math.max(0, getNumber(entry.paidThisCycle, 0)),
+      lastPayment: Math.max(0, getNumber(entry.lastPayment, 0)),
+    }]
+  })) as GameState['compliancePayments']
+}
+
+function normalizeComplianceAutoPaySettings(source: unknown, legacyValue: boolean): GameState['settings']['complianceAutoPayEnabled'] {
+  const sourceRecord = isRecord(source) ? source : {}
+
+  return {
+    staff: getBoolean(sourceRecord.staff, legacyValue),
+    energy: getBoolean(sourceRecord.energy, legacyValue),
+    automation: getBoolean(sourceRecord.automation, legacyValue),
+    institutional: getBoolean(sourceRecord.institutional, legacyValue),
+  }
+}
+
+function normalizeTimedBoosts(source: unknown): GameState['timedBoosts'] {
+  const sourceRecord = isRecord(source) ? source : {}
+  const boostIds = Object.keys(DEFAULT_TIMED_BOOSTS) as TimedBoostId[]
+
+  return Object.fromEntries(boostIds.map((boostId) => {
+    const entry = isRecord(sourceRecord[boostId]) ? sourceRecord[boostId] : {}
+    return [boostId, {
+      isActive: getBoolean(entry.isActive, DEFAULT_TIMED_BOOSTS[boostId].isActive),
+      remainingActiveSeconds: Math.max(0, getNumber(entry.remainingActiveSeconds, DEFAULT_TIMED_BOOSTS[boostId].remainingActiveSeconds)),
+      remainingCooldownSeconds: Math.max(0, getNumber(entry.remainingCooldownSeconds, DEFAULT_TIMED_BOOSTS[boostId].remainingCooldownSeconds)),
+      autoEnabled: getBoolean(entry.autoEnabled, DEFAULT_TIMED_BOOSTS[boostId].autoEnabled),
+    }]
+  })) as GameState['timedBoosts']
+}
+
+function normalizeGlobalBoostsOwned(source: unknown): GameState['globalBoostsOwned'] {
+  const sourceRecord = isRecord(source) ? source : {}
+  const boostIds = Object.keys(DEFAULT_GLOBAL_BOOSTS_OWNED) as GlobalBoostId[]
+
+  return Object.fromEntries(boostIds.map((boostId) => [
+    boostId,
+    getBoolean(sourceRecord[boostId], DEFAULT_GLOBAL_BOOSTS_OWNED[boostId]),
+  ])) as GameState['globalBoostsOwned']
+}
+
 function encodeBase64(value: string): string {
   const bytes = new TextEncoder().encode(value)
   let binary = ''
@@ -246,6 +390,15 @@ export function normalizeGameState(value: unknown): GameState | null {
   const migratedPurchasedUpgrades = {
     ...purchasedUpgrades,
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.algorithmicTrading === true ? { systematicExecution: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.hotkeyMacros === true ? { tradeShortcuts: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.marketScanner === true ? { deskAnalytics: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.firmwideDeskStandards === true ? { crossDeskCoordination: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.propDeskMandates === true ? { propDeskOperatingModel: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.institutionalRelationships === true ? { institutionalClientBook: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.fundOfFundsNetwork === true ? { fundStrategyCommittee: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.globalDistribution === true ? { globalDistributionNetwork: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.executionCluster === true ? { modelServingCluster: true } : {}),
+    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.donorRoundtables === true ? { donorNetwork: true } : {}),
   }
 
   const purchasedPrestigeUpgrades = Object.fromEntries(
@@ -256,8 +409,18 @@ export function normalizeGameState(value: unknown): GameState | null {
   )
 
   const migratedPrestigeUpgrades = {
-    ...purchasedPrestigeUpgrades,
-    ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.tradeMultiplier === true ? { tradeMultiplier: 1 } : {}),
+    ...(typeof purchasedPrestigeUpgrades.brandRecognition === 'number' ? { globalRecognition: purchasedPrestigeUpgrades.brandRecognition } : {}),
+    ...(typeof purchasedPrestigeUpgrades.seedCapital === 'number' ? { seedCapital: purchasedPrestigeUpgrades.seedCapital } : {}),
+    ...(typeof purchasedPrestigeUpgrades.betterHiringPipeline === 'number' ? { betterHiringPipeline: purchasedPrestigeUpgrades.betterHiringPipeline } : {}),
+    ...(typeof purchasedPrestigeUpgrades.institutionalKnowledge === 'number' ? { institutionalKnowledge: purchasedPrestigeUpgrades.institutionalKnowledge } : {}),
+    ...(typeof purchasedPrestigeUpgrades.gridOrchestration === 'number' ? { gridOrchestration: purchasedPrestigeUpgrades.gridOrchestration } : {}),
+    ...(typeof purchasedPrestigeUpgrades.tradeMultiplier === 'number' ? { marketReputation: purchasedPrestigeUpgrades.tradeMultiplier } : {}),
+    ...(typeof purchasedPrestigeUpgrades.globalRecognition === 'number' ? { globalRecognition: purchasedPrestigeUpgrades.globalRecognition } : {}),
+    ...(typeof purchasedPrestigeUpgrades.complianceFrameworks === 'number' ? { complianceFrameworks: purchasedPrestigeUpgrades.complianceFrameworks } : {}),
+    ...(typeof purchasedPrestigeUpgrades.policyCapital === 'number' ? { policyCapital: purchasedPrestigeUpgrades.policyCapital } : {}),
+    ...(typeof purchasedPrestigeUpgrades.marketReputation === 'number' ? { marketReputation: purchasedPrestigeUpgrades.marketReputation } : {}),
+    ...(typeof purchasedPrestigeUpgrades.deskEfficiency === 'number' ? { deskEfficiency: purchasedPrestigeUpgrades.deskEfficiency } : {}),
+    ...(typeof purchasedPrestigeUpgrades.strategicReserves === 'number' ? { strategicReserves: purchasedPrestigeUpgrades.strategicReserves } : {}),
   }
 
   const purchasedResearchTech = Object.fromEntries(
@@ -272,33 +435,25 @@ export function normalizeGameState(value: unknown): GameState | null {
     ),
   )
 
-  const repeatableUpgradeRanks = Object.fromEntries(
-    Object.entries(repeatableUpgradeRanksSource).filter(
-      ([key, entryValue]) => isRepeatableUpgradeId(key) && typeof entryValue === 'number' && Number.isFinite(entryValue) && entryValue >= 0,
-    ),
-  )
-
-  const migratedRepeatableUpgradeRanks = {
-    ...repeatableUpgradeRanks,
-    ...(typeof repeatableUpgradeRanksSource.botDeploymentTuning === 'number' && Number.isFinite(repeatableUpgradeRanksSource.botDeploymentTuning) && repeatableUpgradeRanksSource.botDeploymentTuning >= 0
-      ? { ruleBasedExecution: repeatableUpgradeRanksSource.botDeploymentTuning }
-      : {}),
-    ...(typeof repeatableUpgradeRanksSource.tradingServerThroughput === 'number' && Number.isFinite(repeatableUpgradeRanksSource.tradingServerThroughput) && repeatableUpgradeRanksSource.tradingServerThroughput >= 0
-      ? { mlModelDeployment: repeatableUpgradeRanksSource.tradingServerThroughput }
-      : {}),
-    ...(typeof repeatableUpgradeRanksSource.algorithmRefinement === 'number' && Number.isFinite(repeatableUpgradeRanksSource.algorithmRefinement) && repeatableUpgradeRanksSource.algorithmRefinement >= 0
-      ? { signalRefinement: repeatableUpgradeRanksSource.algorithmRefinement }
-      : {}),
-    ...(typeof repeatableUpgradeRanksSource.exchangeColocationModels === 'number' && Number.isFinite(repeatableUpgradeRanksSource.exchangeColocationModels) && repeatableUpgradeRanksSource.exchangeColocationModels >= 0
-      ? { mlFeaturePipelines: repeatableUpgradeRanksSource.exchangeColocationModels }
-      : {}),
-  }
+  const migratedRepeatableUpgradeRanks = Object.fromEntries(
+    REPEATABLE_UPGRADE_IDS
+      .map((upgradeId) => {
+        const rank = getLegacyRepeatableRank(repeatableUpgradeRanksSource, LEGACY_REPEATABLE_RANK_MIGRATION[upgradeId])
+        return rank > 0 ? [upgradeId, rank] : null
+      })
+      .filter((entry): entry is [RepeatableUpgradeId, number] => entry !== null),
+  ) as Partial<Record<RepeatableUpgradeId, number>>
 
   const migratedPurchasedResearchTech: Partial<Record<ResearchTechId, boolean>> = {
     ...purchasedResearchTech,
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.juniorHiringProgram === true ? { foundationsOfFinanceTraining: true } : {}),
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.juniorTraderProgram === true ? { juniorTraderProgram: true } : {}),
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.seniorRecruitment === true ? { seniorRecruitment: true } : {}),
+    ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.quantTradingSystems === true ? { algorithmicTrading: true } : {}),
+    ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.powerSystemsEngineering === true ? { serverRoomSystems: true } : {}),
+    ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.aiTradingSystems === true ? { cloudInfrastructure: true } : {}),
+    ...(getNumber(value.serverRoomCount, 0) > 0 ? { serverRoomSystems: true } : {}),
+    ...(getNumber(value.cloudComputeCount, 0) > 0 ? { cloudInfrastructure: true } : {}),
     ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.tradingServers === true ? { aiTradingSystems: true } : {}),
   }
 
@@ -309,7 +464,7 @@ export function normalizeGameState(value: unknown): GameState | null {
     const autoUnlocked = sectorId === 'technology'
       ? migratedPurchasedResearchTech.technologyMarkets === true || migratedPurchasedResearchTech.algorithmicTrading === true
       : sectorId === 'energy'
-        ? migratedPurchasedResearchTech.energyMarkets === true || migratedPurchasedResearchTech.powerSystemsEngineering === true
+        ? migratedPurchasedResearchTech.energyMarkets === true || migratedPurchasedResearchTech.powerSystemsEngineering === true || migratedPurchasedResearchTech.serverRoomSystems === true
         : false
 
     return [sectorId, explicitValue || autoUnlocked]
@@ -320,14 +475,39 @@ export function normalizeGameState(value: unknown): GameState | null {
   const sectorAssignments = normalizeSectorAssignments(value.sectorAssignments, value)
   const automationConfig = normalizeAutomationConfig(value.automationConfig)
   const automationCycleState = normalizeAutomationCycleState(value.automationCycleState)
+  const activeMarketEvent = typeof value.activeMarketEvent === 'string' && isMarketEventId(value.activeMarketEvent) ? value.activeMarketEvent : initialState.activeMarketEvent
+  const activeMarketEventRemainingSeconds = Math.max(0, getNumber(value.activeMarketEventRemainingSeconds, initialState.activeMarketEventRemainingSeconds))
+  const nextMarketEventCooldownSeconds = Math.max(0, getNumber(value.nextMarketEventCooldownSeconds, initialState.nextMarketEventCooldownSeconds))
+  const marketEventHistory = normalizeMarketEventHistory(value.marketEventHistory)
+  const legacyComplianceReviewDueAmount = Math.max(0, getNumber(value.complianceReviewDueAmount, 0))
+  const compliancePayments = normalizeCompliancePayments(value.compliancePayments, legacyComplianceReviewDueAmount)
+  const legacyComplianceAutoPayEnabled = getBoolean(settingsSource.complianceAutoPayEnabled, false)
+  const timedBoosts = normalizeTimedBoosts(value.timedBoosts)
+  const globalBoostsOwned = normalizeGlobalBoostsOwned(value.globalBoostsOwned)
+  const unlockedMilestones = Object.fromEntries(
+    Object.entries(isRecord(value.unlockedMilestones) ? value.unlockedMilestones : {}).filter(([key, entryValue]) => isMilestoneId(key) && entryValue === true),
+  ) as GameState['unlockedMilestones']
 
-  return {
+  const normalizedStateBase = {
     cash: getNumber(value.cash, initialState.cash),
     researchPoints: getNumber(value.researchPoints, initialState.researchPoints),
     influence: getNumber(value.influence, initialState.influence),
+    unlockedMilestones,
+    lifetimeManualTrades: Math.max(0, getNumber(value.lifetimeManualTrades, initialState.lifetimeManualTrades)),
+    lifetimeResearchPointsEarned: Math.max(0, getNumber(value.lifetimeResearchPointsEarned, getNumber(value.researchPoints, initialState.lifetimeResearchPointsEarned))),
+    totalComplianceReviewsTriggered: Math.max(0, getNumber(value.totalComplianceReviewsTriggered, initialState.totalComplianceReviewsTriggered)),
+    totalCompliancePaymentsMade: Math.max(0, getNumber(value.totalCompliancePaymentsMade, initialState.totalCompliancePaymentsMade)),
+    complianceTabOpened: getBoolean(value.complianceTabOpened, initialState.complianceTabOpened),
+    totalTimedBoostActivations: Math.max(0, getNumber(value.totalTimedBoostActivations, initialState.totalTimedBoostActivations)),
     discoveredLobbying:
       getBoolean(value.discoveredLobbying, initialState.discoveredLobbying)
       || (isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.regulatoryAffairs === true),
+    complianceVisible: getBoolean(value.complianceVisible, initialState.complianceVisible),
+    complianceReviewRemainingSeconds: Math.max(0, getNumber(value.complianceReviewRemainingSeconds, initialState.complianceReviewRemainingSeconds)),
+    compliancePayments,
+    lastCompliancePayment: Math.max(0, getNumber(value.lastCompliancePayment, initialState.lastCompliancePayment)),
+    timedBoosts,
+    globalBoostsOwned,
     lifetimeCashEarned: getNumber(value.lifetimeCashEarned, initialState.lifetimeCashEarned),
     reputation: getNumber(value.reputation, initialState.reputation),
     reputationSpent: getNumber(value.reputationSpent, initialState.reputationSpent),
@@ -348,16 +528,17 @@ export function normalizeGameState(value: unknown): GameState | null {
     mlTradingBotCount: getNumber(value.mlTradingBotCount, getNumber(value.tradingServerCount, initialState.mlTradingBotCount)),
     aiTradingBotCount: getNumber(value.aiTradingBotCount, initialState.aiTradingBotCount),
     internResearchScientistCount: getNumber(value.internResearchScientistCount, initialState.internResearchScientistCount),
-    juniorResearchScientistCount: getNumber(
-      value.juniorResearchScientistCount,
-      getNumber(value.researchComputerScientistCount, initialState.juniorResearchScientistCount),
-    ),
+    juniorResearchScientistCount: getNumber(value.juniorResearchScientistCount, getNumber(value.researchComputerScientistCount, initialState.juniorResearchScientistCount)),
     seniorResearchScientistCount: getNumber(value.seniorResearchScientistCount, initialState.seniorResearchScientistCount),
     juniorPoliticianCount: getNumber(value.juniorPoliticianCount, initialState.juniorPoliticianCount),
     serverRackCount: getNumber(value.serverRackCount, getNumber(value.backupGeneratorCount, 0) + getNumber(value.powerContractCount, initialState.serverRackCount)),
     serverRoomCount: getNumber(value.serverRoomCount, initialState.serverRoomCount),
     dataCenterCount: getNumber(value.dataCenterCount, getNumber(value.gridExpansionCount, initialState.dataCenterCount)),
     cloudComputeCount: getNumber(value.cloudComputeCount, initialState.cloudComputeCount),
+    activeMarketEvent,
+    activeMarketEventRemainingSeconds,
+    nextMarketEventCooldownSeconds,
+    marketEventHistory,
     unlockedSectors,
     automationConfig,
     automationCycleState,
@@ -371,8 +552,20 @@ export function normalizeGameState(value: unknown): GameState | null {
     repeatableUpgradeRanks: migratedRepeatableUpgradeRanks,
     lastSaveTimestamp: getNumber(value.lastSaveTimestamp, Date.now()),
     totalOfflineSecondsApplied: getNumber(value.totalOfflineSecondsApplied, initialState.totalOfflineSecondsApplied),
+  } satisfies Omit<GameState, 'settings' | 'ui'>
+
+  const normalizedState = {
+    ...normalizedStateBase,
+    totalComplianceReviewsTriggered: inferComplianceReviewCountFromState(normalizedStateBase as GameState),
+    totalCompliancePaymentsMade: inferCompliancePaymentsMadeFromState(normalizedStateBase as GameState),
+    totalTimedBoostActivations: inferTimedBoostActivationsFromState(normalizedStateBase as GameState),
+  }
+
+  return {
+    ...normalizedState,
     settings: {
       autosaveEnabled: getBoolean(settingsSource.autosaveEnabled, initialState.settings.autosaveEnabled),
+      complianceAutoPayEnabled: normalizeComplianceAutoPaySettings(settingsSource.complianceAutoPayEnabled, legacyComplianceAutoPayEnabled),
       shortNumberThreshold: getNumber(settingsSource.shortNumberThreshold, initialState.settings.shortNumberThreshold),
     },
     ui: {
@@ -420,176 +613,7 @@ export function normalizeGameState(value: unknown): GameState | null {
             ? uiSource.capacityBuyModes.office
             : initialState.ui.capacityBuyModes.office,
       },
-      repeatableUpgradeBuyModes: {
-        manualTradeRefinement:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.manualTradeRefinement === 1 || uiSource.repeatableUpgradeBuyModes.manualTradeRefinement === 5 || uiSource.repeatableUpgradeBuyModes.manualTradeRefinement === 10 || uiSource.repeatableUpgradeBuyModes.manualTradeRefinement === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.manualTradeRefinement
-            : initialState.ui.repeatableUpgradeBuyModes.manualTradeRefinement,
-        politicalNetworking:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.politicalNetworking === 1 || uiSource.repeatableUpgradeBuyModes.politicalNetworking === 5 || uiSource.repeatableUpgradeBuyModes.politicalNetworking === 10 || uiSource.repeatableUpgradeBuyModes.politicalNetworking === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.politicalNetworking
-            : initialState.ui.repeatableUpgradeBuyModes.politicalNetworking,
-        constituencyResearch:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.constituencyResearch === 1 || uiSource.repeatableUpgradeBuyModes.constituencyResearch === 5 || uiSource.repeatableUpgradeBuyModes.constituencyResearch === 10 || uiSource.repeatableUpgradeBuyModes.constituencyResearch === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.constituencyResearch
-            : initialState.ui.repeatableUpgradeBuyModes.constituencyResearch,
-        talentHeadhunters:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.talentHeadhunters === 1 || uiSource.repeatableUpgradeBuyModes.talentHeadhunters === 5 || uiSource.repeatableUpgradeBuyModes.talentHeadhunters === 10 || uiSource.repeatableUpgradeBuyModes.talentHeadhunters === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.talentHeadhunters
-            : initialState.ui.repeatableUpgradeBuyModes.talentHeadhunters,
-        researchEndowments:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.researchEndowments === 1 || uiSource.repeatableUpgradeBuyModes.researchEndowments === 5 || uiSource.repeatableUpgradeBuyModes.researchEndowments === 10 || uiSource.repeatableUpgradeBuyModes.researchEndowments === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.researchEndowments
-            : initialState.ui.repeatableUpgradeBuyModes.researchEndowments,
-        patronageMachine:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.patronageMachine === 1 || uiSource.repeatableUpgradeBuyModes.patronageMachine === 5 || uiSource.repeatableUpgradeBuyModes.patronageMachine === 10 || uiSource.repeatableUpgradeBuyModes.patronageMachine === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.patronageMachine
-            : initialState.ui.repeatableUpgradeBuyModes.patronageMachine,
-        automationSubsidies:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.automationSubsidies === 1 || uiSource.repeatableUpgradeBuyModes.automationSubsidies === 5 || uiSource.repeatableUpgradeBuyModes.automationSubsidies === 10 || uiSource.repeatableUpgradeBuyModes.automationSubsidies === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.automationSubsidies
-            : initialState.ui.repeatableUpgradeBuyModes.automationSubsidies,
-        infrastructureGrants:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.infrastructureGrants === 1 || uiSource.repeatableUpgradeBuyModes.infrastructureGrants === 5 || uiSource.repeatableUpgradeBuyModes.infrastructureGrants === 10 || uiSource.repeatableUpgradeBuyModes.infrastructureGrants === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.infrastructureGrants
-            : initialState.ui.repeatableUpgradeBuyModes.infrastructureGrants,
-        internDeskTraining:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.internDeskTraining === 1 || uiSource.repeatableUpgradeBuyModes.internDeskTraining === 5 || uiSource.repeatableUpgradeBuyModes.internDeskTraining === 10 || uiSource.repeatableUpgradeBuyModes.internDeskTraining === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.internDeskTraining
-            : initialState.ui.repeatableUpgradeBuyModes.internDeskTraining,
-        internPlaybooks:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.internPlaybooks === 1 || uiSource.repeatableUpgradeBuyModes.internPlaybooks === 5 || uiSource.repeatableUpgradeBuyModes.internPlaybooks === 10 || uiSource.repeatableUpgradeBuyModes.internPlaybooks === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.internPlaybooks
-            : initialState.ui.repeatableUpgradeBuyModes.internPlaybooks,
-        internLabTraining:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.internLabTraining === 1 || uiSource.repeatableUpgradeBuyModes.internLabTraining === 5 || uiSource.repeatableUpgradeBuyModes.internLabTraining === 10 || uiSource.repeatableUpgradeBuyModes.internLabTraining === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.internLabTraining
-            : initialState.ui.repeatableUpgradeBuyModes.internLabTraining,
-        internResearchNotes:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.internResearchNotes === 1 || uiSource.repeatableUpgradeBuyModes.internResearchNotes === 5 || uiSource.repeatableUpgradeBuyModes.internResearchNotes === 10 || uiSource.repeatableUpgradeBuyModes.internResearchNotes === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.internResearchNotes
-            : initialState.ui.repeatableUpgradeBuyModes.internResearchNotes,
-        juniorTraderTraining:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.juniorTraderTraining === 1 || uiSource.repeatableUpgradeBuyModes.juniorTraderTraining === 5 || uiSource.repeatableUpgradeBuyModes.juniorTraderTraining === 10 || uiSource.repeatableUpgradeBuyModes.juniorTraderTraining === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.juniorTraderTraining
-            : initialState.ui.repeatableUpgradeBuyModes.juniorTraderTraining,
-        seniorDeskPerformance:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.seniorDeskPerformance === 1 || uiSource.repeatableUpgradeBuyModes.seniorDeskPerformance === 5 || uiSource.repeatableUpgradeBuyModes.seniorDeskPerformance === 10 || uiSource.repeatableUpgradeBuyModes.seniorDeskPerformance === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.seniorDeskPerformance
-            : initialState.ui.repeatableUpgradeBuyModes.seniorDeskPerformance,
-        propDeskScaling:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.propDeskScaling === 1 || uiSource.repeatableUpgradeBuyModes.propDeskScaling === 5 || uiSource.repeatableUpgradeBuyModes.propDeskScaling === 10 || uiSource.repeatableUpgradeBuyModes.propDeskScaling === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.propDeskScaling
-            : initialState.ui.repeatableUpgradeBuyModes.propDeskScaling,
-        institutionalDeskCoordination:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.institutionalDeskCoordination === 1 || uiSource.repeatableUpgradeBuyModes.institutionalDeskCoordination === 5 || uiSource.repeatableUpgradeBuyModes.institutionalDeskCoordination === 10 || uiSource.repeatableUpgradeBuyModes.institutionalDeskCoordination === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.institutionalDeskCoordination
-            : initialState.ui.repeatableUpgradeBuyModes.institutionalDeskCoordination,
-        hedgeFundExecution:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.hedgeFundExecution === 1 || uiSource.repeatableUpgradeBuyModes.hedgeFundExecution === 5 || uiSource.repeatableUpgradeBuyModes.hedgeFundExecution === 10 || uiSource.repeatableUpgradeBuyModes.hedgeFundExecution === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.hedgeFundExecution
-            : initialState.ui.repeatableUpgradeBuyModes.hedgeFundExecution,
-        investmentFirmOperations:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.investmentFirmOperations === 1 || uiSource.repeatableUpgradeBuyModes.investmentFirmOperations === 5 || uiSource.repeatableUpgradeBuyModes.investmentFirmOperations === 10 || uiSource.repeatableUpgradeBuyModes.investmentFirmOperations === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.investmentFirmOperations
-            : initialState.ui.repeatableUpgradeBuyModes.investmentFirmOperations,
-        ruleBasedExecution:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.ruleBasedExecution === 1 || uiSource.repeatableUpgradeBuyModes.ruleBasedExecution === 5 || uiSource.repeatableUpgradeBuyModes.ruleBasedExecution === 10 || uiSource.repeatableUpgradeBuyModes.ruleBasedExecution === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.ruleBasedExecution
-            : isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.botDeploymentTuning === 1 || uiSource.repeatableUpgradeBuyModes.botDeploymentTuning === 5 || uiSource.repeatableUpgradeBuyModes.botDeploymentTuning === 10 || uiSource.repeatableUpgradeBuyModes.botDeploymentTuning === 'max')
-              ? uiSource.repeatableUpgradeBuyModes.botDeploymentTuning
-              : initialState.ui.repeatableUpgradeBuyModes.ruleBasedExecution,
-        mlModelDeployment:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.mlModelDeployment === 1 || uiSource.repeatableUpgradeBuyModes.mlModelDeployment === 5 || uiSource.repeatableUpgradeBuyModes.mlModelDeployment === 10 || uiSource.repeatableUpgradeBuyModes.mlModelDeployment === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.mlModelDeployment
-            : isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.tradingServerThroughput === 1 || uiSource.repeatableUpgradeBuyModes.tradingServerThroughput === 5 || uiSource.repeatableUpgradeBuyModes.tradingServerThroughput === 10 || uiSource.repeatableUpgradeBuyModes.tradingServerThroughput === 'max')
-              ? uiSource.repeatableUpgradeBuyModes.tradingServerThroughput
-              : initialState.ui.repeatableUpgradeBuyModes.mlModelDeployment,
-        aiClusterOrchestration:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.aiClusterOrchestration === 1 || uiSource.repeatableUpgradeBuyModes.aiClusterOrchestration === 5 || uiSource.repeatableUpgradeBuyModes.aiClusterOrchestration === 10 || uiSource.repeatableUpgradeBuyModes.aiClusterOrchestration === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.aiClusterOrchestration
-            : initialState.ui.repeatableUpgradeBuyModes.aiClusterOrchestration,
-        juniorLabProtocols:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.juniorLabProtocols === 1 || uiSource.repeatableUpgradeBuyModes.juniorLabProtocols === 5 || uiSource.repeatableUpgradeBuyModes.juniorLabProtocols === 10 || uiSource.repeatableUpgradeBuyModes.juniorLabProtocols === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.juniorLabProtocols
-            : initialState.ui.repeatableUpgradeBuyModes.juniorLabProtocols,
-        seniorLabMethods:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.seniorLabMethods === 1 || uiSource.repeatableUpgradeBuyModes.seniorLabMethods === 5 || uiSource.repeatableUpgradeBuyModes.seniorLabMethods === 10 || uiSource.repeatableUpgradeBuyModes.seniorLabMethods === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.seniorLabMethods
-            : initialState.ui.repeatableUpgradeBuyModes.seniorLabMethods,
-        rackDensity:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.rackDensity === 1 || uiSource.repeatableUpgradeBuyModes.rackDensity === 5 || uiSource.repeatableUpgradeBuyModes.rackDensity === 10 || uiSource.repeatableUpgradeBuyModes.rackDensity === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.rackDensity
-            : initialState.ui.repeatableUpgradeBuyModes.rackDensity,
-        serverRoomExpansion:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.serverRoomExpansion === 1 || uiSource.repeatableUpgradeBuyModes.serverRoomExpansion === 5 || uiSource.repeatableUpgradeBuyModes.serverRoomExpansion === 10 || uiSource.repeatableUpgradeBuyModes.serverRoomExpansion === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.serverRoomExpansion
-            : initialState.ui.repeatableUpgradeBuyModes.serverRoomExpansion,
-        dataCenterOverbuild:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.dataCenterOverbuild === 1 || uiSource.repeatableUpgradeBuyModes.dataCenterOverbuild === 5 || uiSource.repeatableUpgradeBuyModes.dataCenterOverbuild === 10 || uiSource.repeatableUpgradeBuyModes.dataCenterOverbuild === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.dataCenterOverbuild
-            : initialState.ui.repeatableUpgradeBuyModes.dataCenterOverbuild,
-        cloudFailover:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.cloudFailover === 1 || uiSource.repeatableUpgradeBuyModes.cloudFailover === 5 || uiSource.repeatableUpgradeBuyModes.cloudFailover === 10 || uiSource.repeatableUpgradeBuyModes.cloudFailover === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.cloudFailover
-            : initialState.ui.repeatableUpgradeBuyModes.cloudFailover,
-        behavioralModeling:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.behavioralModeling === 1 || uiSource.repeatableUpgradeBuyModes.behavioralModeling === 5 || uiSource.repeatableUpgradeBuyModes.behavioralModeling === 10 || uiSource.repeatableUpgradeBuyModes.behavioralModeling === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.behavioralModeling
-            : initialState.ui.repeatableUpgradeBuyModes.behavioralModeling,
-        decisionSystems:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.decisionSystems === 1 || uiSource.repeatableUpgradeBuyModes.decisionSystems === 5 || uiSource.repeatableUpgradeBuyModes.decisionSystems === 10 || uiSource.repeatableUpgradeBuyModes.decisionSystems === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.decisionSystems
-            : initialState.ui.repeatableUpgradeBuyModes.decisionSystems,
-        propDeskResearch:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.propDeskResearch === 1 || uiSource.repeatableUpgradeBuyModes.propDeskResearch === 5 || uiSource.repeatableUpgradeBuyModes.propDeskResearch === 10 || uiSource.repeatableUpgradeBuyModes.propDeskResearch === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.propDeskResearch
-            : initialState.ui.repeatableUpgradeBuyModes.propDeskResearch,
-        institutionalAnalytics:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.institutionalAnalytics === 1 || uiSource.repeatableUpgradeBuyModes.institutionalAnalytics === 5 || uiSource.repeatableUpgradeBuyModes.institutionalAnalytics === 10 || uiSource.repeatableUpgradeBuyModes.institutionalAnalytics === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.institutionalAnalytics
-            : initialState.ui.repeatableUpgradeBuyModes.institutionalAnalytics,
-        hedgeFundResearch:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.hedgeFundResearch === 1 || uiSource.repeatableUpgradeBuyModes.hedgeFundResearch === 5 || uiSource.repeatableUpgradeBuyModes.hedgeFundResearch === 10 || uiSource.repeatableUpgradeBuyModes.hedgeFundResearch === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.hedgeFundResearch
-            : initialState.ui.repeatableUpgradeBuyModes.hedgeFundResearch,
-        firmWideSystems:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.firmWideSystems === 1 || uiSource.repeatableUpgradeBuyModes.firmWideSystems === 5 || uiSource.repeatableUpgradeBuyModes.firmWideSystems === 10 || uiSource.repeatableUpgradeBuyModes.firmWideSystems === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.firmWideSystems
-            : initialState.ui.repeatableUpgradeBuyModes.firmWideSystems,
-        signalRefinement:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.signalRefinement === 1 || uiSource.repeatableUpgradeBuyModes.signalRefinement === 5 || uiSource.repeatableUpgradeBuyModes.signalRefinement === 10 || uiSource.repeatableUpgradeBuyModes.signalRefinement === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.signalRefinement
-            : isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.algorithmRefinement === 1 || uiSource.repeatableUpgradeBuyModes.algorithmRefinement === 5 || uiSource.repeatableUpgradeBuyModes.algorithmRefinement === 10 || uiSource.repeatableUpgradeBuyModes.algorithmRefinement === 'max')
-              ? uiSource.repeatableUpgradeBuyModes.algorithmRefinement
-              : initialState.ui.repeatableUpgradeBuyModes.signalRefinement,
-        mlFeaturePipelines:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.mlFeaturePipelines === 1 || uiSource.repeatableUpgradeBuyModes.mlFeaturePipelines === 5 || uiSource.repeatableUpgradeBuyModes.mlFeaturePipelines === 10 || uiSource.repeatableUpgradeBuyModes.mlFeaturePipelines === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.mlFeaturePipelines
-            : isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.exchangeColocationModels === 1 || uiSource.repeatableUpgradeBuyModes.exchangeColocationModels === 5 || uiSource.repeatableUpgradeBuyModes.exchangeColocationModels === 10 || uiSource.repeatableUpgradeBuyModes.exchangeColocationModels === 'max')
-              ? uiSource.repeatableUpgradeBuyModes.exchangeColocationModels
-              : initialState.ui.repeatableUpgradeBuyModes.mlFeaturePipelines,
-        aiTrainingSystems:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.aiTrainingSystems === 1 || uiSource.repeatableUpgradeBuyModes.aiTrainingSystems === 5 || uiSource.repeatableUpgradeBuyModes.aiTrainingSystems === 10 || uiSource.repeatableUpgradeBuyModes.aiTrainingSystems === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.aiTrainingSystems
-            : initialState.ui.repeatableUpgradeBuyModes.aiTrainingSystems,
-        juniorLabOptimization:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.juniorLabOptimization === 1 || uiSource.repeatableUpgradeBuyModes.juniorLabOptimization === 5 || uiSource.repeatableUpgradeBuyModes.juniorLabOptimization === 10 || uiSource.repeatableUpgradeBuyModes.juniorLabOptimization === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.juniorLabOptimization
-            : initialState.ui.repeatableUpgradeBuyModes.juniorLabOptimization,
-        seniorLabOptimization:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.seniorLabOptimization === 1 || uiSource.repeatableUpgradeBuyModes.seniorLabOptimization === 5 || uiSource.repeatableUpgradeBuyModes.seniorLabOptimization === 10 || uiSource.repeatableUpgradeBuyModes.seniorLabOptimization === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.seniorLabOptimization
-            : initialState.ui.repeatableUpgradeBuyModes.seniorLabOptimization,
-        energyOptimization:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.energyOptimization === 1 || uiSource.repeatableUpgradeBuyModes.energyOptimization === 5 || uiSource.repeatableUpgradeBuyModes.energyOptimization === 10 || uiSource.repeatableUpgradeBuyModes.energyOptimization === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.energyOptimization
-            : initialState.ui.repeatableUpgradeBuyModes.energyOptimization,
-        serverEfficiency:
-          isRecord(uiSource.repeatableUpgradeBuyModes) && (uiSource.repeatableUpgradeBuyModes.serverEfficiency === 1 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 5 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 10 || uiSource.repeatableUpgradeBuyModes.serverEfficiency === 'max')
-            ? uiSource.repeatableUpgradeBuyModes.serverEfficiency
-            : initialState.ui.repeatableUpgradeBuyModes.serverEfficiency,
-      },
+      repeatableUpgradeBuyModes: normalizeRepeatableUpgradeBuyModes(uiSource.repeatableUpgradeBuyModes),
       researchBranchExpanded: {
         humanCapital:
           isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.humanCapital === 'boolean'
@@ -607,6 +631,10 @@ export function normalizeGameState(value: unknown): GameState | null {
           isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.automation === 'boolean'
             ? uiSource.researchBranchExpanded.automation
             : initialState.ui.researchBranchExpanded.automation,
+        boosts:
+          isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.boosts === 'boolean'
+            ? uiSource.researchBranchExpanded.boosts
+            : initialState.ui.researchBranchExpanded.boosts,
         regulation:
           isRecord(uiSource.researchBranchExpanded) && typeof uiSource.researchBranchExpanded.regulation === 'boolean'
             ? uiSource.researchBranchExpanded.regulation
@@ -628,12 +656,16 @@ export function normalizeGameState(value: unknown): GameState | null {
           ? uiSource.dismissedCapacityFull
           : initialState.ui.dismissedCapacityFull,
       prestigePurchasePlan: {
-        brandRecognition: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.brandRecognition === 'number' && uiSource.prestigePurchasePlan.brandRecognition >= 0 ? uiSource.prestigePurchasePlan.brandRecognition : 0,
+        globalRecognition: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.globalRecognition === 'number' && uiSource.prestigePurchasePlan.globalRecognition >= 0 ? uiSource.prestigePurchasePlan.globalRecognition : isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.brandRecognition === 'number' && uiSource.prestigePurchasePlan.brandRecognition >= 0 ? uiSource.prestigePurchasePlan.brandRecognition : 0,
         seedCapital: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.seedCapital === 'number' && uiSource.prestigePurchasePlan.seedCapital >= 0 ? uiSource.prestigePurchasePlan.seedCapital : 0,
         betterHiringPipeline: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.betterHiringPipeline === 'number' && uiSource.prestigePurchasePlan.betterHiringPipeline >= 0 ? uiSource.prestigePurchasePlan.betterHiringPipeline : 0,
         institutionalKnowledge: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.institutionalKnowledge === 'number' && uiSource.prestigePurchasePlan.institutionalKnowledge >= 0 ? uiSource.prestigePurchasePlan.institutionalKnowledge : 0,
         gridOrchestration: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.gridOrchestration === 'number' && uiSource.prestigePurchasePlan.gridOrchestration >= 0 ? uiSource.prestigePurchasePlan.gridOrchestration : 0,
-        tradeMultiplier: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.tradeMultiplier === 'number' && uiSource.prestigePurchasePlan.tradeMultiplier >= 0 ? uiSource.prestigePurchasePlan.tradeMultiplier : 0,
+        complianceFrameworks: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.complianceFrameworks === 'number' && uiSource.prestigePurchasePlan.complianceFrameworks >= 0 ? uiSource.prestigePurchasePlan.complianceFrameworks : 0,
+        policyCapital: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.policyCapital === 'number' && uiSource.prestigePurchasePlan.policyCapital >= 0 ? uiSource.prestigePurchasePlan.policyCapital : 0,
+        marketReputation: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.marketReputation === 'number' && uiSource.prestigePurchasePlan.marketReputation >= 0 ? uiSource.prestigePurchasePlan.marketReputation : isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.tradeMultiplier === 'number' && uiSource.prestigePurchasePlan.tradeMultiplier >= 0 ? uiSource.prestigePurchasePlan.tradeMultiplier : 0,
+        deskEfficiency: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.deskEfficiency === 'number' && uiSource.prestigePurchasePlan.deskEfficiency >= 0 ? uiSource.prestigePurchasePlan.deskEfficiency : 0,
+        strategicReserves: isRecord(uiSource.prestigePurchasePlan) && typeof uiSource.prestigePurchasePlan.strategicReserves === 'number' && uiSource.prestigePurchasePlan.strategicReserves >= 0 ? uiSource.prestigePurchasePlan.strategicReserves : 0,
       },
       unitBuyModes: {
         juniorTrader:

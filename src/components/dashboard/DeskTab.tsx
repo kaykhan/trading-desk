@@ -330,7 +330,7 @@ function DeskUnitBuyControls({ unitId, activeMode, onChange }: { unitId: UnitId;
   )
 }
 
-function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode, disabled, unlocked, titleDescription, onBuy, onModeChange, assignmentSummary, extraContent }: {
+function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode, disabled, blockedByDeskCapacity = false, unlocked, titleDescription, onBuy, onModeChange, assignmentSummary, extraContent }: {
   config: UnitPanelConfig
   incomeLabel: string
   totalCost: number
@@ -338,6 +338,7 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
   quantity: number
   buyMode: BuyMode
   disabled: boolean
+  blockedByDeskCapacity?: boolean
   unlocked: boolean
   titleDescription: string
   onBuy: () => void
@@ -345,9 +346,8 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
   assignmentSummary?: HumanAssignmentSummary
   extraContent?: ReactNode
 }) {
-  const blockedByDeskCapacity = (config.unitId === 'intern' || config.unitId === 'juniorTrader' || config.unitId === 'seniorTrader') && disabled && totalCost === 0
   const status = unlocked ? (blockedByDeskCapacity ? 'Need Desk Slots' : disabled ? 'Need cash' : 'Ready') : 'Locked'
-  const statusTone = unlocked ? (blockedByDeskCapacity ? 'locked' : disabled ? 'default' : 'ready') : 'locked'
+  const statusTone = unlocked ? (blockedByDeskCapacity ? 'warning' : disabled ? 'warning' : 'ready') : 'locked'
   const badges = [
     `${quantity} owned`,
     ...(assignmentSummary ? [`${assignmentSummary.assigned} assigned`, `${assignmentSummary.available} available`] : []),
@@ -365,7 +365,7 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
         statusTone={statusTone}
         actionLabel={`${config.purchaseLabel} ${formatCurrency(totalCost || nextCost)}`}
         disabled={!unlocked || disabled}
-        disabledReason={!unlocked ? config.lockedReason : blockedByDeskCapacity ? 'Need more Desk Slots for additional human traders.' : disabled ? 'Not enough cash for current buy mode.' : undefined}
+        disabledReason={!unlocked ? config.lockedReason : blockedByDeskCapacity ? 'Need more Desk Slots for additional staff.' : disabled ? 'Not enough cash for current buy mode.' : undefined}
         badges={badges}
         onClick={onBuy}
         footer={<div className="space-y-1.5"><DeskUnitBuyControls unitId={config.unitId} activeMode={buyMode} onChange={onModeChange} />{extraContent}</div>}
@@ -409,7 +409,7 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
     : null
   const label = AUTOMATION_UNITS[unitId].name
   const lockedReason = unitId === 'quantTrader'
-    ? `Requires Quant Trading Systems research after opening Algorithmic Foundations (${gameState.purchasedResearchTech.quantTradingSystems ? 'done' : 'not researched'}).`
+    ? `Requires Algorithmic Foundations research (${gameState.purchasedResearchTech.algorithmicTrading ? 'done' : 'not researched'}).`
     : unitId === 'ruleBasedBot'
       ? `Requires Rule-Based Automation research (${gameState.purchasedResearchTech.ruleBasedAutomation ? 'done' : 'not researched'}).`
       : unitId === 'mlTradingBot'
@@ -425,19 +425,28 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
           <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Owned {owned}</Badge>
           <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Cycle {AUTOMATION_UNITS[unitId].cycleDurationSeconds}s</Badge>
           <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUse * owned, { decimalsBelowThreshold: 1 })} power</Badge>
-          {runtime.lastPayout > 0 ? <Badge variant="outline" className={justPaid && payoutFlashClass ? `h-5 rounded-md px-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-300 ${payoutFlashClass}` : 'h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{`+${formatCurrency(runtime.lastPayout, runtime.lastPayout < 100 ? 1 : 0)}`}</Badge> : null}
         </div>
         <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{unlocked ? AUTOMATION_UNITS[unitId].description : lockedReason}</p>
 
         <div className="mt-3 space-y-2">
-          <div className="h-2 overflow-hidden rounded bg-background/80">
-            <div className={`h-full rounded transition-all duration-200 ${justPaid ? 'bg-emerald-400' : 'bg-primary'}`} style={{ width: `${progressPercent * 100}%` }} />
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            <div className={`rounded-lg border p-2 text-[11px] transition-all duration-300 ${justPaid && payoutFlashClass ? payoutFlashClass : 'border-border/70 bg-background/45 text-muted-foreground'}`}>Next payout {formatCurrency(nextPayout, nextPayout < 100 ? 1 : 0)}</div>
-            <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Average {formatRate(averageIncome)}</div>
-            <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">Remaining {formatNumber(timeRemaining, { decimalsBelowThreshold: 1 })}s</div>
-            <div className={`rounded-lg border p-2 text-[11px] transition-all duration-300 ${justPaid && payoutFlashClass ? payoutFlashClass : 'border-border/70 bg-background/45 text-muted-foreground'}`}>{config.strategy ? 'Strategy armed' : 'Awaiting strategy'}</div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Cycle Progress</span>
+              <div className="flex items-center gap-3 normal-case tracking-normal text-[11px]">
+                <span className={justPaid && payoutFlashClass ? `transition-all duration-300 ${payoutFlashClass}` : undefined}>{formatCurrency(nextPayout, nextPayout < 100 ? 1 : 0)}</span>
+                <span>{formatRate(averageIncome).replace(' / sec', '/s')}</span>
+                <span>{formatNumber(timeRemaining, { decimalsBelowThreshold: 1 })}s</span>
+              </div>
+            </div>
+            <div className="h-2 overflow-hidden rounded bg-background/80">
+              <div
+                className="h-full rounded transition-all duration-200"
+                style={{
+                  width: `${progressPercent * 100}%`,
+                  background: 'linear-gradient(90deg, rgb(220 38 38) 0%, rgb(194 65 12) 18%, rgb(234 179 8) 58%, rgb(132 204 22) 82%, rgb(34 197 94) 100%)',
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -501,7 +510,7 @@ export function DeskTab() {
   const setPowerBuyMode = useGameStore((state) => state.setPowerBuyMode)
   const latestTradeFeedback = useGameStore((state) => state.latestTradeFeedback)
   const cashPerClick = useGameStore(selectors.cashPerClick)
-  const manualTradeOptimizationRank = useGameStore(selectors.repeatableUpgradeRank('manualTradeRefinement'))
+  const manualTradeOptimizationRank = useGameStore(selectors.repeatableUpgradeRank('manualExecutionRefinement'))
   const internIncome = useGameStore(selectors.internIncome)
   const juniorIncome = useGameStore(selectors.juniorIncome)
   const seniorIncome = useGameStore(selectors.seniorIncome)
@@ -610,7 +619,7 @@ export function DeskTab() {
       unitId: 'quantTrader',
       title: 'Quant Trader',
       purchaseLabel: 'Deploy',
-      lockedReason: `Requires Quant Trading Systems research after opening Algorithmic Foundations (${gameState.purchasedResearchTech.quantTradingSystems ? 'done' : 'not researched'}).`,
+      lockedReason: `Requires Algorithmic Foundations research (${gameState.purchasedResearchTech.algorithmicTrading ? 'done' : 'not researched'}).`,
       totalLabel: 'System',
       extraBadges: ['Cycle-based'],
     },
@@ -648,7 +657,7 @@ export function DeskTab() {
       purchaseLabel: 'Hire',
       lockedReason: 'Unlock with Foundations of Finance Training in Research.',
       totalLabel: 'Research',
-      extraBadges: ['0.35 RP / sec'],
+      extraBadges: ['0.35 RP / sec', 'Desk-based'],
     },
     {
       unitId: 'juniorResearchScientist',
@@ -656,7 +665,7 @@ export function DeskTab() {
       purchaseLabel: 'Hire',
       lockedReason: `Requires Junior Scientists research (${gameState.purchasedResearchTech.juniorScientists ? 'done' : 'not researched'}).`,
       totalLabel: 'Research',
-      extraBadges: ['1.1 RP / sec'],
+      extraBadges: ['1.1 RP / sec', 'Desk-based'],
     },
     {
       unitId: 'seniorResearchScientist',
@@ -664,7 +673,7 @@ export function DeskTab() {
       purchaseLabel: 'Hire',
       lockedReason: `Requires Senior Scientists research (${gameState.purchasedResearchTech.seniorScientists ? 'done' : 'not researched'}).`,
       totalLabel: 'Research',
-      extraBadges: ['3.4 RP / sec'],
+      extraBadges: ['3.4 RP / sec', 'Desk-based'],
     },
     {
       unitId: 'juniorPolitician',
@@ -684,7 +693,7 @@ export function DeskTab() {
     },
     {
       unitId: 'mlTradingBot',
-      title: 'ML Trading Bot',
+      title: 'ML Bot',
       purchaseLabel: 'Deploy',
       lockedReason: `Requires Machine Learning Trading and at least 1 Data Centre (${gameState.dataCenterCount}/1).`,
       totalLabel: 'Machine',
@@ -692,9 +701,9 @@ export function DeskTab() {
     },
     {
       unitId: 'aiTradingBot',
-      title: 'AI Trading Bot',
+      title: 'AI Bot',
       purchaseLabel: 'Deploy',
-      lockedReason: `Late-run machine tier. Requires AI Trading Systems, 3 ML Trading Bots (${gameState.mlTradingBotCount}/3), and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`,
+      lockedReason: `Late-run machine tier. Requires AI Trading Systems, 3 ML Bots (${gameState.mlTradingBotCount}/3), and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`,
       totalLabel: 'Machine',
       extraBadges: ['48 power each'],
     },
@@ -702,7 +711,7 @@ export function DeskTab() {
 
   const getUnitState = (unitId: UnitId) => {
     const unlocked = selectors.isUnitUnlocked(unitId)(gameState)
-    const deskLimited = unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader'
+    const deskLimited = unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader' || unitId === 'internResearchScientist' || unitId === 'juniorResearchScientist' || unitId === 'seniorResearchScientist'
     const disabled = !selectors.canAffordUnitInCurrentMode(unitId)(gameState)
     const totalCost = selectors.bulkUnitTotalCost(unitId)(gameState)
     const quantity = selectors.bulkUnitQuantity(unitId)(gameState)
@@ -753,18 +762,18 @@ export function DeskTab() {
     }
 
     if (unitId === 'internResearchScientist') {
-      return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextInternScientistCost, buyMode: internScientistBuyMode, count: gameState.internResearchScientistCount, totalIncome: `${formatNumber(gameState.internResearchScientistCount * 0.35, { decimalsBelowThreshold: 2 })} RP / sec`, description: UNITS.internResearchScientist.description }
+      return { unlocked, disabled: disabled || blockedByDeskCapacity, blockedByDeskCapacity, totalCost, quantity, nextCost: nextInternScientistCost, buyMode: internScientistBuyMode, count: gameState.internResearchScientistCount, totalIncome: `${formatNumber(gameState.internResearchScientistCount * 0.35, { decimalsBelowThreshold: 2 })} RP / sec`, description: UNITS.internResearchScientist.description }
     }
 
     if (unitId === 'juniorResearchScientist') {
-      return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextJuniorScientistCost, buyMode: juniorScientistBuyMode, count: gameState.juniorResearchScientistCount, totalIncome: `${formatNumber(gameState.juniorResearchScientistCount * 1.1, { decimalsBelowThreshold: 1 })} RP / sec`, description: UNITS.juniorResearchScientist.description }
+      return { unlocked, disabled: disabled || blockedByDeskCapacity, blockedByDeskCapacity, totalCost, quantity, nextCost: nextJuniorScientistCost, buyMode: juniorScientistBuyMode, count: gameState.juniorResearchScientistCount, totalIncome: `${formatNumber(gameState.juniorResearchScientistCount * 1.1, { decimalsBelowThreshold: 1 })} RP / sec`, description: UNITS.juniorResearchScientist.description }
     }
 
     if (unitId === 'juniorPolitician') {
       return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextJuniorPoliticianCost, buyMode: juniorPoliticianBuyMode, count: gameState.juniorPoliticianCount, totalIncome: `${formatNumber(gameState.juniorPoliticianCount * 0.01, { decimalsBelowThreshold: 2 })} inf / sec`, description: UNITS.juniorPolitician.description }
     }
 
-    return { unlocked, disabled, blockedByDeskCapacity: false, totalCost, quantity, nextCost: nextSeniorScientistCost, buyMode: seniorScientistBuyMode, count: gameState.seniorResearchScientistCount, totalIncome: `${formatNumber(gameState.seniorResearchScientistCount * 3.4, { decimalsBelowThreshold: 1 })} RP / sec`, description: UNITS.seniorResearchScientist.description }
+    return { unlocked, disabled: disabled || blockedByDeskCapacity, blockedByDeskCapacity, totalCost, quantity, nextCost: nextSeniorScientistCost, buyMode: seniorScientistBuyMode, count: gameState.seniorResearchScientistCount, totalIncome: `${formatNumber(gameState.seniorResearchScientistCount * 3.4, { decimalsBelowThreshold: 1 })} RP / sec`, description: UNITS.seniorResearchScientist.description }
   }
 
   const serverRackBuyMode = useGameStore(selectors.powerBuyMode('serverRack'))
@@ -873,6 +882,7 @@ export function DeskTab() {
                 quantity={state.count}
                 buyMode={state.buyMode}
                 disabled={state.disabled}
+                blockedByDeskCapacity={state.blockedByDeskCapacity}
                 unlocked={state.unlocked}
                 titleDescription={state.description}
                 assignmentSummary={assignmentSummary}
@@ -909,6 +919,7 @@ export function DeskTab() {
                 quantity={state.count}
                 buyMode={state.buyMode}
                 disabled={state.disabled}
+                blockedByDeskCapacity={state.blockedByDeskCapacity}
                 unlocked={state.unlocked}
                 titleDescription={state.description}
                 extraContent={<InstitutionalMandateManager unitId={mandateUnitId} />}
@@ -931,9 +942,11 @@ export function DeskTab() {
             {gameState.purchasedResearchTech.foundationsOfFinanceTraining ? (
               <>
                 <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatPlainRate(researchPointsPerSecond)} research</Badge>
+                <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{availableDeskSlots} free desks</Badge>
               </>
             ) : null}
           </div>
+          <p className="text-[11px] leading-4 text-muted-foreground">Scientists now use desk capacity like traders. They no longer consume energy, so office space is the main scaling constraint for the research team.</p>
           {unitPanelConfigs.filter((item) => item.unitId === 'internResearchScientist' || item.unitId === 'juniorResearchScientist' || item.unitId === 'seniorResearchScientist').map((config) => {
             const state = getUnitState(config.unitId)
             return (
@@ -946,6 +959,7 @@ export function DeskTab() {
                 quantity={state.count}
                 buyMode={state.buyMode}
                 disabled={state.disabled}
+                blockedByDeskCapacity={state.blockedByDeskCapacity}
                 unlocked={state.unlocked}
                 titleDescription={state.description}
                 onBuy={() => buyUnit(config.unitId, state.buyMode)}
@@ -974,6 +988,7 @@ export function DeskTab() {
                 quantity={state.count}
                 buyMode={state.buyMode}
                 disabled={state.disabled}
+                blockedByDeskCapacity={state.blockedByDeskCapacity}
                 unlocked={state.unlocked}
                 titleDescription={state.description}
                 onBuy={() => buyUnit(config.unitId, state.buyMode)}
@@ -1009,7 +1024,7 @@ export function DeskTab() {
               <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">Infrastructure</h3>
               <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Office Unlocked</Badge>
               <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} use / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })} generating</Badge>
-              {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Energy Research Unlocked</Badge> : <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Energy Research Locked</Badge>}
+               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">Energy Research Unlocked</Badge> : <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Energy Research Locked</Badge>}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Quant {formatNumber(quantTraderPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rule {formatNumber(ruleBasedBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
@@ -1026,19 +1041,19 @@ export function DeskTab() {
               <Badge variant="outline" className="h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">{usedDeskSlots} / {totalDeskSlots} desks used</Badge>
               <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{availableDeskSlots} free</Badge>
             </div>
-            <p className="text-[11px] leading-4 text-muted-foreground">Buy more space for human traders here. Each purchase requires cash and energy capacity: Desk Space is the cheapest patch for one more hire, Floor Space is the first real expansion, and Office is the large-scale late purchase.</p>
+            <p className="text-[11px] leading-4 text-muted-foreground">Buy more space for traders and scientists here. Desk Space is the cheapest patch for one more staff seat, Floor Space is the first real expansion, and Office is the large-scale late purchase.</p>
             <div className="space-y-2">
-              {[
-               { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= deskSpaceTotalCost && deskSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState), visible: true, lockedReason: 'Starter office expansion available from the start.' },
-               { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= floorSpaceTotalCost && floorSpaceQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: gameState.purchasedResearchTech.floorSpacePlanning === true, lockedReason: 'Requires Floor Space Planning research.' },
-               { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= officeTotalCost && officeQuantity > 0, canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: gameState.purchasedResearchTech.officeExpansionPlanning === true, lockedReason: 'Requires Office Expansion Planning research.' },
-               ].map((item) => (
+               {[
+                { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= (deskSpaceQuantity > 0 ? deskSpaceTotalCost : deskSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState), visible: true, lockedReason: 'Starter office expansion available from the start.' },
+                { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= (floorSpaceQuantity > 0 ? floorSpaceTotalCost : floorSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: gameState.purchasedResearchTech.floorSpacePlanning === true, lockedReason: 'Requires Floor Space Planning research.' },
+                { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= (officeQuantity > 0 ? officeTotalCost : officeCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: gameState.purchasedResearchTech.officeExpansionPlanning === true, lockedReason: 'Requires Office Expansion Planning research.' },
+                ].map((item) => (
                 <PurchaseCard
                   key={item.id}
                   title={item.name}
                   description={item.visible ? item.description : item.lockedReason}
                   status={!item.visible ? 'Locked' : item.canAffordCash && item.canAffordEnergy ? 'Ready' : !item.canAffordCash ? 'Need cash' : 'Need energy'}
-                  statusTone={!item.visible ? 'locked' : item.canAffordCash && item.canAffordEnergy ? 'ready' : 'default'}
+                  statusTone={!item.visible ? 'locked' : item.canAffordCash && item.canAffordEnergy ? 'ready' : 'warning'}
                   actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
                   disabled={!item.visible || !item.canAffordCash || !item.canAffordEnergy}
                   disabledReason={!item.visible ? item.lockedReason : !item.canAffordCash ? 'Not enough cash for this expansion.' : !item.canAffordEnergy ? 'Need more total power capacity for this office expansion.' : undefined}
@@ -1076,13 +1091,13 @@ export function DeskTab() {
             <div className="space-y-2">
               {[
               { id: 'serverRack' as const, count: serverRackCount, buyMode: serverRackBuyMode, totalCost: serverRackTotalCost, quantity: serverRackQuantity, nextCost: nextServerRackCost, canAfford: canAffordServerRack, visible: true, lockedReason: 'Starter infrastructure.' },
-              { id: 'serverRoom' as const, count: serverRoomCount, buyMode: serverRoomBuyMode, totalCost: serverRoomTotalCost, quantity: serverRoomQuantity, nextCost: nextServerRoomCost, canAfford: canAffordServerRoom, visible: gameState.purchasedResearchTech.powerSystemsEngineering === true, lockedReason: 'Requires Power Systems Engineering research.' },
-              { id: 'dataCenter' as const, count: dataCenterCount, buyMode: dataCenterBuyMode, totalCost: dataCenterTotalCost, quantity: dataCenterQuantity, nextCost: nextDataCenterCost, canAfford: canAffordDataCenter, visible: gameState.purchasedResearchTech.dataCenterSystems === true, lockedReason: 'Late-run infrastructure. Requires Data Centre Systems research.' },
-              { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: gameState.purchasedResearchTech.aiTradingSystems === true, lockedReason: 'Late-run infrastructure. Requires AI Trading Systems research.' },
+               { id: 'serverRoom' as const, count: serverRoomCount, buyMode: serverRoomBuyMode, totalCost: serverRoomTotalCost, quantity: serverRoomQuantity, nextCost: nextServerRoomCost, canAfford: canAffordServerRoom, visible: gameState.purchasedResearchTech.serverRoomSystems === true, lockedReason: 'Requires Server Room Systems research.' },
+               { id: 'dataCenter' as const, count: dataCenterCount, buyMode: dataCenterBuyMode, totalCost: dataCenterTotalCost, quantity: dataCenterQuantity, nextCost: nextDataCenterCost, canAfford: canAffordDataCenter, visible: gameState.purchasedResearchTech.dataCenterSystems === true, lockedReason: 'Late-run infrastructure. Requires Data Centre Systems research.' },
+               { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: gameState.purchasedResearchTech.cloudInfrastructure === true, lockedReason: 'Late-run infrastructure. Requires Cloud Infrastructure research.' },
               ].map((item) => {
                 const definition = POWER_INFRASTRUCTURE[item.id]
                  const status = item.visible && powerResearchUnlocked ? (item.canAfford ? 'Ready' : 'Need cash') : 'Locked'
-                 const statusTone = item.visible && powerResearchUnlocked ? (item.canAfford ? 'ready' : 'default') : 'locked'
+                  const statusTone = item.visible && powerResearchUnlocked ? (item.canAfford ? 'ready' : 'warning') : 'locked'
                 return (
                   <div key={item.id} className={!item.visible ? 'opacity-60' : undefined}>
                     <PurchaseCard
@@ -1093,7 +1108,7 @@ export function DeskTab() {
                       statusTone={statusTone}
                       actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
                       disabled={!item.visible || !powerResearchUnlocked || !item.canAfford}
-                      disabledReason={!item.visible ? item.lockedReason : !powerResearchUnlocked ? 'Requires Power Systems Engineering first.' : !item.canAfford ? 'Not enough cash for current buy mode.' : undefined}
+                      disabledReason={!item.visible ? item.lockedReason : !powerResearchUnlocked ? 'Requires Server Rack research first.' : !item.canAfford ? 'Not enough cash for current buy mode.' : undefined}
                       badges={[`${item.count} owned`, `+${definition.powerCapacity} cap`]}
                       onClick={() => buyPowerInfrastructure(item.id, item.buyMode)}
                       compact

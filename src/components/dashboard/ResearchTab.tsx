@@ -71,7 +71,7 @@ const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
       id: 'infrastructure-energy-systems',
       title: 'Energy Systems',
       subtitle: 'Machine power infrastructure and late-run compute expansion',
-      techIds: ['powerSystemsEngineering', 'dataCenterSystems', 'aiTradingSystems'],
+      techIds: ['powerSystemsEngineering', 'serverRoomSystems', 'dataCenterSystems', 'cloudInfrastructure'],
       paddingTop: 96,
       paddingBottom: 68,
       paddingX: 40,
@@ -94,8 +94,8 @@ const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
     {
       id: 'automation-unit-ladder',
       title: 'Automation Units',
-      subtitle: 'Bottom-up execution ladder from foundations to ML systems',
-      techIds: ['algorithmicTrading', 'quantTradingSystems', 'ruleBasedAutomation', 'machineLearningTrading'],
+      subtitle: 'Bottom-up execution ladder from foundations through AI systems',
+      techIds: ['algorithmicTrading', 'ruleBasedAutomation', 'machineLearningTrading', 'aiTradingSystems'],
       paddingTop: 56,
       paddingBottom: 64,
       paddingX: 38,
@@ -110,6 +110,18 @@ const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
       paddingBottom: 64,
       paddingX: 38,
       variant: 'energy',
+    },
+  ],
+  boosts: [
+    {
+      id: 'boosts-timed-abilities',
+      title: 'Timed Abilities',
+      subtitle: 'Independent unlocks for tactical boosts and late-run boost automation',
+      techIds: ['aggressiveTradingWindowProtocols', 'deployReserveCapitalProtocols', 'researchSprintProtocols', 'overclockServersProtocols', 'complianceFreezeProtocols', 'boostAutomationProtocols'],
+      paddingTop: 72,
+      paddingBottom: 68,
+      paddingX: 38,
+      variant: 'default',
     },
   ],
 }
@@ -148,6 +160,13 @@ const BRANCH_THEMES: Record<ResearchBranchId, {
     edge: 'rgba(167, 139, 250, 0.7)',
     background: 'from-violet-500/10 via-background to-background',
     glow: 'shadow-[inset_0_1px_0_rgba(167,139,250,0.18)]',
+  },
+  boosts: {
+    icon: Expand,
+    badge: 'text-cyan-300',
+    edge: 'rgba(34, 211, 238, 0.7)',
+    background: 'from-cyan-500/10 via-background to-background',
+    glow: 'shadow-[inset_0_1px_0_rgba(34,211,238,0.18)]',
   },
   regulation: {
     icon: Landmark,

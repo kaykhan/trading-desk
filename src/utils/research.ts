@@ -96,7 +96,7 @@ export function isEnergySectorUnlocked(state: GameState): boolean {
 }
 
 export function isAutomationUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'quantTradingSystems')
+  return isResearchTechPurchased(state, 'algorithmicTrading')
 }
 
 export function isPowerInfrastructureUnlocked(state: GameState): boolean {

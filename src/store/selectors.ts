@@ -1,18 +1,24 @@
 import { canAffordCapacityPower, getAvailableDeskSlots, getBulkCapacityInfrastructureCost, getCapacityPowerUsage, getFloorExpansionCost, getNextCapacityCost, getOfficeCost, getOfficeExpansionCost, getTotalDeskSlots, getUsedDeskSlots, isAtDeskCapacity } from '../utils/capacity'
+import { GLOBAL_BOOSTS, TIMED_BOOSTS } from '../data/boosts'
+import { canActivateTimedBoost, formatBoostTimer, getActiveTimedBoostCount, getOwnedGlobalBoostCount, getTimedBoostCooldownRemaining, getTimedBoostDurationRemaining, getTimedBoostStatusLabel, isGlobalBoostOwned, isTimedBoostAutoUnlocked, isTimedBoostActive, isTimedBoostUnlocked } from '../utils/boosts'
+import { getBaseAutomationComplianceCost, getBaseComplianceBurden, getBaseComplianceCostBreakdown, getBaseComplianceEfficiencyMultiplier, getBaseEnergyComplianceCost, getBaseInstitutionalComplianceCost, getBaseStaffComplianceCost, getComplianceBurden, getComplianceCategoryOutstandingDue, getComplianceCostBreakdown, getComplianceEfficiencyMultiplier, getCompliancePaymentPenaltyHint, getCompliancePaymentStatusLabel, getComplianceReviewDueAmount, getComplianceReviewLabel, getComplianceStatusCopy, getCompliancePenaltyPercent, getComplianceRevealBurdenThreshold, getEffectiveComplianceBurden, getFinalComplianceEfficiencyMultiplier, getTopComplianceSources, getTotalBaseComplianceCost, getTotalComplianceSavingsFromLobbying, getTotalEffectiveComplianceCost, isComplianceVisible } from '../utils/compliance'
+import { getActiveLobbyingPolicyIds, getAutomationComplianceCostReliefRate, getComplianceBurdenRelief, getCompliancePenaltyRelief, getEnergyComplianceCostReliefRate, getInstitutionalComplianceCostReliefRate, getLobbyingPolicyReliefDefinition, getLobbyingReadout, getPolicyActiveSavingsSummary, getStaffComplianceCostReliefRate } from '../utils/lobbying'
 import { AUTOMATION_STRATEGY_IDS, AUTOMATION_UNIT_IDS } from '../data/automation'
-import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeCost as getRepeatableUpgradeScaledCost, getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank as getRepeatableRank } from '../data/repeatableUpgrades'
+import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeCost as getRepeatableUpgradeScaledCost, getRepeatableUpgradeDefinition, getRepeatableUpgradeMultiplier, getRepeatableUpgradeRank as getRepeatableRank, getTotalRepeatableUpgradeRanksPurchased, isRepeatableUpgradeGloballyUnlocked } from '../data/repeatableUpgrades'
+import { MARKET_EVENTS } from '../data/marketEvents'
 import { getAutomationAdjustedPayout, getAutomationAverageIncomePerSecond, getAutomationBulkCost, getAutomationNextCost, getAutomationPowerUse, getAutomationProgressPercent, getAutomationStrategyLabel, getAutomationTimeRemaining, getAutomationUnitLabel, getAutomationOwnedCount, getUnlockedAutomationStrategies, isAutomationStrategyUnlocked, isAutomationUnitUnlocked } from '../utils/automation'
 import { getAssignedCount, getAssignedCountForSector, getAiTradingBotCost, getAiTradingBotPowerUsage, getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getGeneralDeskCashPerSecond, getGlobalMultiplier, getHumanTradingPowerUsage, getIncomeBreakdown, getInfluencePerSecond, getInternCost, getInternResearchScientistCost, getJuniorResearchScientistCost, getJuniorTraderCost, getMachineEfficiencyMultiplier, getManualIncome, getMlTradingBotCost, getMlTradingBotPowerUsage, getNextPowerInfrastructureCost, getNextUnitCost, getOwnedAssignableUnitCount, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getQuantTraderCost, getResearchPointsPerSecond, getRuleBasedBotCost, getRuleBasedBotPowerUsage, getSectorCashPerSecond, getSeniorResearchScientistCost, getSeniorTraderCost, isUnitUnlocked } from '../utils/economy'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
-import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
+import { PRESTIGE_TIER_LABELS, PRESTIGE_TIERS, getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getResearchTechsByBranch, RESEARCH_BRANCH_ORDER } from '../data/researchTech'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { canPrestige, getLifetimeReputation, getPrestigeGain, getSeedCapitalBonus } from '../utils/prestige'
-import { getProgressionSummary } from '../utils/progression'
+import { canPrestige, getLifetimeReputation, getNextPrestigeTierLabel, getPrestigeGain, getPrestigeGoalNextRankCost, getPrestigeTierLabel, getReputationGainForNextPrestige, getSeedCapitalBonus } from '../utils/prestige'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { canBuyResearchTech, getMissingResearchPrerequisites, getResearchTechShortfall, isAutomationUnlocked, isEnergySectorUnlocked, isLobbyingUnlocked, isPowerInfrastructureUnlocked, isResearchTechUnlocked, isResearchTechVisible, isTechnologySectorUnlocked } from '../utils/research'
+import { formatMarketEventTimer, getActiveMarketEvent, getAutomationEventMultiplier, getGlobalEventMultiplier, getMachineEfficiencyEventModifier, getMarketEventEffectSummary, getMarketEventRemainingSeconds, getNextMarketEventCooldownSeconds, getSectorEventMultiplier, isMarketEventActive } from '../utils/marketEvents'
 import { getAssignedTraderSpecialistsForSector, getGenericTraderCount, getSpecializationResearchUnlockId, getTotalTraderSpecialists, getTraderSpecialistCount, getTraderSpecialistTrainingCost } from '../utils/specialization'
 import { getAssignedInstitutionMandatesForSector, getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateCount, getInstitutionMandateResearchUnlockId, getTotalInstitutionMandates } from '../utils/mandates'
+import { getMilestoneDefinition, getMilestonePageCount, getMilestoneProgressLabel, getMilestoneRewardSummary, getMilestonesForPage, getNextRecommendedMilestone, getNextRecommendedMilestoneSummary, getUnlockedMilestoneCount, getVisibleMilestones, getMilestoneTotalCount } from '../utils/milestones'
 import type { AutomationStrategyId, AutomationUnitId, CapacityInfrastructureId, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId, UpgradeId } from '../types/game'
 
 export const selectors = {
@@ -26,6 +32,73 @@ export const selectors = {
   researchPointsPerSecond: (state: GameState) => getResearchPointsPerSecond(state),
   influence: (state: GameState) => state.influence,
   influencePerSecond: (state: GameState) => getInfluencePerSecond(state),
+  activeTimedBoostCount: (state: GameState) => getActiveTimedBoostCount(state),
+  timedBoostState: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => state.timedBoosts[boostId],
+  timedBoostUnlocked: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => isTimedBoostUnlocked(state, boostId),
+  timedBoostCanActivate: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => canActivateTimedBoost(state, boostId),
+  timedBoostActive: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => isTimedBoostActive(state, boostId),
+  timedBoostStatusLabel: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => getTimedBoostStatusLabel(state, boostId),
+  timedBoostDurationLabel: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => formatBoostTimer(getTimedBoostDurationRemaining(state, boostId)),
+  timedBoostCooldownLabel: (boostId: keyof typeof TIMED_BOOSTS) => (state: GameState) => formatBoostTimer(getTimedBoostCooldownRemaining(state, boostId)),
+  timedBoostAutoUnlocked: (state: GameState) => isTimedBoostAutoUnlocked(state),
+  ownedGlobalBoostCount: (state: GameState) => getOwnedGlobalBoostCount(state),
+  globalBoostOwned: (boostId: keyof typeof GLOBAL_BOOSTS) => (state: GameState) => isGlobalBoostOwned(state, boostId),
+  complianceVisible: (state: GameState) => isComplianceVisible(state),
+  baseComplianceBurden: (state: GameState) => getBaseComplianceBurden(state),
+  complianceBurdenRelief: (state: GameState) => getComplianceBurdenRelief(state),
+  effectiveComplianceBurden: (state: GameState) => getEffectiveComplianceBurden(state),
+  complianceBurden: (state: GameState) => getComplianceBurden(state),
+  baseComplianceEfficiencyMultiplier: (state: GameState) => getBaseComplianceEfficiencyMultiplier(state),
+  finalComplianceEfficiencyMultiplier: (state: GameState) => getFinalComplianceEfficiencyMultiplier(state),
+  complianceEfficiencyMultiplier: (state: GameState) => getComplianceEfficiencyMultiplier(state),
+  compliancePenaltyRelief: (state: GameState) => getCompliancePenaltyRelief(state),
+  compliancePenaltyPercent: (state: GameState) => getCompliancePenaltyPercent(state),
+  complianceReviewRemainingSeconds: (state: GameState) => state.complianceReviewRemainingSeconds,
+  complianceReviewRemainingLabel: (state: GameState) => getComplianceReviewLabel(state),
+  projectedComplianceCost: (state: GameState) => getComplianceReviewDueAmount(state),
+  complianceReviewDueAmount: (state: GameState) => getComplianceReviewDueAmount(state),
+  complianceCategoryDueAmount: (category: 'staff' | 'energy' | 'automation' | 'institutional') => (state: GameState) => getComplianceCategoryOutstandingDue(state, category),
+  complianceCategoryStatusLabel: (category: 'staff' | 'energy' | 'automation' | 'institutional') => (state: GameState) => getCompliancePaymentStatusLabel(state, category),
+  complianceCategoryPenaltyHint: (category: 'staff' | 'energy' | 'automation' | 'institutional') => (_state: GameState) => getCompliancePaymentPenaltyHint(category),
+  complianceCategoryAutoPayEnabled: (category: 'staff' | 'energy' | 'automation' | 'institutional') => (state: GameState) => state.settings.complianceAutoPayEnabled[category],
+  staffComplianceCost: (state: GameState) => getComplianceCostBreakdown(state).staff,
+  energyComplianceCost: (state: GameState) => getComplianceCostBreakdown(state).energy,
+  automationComplianceCost: (state: GameState) => getComplianceCostBreakdown(state).automation,
+  institutionalComplianceCost: (state: GameState) => getComplianceCostBreakdown(state).institutional,
+  baseStaffComplianceCost: (state: GameState) => getBaseStaffComplianceCost(state),
+  baseEnergyComplianceCost: (state: GameState) => getBaseEnergyComplianceCost(state),
+  baseAutomationComplianceCost: (state: GameState) => getBaseAutomationComplianceCost(state),
+  baseInstitutionalComplianceCost: (state: GameState) => getBaseInstitutionalComplianceCost(state),
+  baseComplianceCostBreakdown: (state: GameState) => getBaseComplianceCostBreakdown(state),
+  complianceCostBreakdown: (state: GameState) => getComplianceCostBreakdown(state),
+  totalBaseComplianceCost: (state: GameState) => getTotalBaseComplianceCost(state),
+  totalEffectiveComplianceCost: (state: GameState) => getTotalEffectiveComplianceCost(state),
+  totalComplianceSavingsFromLobbying: (state: GameState) => getTotalComplianceSavingsFromLobbying(state),
+  staffComplianceCostReliefRate: (state: GameState) => getStaffComplianceCostReliefRate(state),
+  energyComplianceCostReliefRate: (state: GameState) => getEnergyComplianceCostReliefRate(state),
+  automationComplianceCostReliefRate: (state: GameState) => getAutomationComplianceCostReliefRate(state),
+  institutionalComplianceCostReliefRate: (state: GameState) => getInstitutionalComplianceCostReliefRate(state),
+  topComplianceSources: (state: GameState) => getTopComplianceSources(state),
+  complianceStatusCopy: (state: GameState) => getComplianceStatusCopy(state),
+  complianceRevealThreshold: (_state: GameState) => getComplianceRevealBurdenThreshold(),
+  lastCompliancePayment: (state: GameState) => state.lastCompliancePayment,
+  activeLobbyingPolicyIds: (state: GameState) => getActiveLobbyingPolicyIds(state),
+  lobbyingReadout: (state: GameState) => getLobbyingReadout(state),
+  policyMitigationSummary: (policyId: LobbyingPolicyId) => (_state: GameState) => getLobbyingPolicyReliefDefinition(policyId).effectSummary,
+  policyActiveSavingsSummary: (policyId: LobbyingPolicyId) => (state: GameState) => getPolicyActiveSavingsSummary(state, policyId),
+  activeMarketEvent: (state: GameState) => getActiveMarketEvent(state),
+  activeMarketEventId: (state: GameState) => state.activeMarketEvent,
+  marketEventActive: (state: GameState) => isMarketEventActive(state),
+  marketEventRemainingSeconds: (state: GameState) => getMarketEventRemainingSeconds(state),
+  marketEventRemainingLabel: (state: GameState) => formatMarketEventTimer(getMarketEventRemainingSeconds(state)),
+  nextMarketEventCooldownSeconds: (state: GameState) => getNextMarketEventCooldownSeconds(state),
+  nextMarketEventCooldownLabel: (state: GameState) => formatMarketEventTimer(getNextMarketEventCooldownSeconds(state)),
+  marketEventEffectSummary: (state: GameState) => getMarketEventEffectSummary(state),
+  marketEventHistory: (state: GameState) => state.marketEventHistory,
+  sectorEventMultiplier: (sectorId: SectorId) => (state: GameState) => getSectorEventMultiplier(state, sectorId),
+  globalEventMultiplier: (state: GameState) => getGlobalEventMultiplier(state),
+  automationEventMultiplier: (state: GameState) => getAutomationEventMultiplier(state),
+  machineEfficiencyEventModifier: (state: GameState) => getMachineEfficiencyEventModifier(state),
   assignedCount: (unitId: GenericSectorAssignableUnitId) => (state: GameState) => getAssignedCount(state, unitId),
   assignedCountForSector: (unitId: GenericSectorAssignableUnitId, sectorId: SectorId) => (state: GameState) => getAssignedCountForSector(state, unitId, sectorId),
   availableCount: (unitId: GenericSectorAssignableUnitId) => (state: GameState) => getAvailableAssignableUnitCount(state, unitId),
@@ -64,9 +137,9 @@ export const selectors = {
   institutionalDeskIncome: (state: GameState) => getIncomeBreakdown(state).institutionalDeskIncome,
   hedgeFundIncome: (state: GameState) => getIncomeBreakdown(state).hedgeFundIncome,
   investmentFirmIncome: (state: GameState) => getIncomeBreakdown(state).investmentFirmIncome,
-  ruleBasedBotIncome: (state: GameState) => getIncomeBreakdown(state).ruleBasedBotIncome,
-  mlTradingBotIncome: (state: GameState) => getIncomeBreakdown(state).mlTradingBotIncome,
-  aiTradingBotIncome: (state: GameState) => getIncomeBreakdown(state).aiTradingBotIncome,
+  ruleBasedBotIncome: (state: GameState) => getAutomationAverageIncomePerSecond(state, 'ruleBasedBot'),
+  mlTradingBotIncome: (state: GameState) => getAutomationAverageIncomePerSecond(state, 'mlTradingBot'),
+  aiTradingBotIncome: (state: GameState) => getAutomationAverageIncomePerSecond(state, 'aiTradingBot'),
   globalMultiplier: (state: GameState) => getGlobalMultiplier(state),
   prestigeMultiplier: (state: GameState) => getPrestigeMultiplier(state),
   nextInternCost: (state: GameState) => getInternCost(state),
@@ -84,8 +157,22 @@ export const selectors = {
   nextHedgeFundCost: (state: GameState) => getNextUnitCost(state, 'hedgeFund'),
   nextInvestmentFirmCost: (state: GameState) => getNextUnitCost(state, 'investmentFirm'),
   nextPowerInfrastructureCost: (infrastructureId: PowerInfrastructureId) => (state: GameState) => getNextPowerInfrastructureCost(state, infrastructureId),
-  prestigeGainPreview: (state: GameState) => getPrestigeGain(state.lifetimeCashEarned),
-  progressionSummary: (state: GameState) => getProgressionSummary(state),
+  prestigeGainPreview: (state: GameState) => getReputationGainForNextPrestige(state),
+  currentPrestigeTier: (state: GameState) => getPrestigeTierLabel(state.prestigeCount),
+  nextPrestigeTier: (state: GameState) => getNextPrestigeTierLabel(state.prestigeCount),
+  prestigeTrack: (state: GameState) => PRESTIGE_TIERS.map((tierId, index) => ({ id: tierId, label: PRESTIGE_TIER_LABELS[tierId], completed: index < state.prestigeCount, current: index + 1 === state.prestigeCount })),
+  unlockedMilestoneCount: (state: GameState) => getUnlockedMilestoneCount(state),
+  totalMilestoneCount: (_state: GameState) => getMilestoneTotalCount(),
+  nextRecommendedMilestone: (state: GameState) => getNextRecommendedMilestone(state),
+  nextRecommendedMilestoneSummary: (state: GameState) => getNextRecommendedMilestoneSummary(state),
+  visibleMilestones: (state: GameState) => getVisibleMilestones(state),
+  milestonePageCount: (state: GameState) => getMilestonePageCount(state),
+  milestonesForPage: (page: number) => (state: GameState) => getMilestonesForPage(state, page),
+  milestoneRewardSummary: (milestoneId: string) => (state: GameState) => {
+    const milestone = getMilestoneDefinition(milestoneId)
+    return milestone ? getMilestoneRewardSummary(milestone.reward) : ''
+  },
+  milestoneProgressLabel: (milestoneId: string) => (state: GameState) => getMilestoneProgressLabel(state, milestoneId),
   canPrestige: (state: GameState) => canPrestige(state),
   lifetimeReputation: (state: GameState) => getLifetimeReputation(state),
   seedCapitalBonus: (state: GameState) => getSeedCapitalBonus(state),
@@ -130,10 +217,16 @@ export const selectors = {
     return upgrade.visibleWhen ? upgrade.visibleWhen(state) : true
   },
   repeatableUpgradeRank: (upgradeId: RepeatableUpgradeId) => (state: GameState) => getRepeatableRank(state, upgradeId),
+  repeatableUpgradesGloballyUnlocked: (state: GameState) => isRepeatableUpgradeGloballyUnlocked(state),
+  totalRepeatableUpgradeRanksPurchased: (state: GameState) => getTotalRepeatableUpgradeRanksPurchased(state),
   isRepeatableUpgradeVisible: (upgradeId: RepeatableUpgradeId) => (state: GameState) => {
     const upgrade = getRepeatableUpgradeDefinition(upgradeId)
 
     if (!upgrade) {
+      return false
+    }
+
+    if (!isRepeatableUpgradeGloballyUnlocked(state)) {
       return false
     }
 
@@ -143,6 +236,10 @@ export const selectors = {
     const upgrade = getRepeatableUpgradeDefinition(upgradeId)
 
     if (!upgrade) {
+      return false
+    }
+
+    if (!isRepeatableUpgradeGloballyUnlocked(state)) {
       return false
     }
 
@@ -199,6 +296,10 @@ export const selectors = {
       return false
     }
 
+    if (!isRepeatableUpgradeGloballyUnlocked(state)) {
+      return false
+    }
+
     if (upgrade.visibleWhen && !upgrade.visibleWhen(state)) {
       return false
     }
@@ -219,6 +320,10 @@ export const selectors = {
       return 0
     }
 
+    if (!isRepeatableUpgradeGloballyUnlocked(state)) {
+      return 0
+    }
+
     if (upgrade.visibleWhen && !upgrade.visibleWhen(state)) {
       return 0
     }
@@ -233,7 +338,7 @@ export const selectors = {
       return 1
     }
 
-    return getRepeatableUpgradeMultiplier(getRepeatableRank(state, upgradeId), upgrade.effectPerRank)
+    return getRepeatableUpgradeMultiplier(state, upgradeId)
   },
   canAffordUpgrade: (upgradeId: UpgradeId) => (state: GameState) => {
     const upgrade = getUpgradeDefinition(upgradeId)
@@ -338,7 +443,7 @@ export const selectors = {
       return false
     }
 
-    return state.reputation >= upgrade.baseCost
+    return state.reputation >= getPrestigeGoalNextRankCost(upgradeId, currentRank)
   },
   plannedPrestigeRank: (upgradeId: PrestigeUpgradeId) => (state: GameState) => state.ui.prestigePurchasePlan[upgradeId] ?? 0,
   plannedPrestigeCost: (state: GameState) => Object.entries(state.ui.prestigePurchasePlan).reduce((total, [upgradeId, planned]) => {
@@ -354,11 +459,16 @@ export const selectors = {
     }
 
     const purchasableRanks = Math.min(planned, definition.maxRank - currentRank)
+    let plannedCost = 0
+    for (let i = 0; i < purchasableRanks; i += 1) {
+      plannedCost += getPrestigeGoalNextRankCost(upgradeId as PrestigeUpgradeId, currentRank + i)
+    }
 
-    return total + definition.baseCost * purchasableRanks
+    return total + plannedCost
   }, 0),
-  plannedPrestigeAvailable: (state: GameState) => state.reputation + getPrestigeGain(state.lifetimeCashEarned),
+  plannedPrestigeAvailable: (state: GameState) => state.reputation + getReputationGainForNextPrestige(state),
   plannedPrestigeRemaining: (state: GameState) => selectors.plannedPrestigeAvailable(state) - selectors.plannedPrestigeCost(state),
+  prestigeUpgradeNextCost: (upgradeId: PrestigeUpgradeId) => (state: GameState) => getPrestigeGoalNextRankCost(upgradeId, state.purchasedPrestigeUpgrades[upgradeId] ?? 0),
   canPlanPrestigeUpgrade: (upgradeId: PrestigeUpgradeId, delta: 1 | -1 = 1) => (state: GameState) => {
     const definition = getPrestigeUpgradeDefinition(upgradeId)
     const currentRank = state.purchasedPrestigeUpgrades[upgradeId] ?? 0
@@ -376,6 +486,6 @@ export const selectors = {
       return false
     }
 
-    return selectors.plannedPrestigeRemaining(state) >= definition.baseCost
+    return selectors.plannedPrestigeRemaining(state) >= getPrestigeGoalNextRankCost(upgradeId, currentRank + plannedRank)
   },
 }

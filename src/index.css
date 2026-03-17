@@ -80,3 +80,32 @@
     @apply border border-border/80 bg-card/90 shadow-panel backdrop-blur;
   }
 }
+
+@keyframes market-news-flash {
+  0% {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
+
+  35% {
+    transform: translateY(0);
+    filter: brightness(1.18);
+  }
+
+  100% {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes ticker-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

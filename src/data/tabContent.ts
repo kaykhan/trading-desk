@@ -10,13 +10,15 @@ export const TRADING_UPGRADES = UPGRADES.filter((upgrade) => upgrade.category ==
 
 export const TRADING_DESK_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'tradingDesk')
 
-export const SCIENTIST_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'scientists')
+export const RESEARCH_SYSTEM_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'research')
 
-export const POLITICS_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'politics')
+export const INSTITUTION_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'institutions')
 
-export const ALGORITHMIC_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'algorithmic')
+export const AUTOMATION_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'automation')
 
 export const INFRASTRUCTURE_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'infrastructure')
+
+export const COMPLIANCE_LOBBYING_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'complianceLobbying')
 
 export const OPERATIONS_UNITS = [UNITS.intern, UNITS.juniorTrader, UNITS.seniorTrader, UNITS.quantTrader]
 

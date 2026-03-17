@@ -39,7 +39,7 @@ export const UNITS: Record<UnitId, UnitDefinition> = {
     baseIncomePerSecond: 5,
     description: 'The first systematic execution lane, bridging senior human traders into machine-led trading systems.',
     tab: 'operations',
-    unlockUpgradeId: 'quantTradingSystems',
+    unlockUpgradeId: 'algorithmicTrading',
   },
   propDesk: {
     id: 'propDesk',

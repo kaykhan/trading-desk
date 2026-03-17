@@ -1,3 +1,4 @@
+import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import type { GameState, InstitutionalMandateId, InstitutionalMandateUnitId, SectorId } from '../types/game'
 
 const MANDATE_IDS: InstitutionalMandateId[] = ['finance', 'technology', 'energy']
@@ -31,15 +32,13 @@ export function getAssignedInstitutionMandatesForSector(state: GameState, unitId
   return Math.min(assignedToSector, getInstitutionMandateCount(state, unitId, mandateId))
 }
 
-export function getInstitutionMandateBonus(unitId: InstitutionalMandateUnitId, mandateId: InstitutionalMandateId, sectorId: SectorId): number {
+export function getInstitutionMandateBonus(state: GameState, unitId: InstitutionalMandateUnitId, mandateId: InstitutionalMandateId, sectorId: SectorId): number {
   if (mandateId !== sectorId) {
     return 1
   }
 
-  if (unitId === 'propDesk') return 1.05
-  if (unitId === 'institutionalDesk') return 1.075
-  if (unitId === 'hedgeFund') return 1.1
-  return 1.125
+  const base = unitId === 'propDesk' ? 1.05 : unitId === 'institutionalDesk' ? 1.075 : unitId === 'hedgeFund' ? 1.1 : 1.125
+  return base * getRepeatableUpgradeMultiplier(state, 'trainingMethodology')
 }
 
 export function getInstitutionMandateResearchUnlockId(mandateId: InstitutionalMandateId): 'financeMandateFramework' | 'techGrowthMandateFramework' | 'energyExposureFramework' {

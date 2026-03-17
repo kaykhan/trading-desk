@@ -4,21 +4,25 @@ import type { AppInfo } from '../../shared/game'
 import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getFloorExpansionCost, getOfficeCost, getOfficeExpansionCost } from '../utils/capacity'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
-import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeDefinition, getRepeatableUpgradeRank } from '../data/repeatableUpgrades'
+import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeDefinition, getRepeatableUpgradeRank, isRepeatableUpgradeGloballyUnlocked } from '../data/repeatableUpgrades'
 import { getResearchTechDefinition } from '../data/researchTech'
 import { DEFAULT_UNLOCKED_SECTORS } from '../data/sectors'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { getAutomationBulkCost, processAutomationCycles } from '../utils/automation'
+import { getAutomationBulkCost, isAutomationStrategyUnlocked, isAutomationUnitUnlocked, processAutomationCycles } from '../utils/automation'
+import { activateTimedBoostRuntime, processTimedBoosts } from '../utils/boosts'
+import { payComplianceCategoryNow, processComplianceTimer } from '../utils/compliance'
 import { getAvailableAssignableUnitCount, getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getManualIncome, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
+import { processMarketEventTimer } from '../utils/marketEvents'
+import { applyMilestoneRewards, evaluateMilestones } from '../utils/milestones'
 import { getElapsedOfflineSeconds, getOfflineSecondsApplied } from '../utils/offlineProgress'
 import { exportState, importState, loadStateFromStorage, SAVE_KEY, saveStateToStorage } from '../utils/persistence'
-import { createPrestigeResetState } from '../utils/prestige'
+import { createPrestigeResetState, getPrestigeGoalNextRankCost } from '../utils/prestige'
 import { areResearchTechPrerequisitesMet, isEnergySectorUnlocked, isLobbyingUnlocked, isResearchTechUnlocked } from '../utils/research'
 import { getGenericTraderCount, getSpecializationResearchUnlockId, getTraderSpecialistTrainingCost } from '../utils/specialization'
 import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
-import type { AutomationStrategyId, AutomationUnitId, BuyMode, DeskViewId, GameState, GameStore, GameTabId, GenericSectorAssignableUnitId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, UnitId } from '../types/game'
+import type { AutomationStrategyId, AutomationUnitId, BuyMode, CompliancePaymentCategoryId, DeskViewId, GameState, GameStore, GameTabId, GenericSectorAssignableUnitId, GlobalBoostId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, ModalId, OfflineSummary, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TimedBoostId, UnitId } from '../types/game'
 
 type StoreUiState = {
   appInfo: AppInfo | null
@@ -26,6 +30,7 @@ type StoreUiState = {
   activeModal: ModalId | null
   offlineSummary: OfflineSummary | null
   latestTradeFeedback: GameStore['latestTradeFeedback']
+  milestoneUnlockQueue: GameStore['milestoneUnlockQueue']
 }
 
 const initialUiState: StoreUiState = {
@@ -34,6 +39,26 @@ const initialUiState: StoreUiState = {
   activeModal: null,
   offlineSummary: null,
   latestTradeFeedback: null,
+  milestoneUnlockQueue: [],
+}
+
+function withMilestones(nextState: Partial<GameStore>, baseState: GameStore): Partial<GameStore> {
+  const stateForEvaluation = {
+    ...baseState,
+    ...nextState,
+  } as GameStore
+  const evaluation = evaluateMilestones(stateForEvaluation)
+
+  if (evaluation.newlyUnlockedIds.length <= 0) {
+    return nextState
+  }
+
+  return {
+    ...nextState,
+    ...applyMilestoneRewards(stateForEvaluation, evaluation.rewards),
+    unlockedMilestones: evaluation.unlockedMilestones,
+    milestoneUnlockQueue: [...baseState.milestoneUnlockQueue, ...evaluation.newlyUnlockedIds],
+  }
 }
 
 function getSectorUnlocksAfterResearch(state: GameState, techId: ResearchTechId): Record<SectorId, boolean> {
@@ -74,7 +99,20 @@ function getSnapshot(state: GameStore) {
     cash: state.cash,
     researchPoints: state.researchPoints,
     influence: state.influence,
+    unlockedMilestones: state.unlockedMilestones,
+    lifetimeManualTrades: state.lifetimeManualTrades,
+    lifetimeResearchPointsEarned: state.lifetimeResearchPointsEarned,
+    totalComplianceReviewsTriggered: state.totalComplianceReviewsTriggered,
+    totalCompliancePaymentsMade: state.totalCompliancePaymentsMade,
+    complianceTabOpened: state.complianceTabOpened,
+    totalTimedBoostActivations: state.totalTimedBoostActivations,
     discoveredLobbying: state.discoveredLobbying,
+    complianceVisible: state.complianceVisible,
+    complianceReviewRemainingSeconds: state.complianceReviewRemainingSeconds,
+    compliancePayments: state.compliancePayments,
+    lastCompliancePayment: state.lastCompliancePayment,
+    timedBoosts: state.timedBoosts,
+    globalBoostsOwned: state.globalBoostsOwned,
     lifetimeCashEarned: state.lifetimeCashEarned,
     reputation: state.reputation,
     reputationSpent: state.reputationSpent,
@@ -102,6 +140,10 @@ function getSnapshot(state: GameStore) {
     serverRoomCount: state.serverRoomCount,
     dataCenterCount: state.dataCenterCount,
     cloudComputeCount: state.cloudComputeCount,
+    activeMarketEvent: state.activeMarketEvent,
+    activeMarketEventRemainingSeconds: state.activeMarketEventRemainingSeconds,
+    nextMarketEventCooldownSeconds: state.nextMarketEventCooldownSeconds,
+    marketEventHistory: state.marketEventHistory,
     unlockedSectors: state.unlockedSectors,
     automationConfig: state.automationConfig,
     automationCycleState: state.automationCycleState,
@@ -129,43 +171,78 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => {
       const gain = getManualIncome(state)
 
-      return {
-        cash: state.cash + gain,
-        lifetimeCashEarned: state.lifetimeCashEarned + gain,
-        latestTradeFeedback: {
-          amount: gain,
-          timestamp: Date.now(),
-        },
-      }
-    })
+      return withMilestones({
+          cash: state.cash + gain,
+          lifetimeCashEarned: state.lifetimeCashEarned + gain,
+          lifetimeManualTrades: state.lifetimeManualTrades + 1,
+          latestTradeFeedback: {
+            amount: gain,
+            timestamp: Date.now(),
+          },
+        }, state)
+      })
   },
   tick: (deltaSeconds) => {
     if (deltaSeconds <= 0) {
       return
     }
 
-    set((state) => {
-      const gain = getCashPerSecond(state) * deltaSeconds
-      const researchGain = getResearchPointsPerSecond(state) * deltaSeconds
-      const influenceGain = getInfluencePerSecond(state) * deltaSeconds
-      const automationResult = processAutomationCycles(state, deltaSeconds, Date.now())
-
-      const automationCashGain = automationResult.cash - state.cash
-
-      if (gain <= 0 && researchGain <= 0 && influenceGain <= 0 && automationCashGain <= 0) {
-        return { lastSaveTimestamp: Date.now() }
+      set((state) => {
+        const eventResult = processMarketEventTimer(state, deltaSeconds, Date.now())
+      const stateWithEvents = {
+        ...state,
+        ...eventResult,
       }
-
-      return {
-        cash: automationResult.cash + gain,
-        researchPoints: state.researchPoints + researchGain,
-        influence: state.influence + influenceGain,
-        lifetimeCashEarned: automationResult.lifetimeCashEarned + gain,
-        automationCycleState: automationResult.automationCycleState,
-        lastSaveTimestamp: Date.now(),
+      const complianceResult = processComplianceTimer(stateWithEvents, deltaSeconds)
+      const stateWithCompliance = {
+        ...stateWithEvents,
+        ...complianceResult,
       }
-    })
-  },
+      const timedBoosts = processTimedBoosts(stateWithCompliance, deltaSeconds)
+      const stateWithBoosts = {
+        ...stateWithCompliance,
+        timedBoosts,
+      }
+      const gain = getCashPerSecond(stateWithBoosts) * deltaSeconds
+      const researchGain = getResearchPointsPerSecond(stateWithBoosts) * deltaSeconds
+      const influenceGain = getInfluencePerSecond(stateWithBoosts) * deltaSeconds
+      const automationResult = processAutomationCycles(stateWithBoosts, deltaSeconds, Date.now())
+
+      const automationCashGain = automationResult.cash - stateWithBoosts.cash
+
+        if (gain <= 0 && researchGain <= 0 && influenceGain <= 0 && automationCashGain <= 0) {
+          return withMilestones({
+            complianceVisible: complianceResult.complianceVisible,
+            complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+            compliancePayments: complianceResult.compliancePayments,
+            lastCompliancePayment: complianceResult.lastCompliancePayment,
+            totalComplianceReviewsTriggered: state.totalComplianceReviewsTriggered + (complianceResult.complianceReviewRemainingSeconds > state.complianceReviewRemainingSeconds ? 1 : 0),
+            timedBoosts,
+            lastSaveTimestamp: Date.now(),
+          }, state)
+        }
+
+        return withMilestones({
+          cash: automationResult.cash + gain,
+          researchPoints: state.researchPoints + researchGain,
+          influence: state.influence + influenceGain,
+          lifetimeResearchPointsEarned: state.lifetimeResearchPointsEarned + researchGain,
+          lifetimeCashEarned: automationResult.lifetimeCashEarned + gain,
+          automationCycleState: automationResult.automationCycleState,
+          complianceVisible: complianceResult.complianceVisible,
+          complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+          compliancePayments: complianceResult.compliancePayments,
+          lastCompliancePayment: complianceResult.lastCompliancePayment,
+          totalComplianceReviewsTriggered: state.totalComplianceReviewsTriggered + (complianceResult.complianceReviewRemainingSeconds > state.complianceReviewRemainingSeconds ? 1 : 0),
+          timedBoosts,
+          activeMarketEvent: eventResult.activeMarketEvent,
+          activeMarketEventRemainingSeconds: eventResult.activeMarketEventRemainingSeconds,
+          nextMarketEventCooldownSeconds: eventResult.nextMarketEventCooldownSeconds,
+          marketEventHistory: eventResult.marketEventHistory,
+          lastSaveTimestamp: Date.now(),
+        }, state)
+      })
+    },
   buyUnit: (unitId: UnitId, quantity: BuyMode) => {
     set((state) => {
       if (!isUnitUnlocked(state, unitId)) {
@@ -183,31 +260,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (unitId === 'juniorTrader') {
-        return {
+        return withMilestones({
           ...nextState,
           juniorTraderCount: state.juniorTraderCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'intern') {
-        return {
+        return withMilestones({
           ...nextState,
           internCount: state.internCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'internResearchScientist') {
-        return {
+        return withMilestones({
           ...nextState,
           internResearchScientistCount: state.internResearchScientistCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'seniorTrader') {
-        return {
+        return withMilestones({
           ...nextState,
           seniorTraderCount: state.seniorTraderCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'quantTrader') {
@@ -217,38 +294,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
           return state
         }
 
-        return {
+        return withMilestones({
           cash: state.cash - automationResult.totalCost,
           quantTraderCount: state.quantTraderCount + automationResult.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'propDesk') {
-        return {
+        return withMilestones({
           ...nextState,
           propDeskCount: state.propDeskCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'institutionalDesk') {
-        return {
+        return withMilestones({
           ...nextState,
           institutionalDeskCount: state.institutionalDeskCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'hedgeFund') {
-        return {
+        return withMilestones({
           ...nextState,
           hedgeFundCount: state.hedgeFundCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'investmentFirm') {
-        return {
+        return withMilestones({
           ...nextState,
           investmentFirmCount: state.investmentFirmCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'ruleBasedBot') {
@@ -258,31 +335,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
           return state
         }
 
-        return {
+        return withMilestones({
           cash: state.cash - automationResult.totalCost,
           ruleBasedBotCount: state.ruleBasedBotCount + automationResult.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'juniorResearchScientist') {
-        return {
+        return withMilestones({
           ...nextState,
           juniorResearchScientistCount: state.juniorResearchScientistCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'seniorResearchScientist') {
-        return {
+        return withMilestones({
           ...nextState,
           seniorResearchScientistCount: state.seniorResearchScientistCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'juniorPolitician') {
-        return {
+        return withMilestones({
           ...nextState,
           juniorPoliticianCount: state.juniorPoliticianCount + result.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'mlTradingBot') {
@@ -292,10 +369,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
           return state
         }
 
-        return {
+        return withMilestones({
           cash: state.cash - automationResult.totalCost,
           mlTradingBotCount: state.mlTradingBotCount + automationResult.quantity,
-        }
+        }, state)
       }
 
       if (unitId === 'aiTradingBot') {
@@ -305,10 +382,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
           return state
         }
 
-        return {
+        return withMilestones({
           cash: state.cash - automationResult.totalCost,
           aiTradingBotCount: state.aiTradingBotCount + automationResult.quantity,
-        }
+        }, state)
       }
 
       return state
@@ -331,18 +408,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (infrastructureId === 'serverRack') {
-        return { ...nextState, serverRackCount: state.serverRackCount + result.quantity }
+        return withMilestones({ ...nextState, serverRackCount: state.serverRackCount + result.quantity }, state)
       }
 
       if (infrastructureId === 'serverRoom') {
-        return { ...nextState, serverRoomCount: state.serverRoomCount + result.quantity }
+        return withMilestones({ ...nextState, serverRoomCount: state.serverRoomCount + result.quantity }, state)
       }
 
       if (infrastructureId === 'dataCenter') {
-        return { ...nextState, dataCenterCount: state.dataCenterCount + result.quantity }
+        return withMilestones({ ...nextState, dataCenterCount: state.dataCenterCount + result.quantity }, state)
       }
 
-      return { ...nextState, cloudComputeCount: state.cloudComputeCount + result.quantity }
+      return withMilestones({ ...nextState, cloudComputeCount: state.cloudComputeCount + result.quantity }, state)
     })
   },
   buyDeskSpace: (quantity = 1) => {
@@ -353,10 +430,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - result.totalCost,
         deskSpaceCount: state.deskSpaceCount + result.quantity,
-      }
+      }, state)
     })
   },
   buyFloorSpace: (quantity = 1) => {
@@ -371,10 +448,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - result.totalCost,
         floorSpaceCount: state.floorSpaceCount + result.quantity,
-      }
+      }, state)
     })
   },
   buyOffice: (quantity = 1) => {
@@ -389,10 +466,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - result.totalCost,
         officeCount: state.officeCount + result.quantity,
-      }
+      }, state)
     })
   },
   buyUpgrade: (upgradeId) => {
@@ -411,13 +488,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - upgrade.cost,
         purchasedUpgrades: {
           ...state.purchasedUpgrades,
           [upgradeId]: true,
         },
-      }
+      }, state)
     })
   },
   buyRepeatableUpgrade: (upgradeId: RepeatableUpgradeId) => {
@@ -425,6 +502,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const upgrade = getRepeatableUpgradeDefinition(upgradeId)
 
       if (!upgrade) {
+        return state
+      }
+
+       if (!isRepeatableUpgradeGloballyUnlocked(state)) {
         return state
       }
 
@@ -448,32 +529,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (upgrade.currency === 'cash') {
-        return {
+        return withMilestones({
           cash: state.cash - purchase.totalCost,
           repeatableUpgradeRanks: {
             ...state.repeatableUpgradeRanks,
             [upgradeId]: currentRank + purchase.quantity,
           },
-        }
+        }, state)
       }
 
       if (upgrade.currency === 'researchPoints') {
-        return {
+        return withMilestones({
           researchPoints: state.researchPoints - purchase.totalCost,
           repeatableUpgradeRanks: {
             ...state.repeatableUpgradeRanks,
             [upgradeId]: currentRank + purchase.quantity,
           },
-        }
+        }, state)
       }
 
-      return {
+      return withMilestones({
         influence: state.influence - purchase.totalCost,
         repeatableUpgradeRanks: {
           ...state.repeatableUpgradeRanks,
           [upgradeId]: currentRank + purchase.quantity,
         },
-      }
+      }, state)
     })
   },
   buyResearchTech: (techId: ResearchTechId) => {
@@ -498,7 +579,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         [currencyKey]: state[currencyKey] - tech.researchCost,
         discoveredLobbying: state.discoveredLobbying || isLobbyingUnlocked({ ...state, purchasedResearchTech: { ...state.purchasedResearchTech, [techId]: true } }),
         unlockedSectors: getSectorUnlocksAfterResearch(state, techId),
@@ -506,7 +587,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...state.purchasedResearchTech,
           [techId]: true,
         },
-      }
+      }, state)
     })
   },
   buyLobbyingPolicy: (policyId: LobbyingPolicyId) => {
@@ -525,51 +606,68 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         influence: state.influence - policy.influenceCost,
         purchasedPolicies: {
           ...state.purchasedPolicies,
           [policyId]: true,
         },
-      }
+      }, state)
     })
   },
   buyPrestigeUpgrade: (upgradeId) => {
     set((state) => {
       const upgrade = getPrestigeUpgradeDefinition(upgradeId)
       const currentRank = state.purchasedPrestigeUpgrades[upgradeId] ?? 0
+      const nextCost = getPrestigeGoalNextRankCost(upgradeId, currentRank)
 
-      if (!upgrade || currentRank >= upgrade.maxRank || state.reputation < upgrade.baseCost) {
+      if (!upgrade || currentRank >= upgrade.maxRank || state.reputation < nextCost) {
         return state
       }
 
-      return {
-        reputation: state.reputation - upgrade.baseCost,
-        reputationSpent: state.reputationSpent + upgrade.baseCost,
+      return withMilestones({
+        reputation: state.reputation - nextCost,
+        reputationSpent: state.reputationSpent + nextCost,
         purchasedPrestigeUpgrades: {
           ...state.purchasedPrestigeUpgrades,
           [upgradeId]: currentRank + 1,
         },
-      }
+      }, state)
     })
   },
   prestigeReset: () => {
-    set((state) => ({
+    set((state) => withMilestones({
       ...createPrestigeResetState(state, state.ui.prestigePurchasePlan),
       appInfo: state.appInfo,
       activeTab: 'prestige',
       activeModal: null,
       offlineSummary: null,
-    }))
+      milestoneUnlockQueue: state.milestoneUnlockQueue,
+    }, state))
   },
   applyOfflineProgress: (secondsAway) => {
     set((state) => {
       const appliedSeconds = Math.min(secondsAway, getOfflineSecondsApplied(Date.now() - secondsAway * 1000, Date.now()))
-      const passiveCashEarned = getCashPerSecond(state) * appliedSeconds
-      const researchEarned = getResearchPointsPerSecond(state) * appliedSeconds
-      const influenceEarned = getInfluencePerSecond(state) * appliedSeconds
-      const automationResult = processAutomationCycles(state, appliedSeconds, Date.now())
-      const cashEarned = passiveCashEarned + (automationResult.cash - state.cash)
+      const eventResult = processMarketEventTimer(state, appliedSeconds, Date.now())
+      const stateWithEvents = {
+        ...state,
+        ...eventResult,
+      }
+      const complianceResult = processComplianceTimer(stateWithEvents, appliedSeconds)
+      const stateWithCompliance = {
+        ...stateWithEvents,
+        ...complianceResult,
+      }
+      const timedBoosts = processTimedBoosts(stateWithCompliance, appliedSeconds)
+      const stateWithBoosts = {
+        ...stateWithCompliance,
+        timedBoosts,
+      }
+      const passiveCashEarned = getCashPerSecond(stateWithBoosts) * appliedSeconds
+      const researchEarned = getResearchPointsPerSecond(stateWithBoosts) * appliedSeconds
+      const influenceEarned = getInfluencePerSecond(stateWithBoosts) * appliedSeconds
+      const automationResult = processAutomationCycles(stateWithBoosts, appliedSeconds, Date.now())
+      const cashEarned = passiveCashEarned + (automationResult.cash - stateWithBoosts.cash)
 
       if (appliedSeconds <= 0 || (cashEarned <= 0 && researchEarned <= 0 && influenceEarned <= 0)) {
         return {
@@ -577,25 +675,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
-      return {
-        cash: state.cash + cashEarned,
-        researchPoints: state.researchPoints + researchEarned,
-        influence: state.influence + influenceEarned,
-        lifetimeCashEarned: state.lifetimeCashEarned + cashEarned,
-        automationCycleState: automationResult.automationCycleState,
-        totalOfflineSecondsApplied: state.totalOfflineSecondsApplied + appliedSeconds,
-        lastSaveTimestamp: Date.now(),
-        offlineSummary: {
-          secondsAway,
-          appliedSeconds,
-          cashEarned,
-          researchEarned,
-          influenceEarned,
-        },
-        activeModal: 'offlineEarnings',
-      }
-    })
-  },
+        return withMilestones({
+          cash: state.cash + cashEarned,
+          researchPoints: state.researchPoints + researchEarned,
+          influence: state.influence + influenceEarned,
+          lifetimeResearchPointsEarned: state.lifetimeResearchPointsEarned + researchEarned,
+          lifetimeCashEarned: state.lifetimeCashEarned + cashEarned,
+          automationCycleState: automationResult.automationCycleState,
+          complianceVisible: complianceResult.complianceVisible,
+          complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+          compliancePayments: complianceResult.compliancePayments,
+          lastCompliancePayment: complianceResult.lastCompliancePayment,
+          totalComplianceReviewsTriggered: state.totalComplianceReviewsTriggered + (complianceResult.complianceReviewRemainingSeconds > state.complianceReviewRemainingSeconds ? 1 : 0),
+          timedBoosts,
+          activeMarketEvent: eventResult.activeMarketEvent,
+          activeMarketEventRemainingSeconds: eventResult.activeMarketEventRemainingSeconds,
+          nextMarketEventCooldownSeconds: eventResult.nextMarketEventCooldownSeconds,
+          marketEventHistory: eventResult.marketEventHistory,
+          totalOfflineSecondsApplied: state.totalOfflineSecondsApplied + appliedSeconds,
+          lastSaveTimestamp: Date.now(),
+          offlineSummary: {
+            secondsAway,
+            appliedSeconds,
+            cashEarned,
+            researchEarned,
+            influenceEarned,
+          },
+          activeModal: 'offlineEarnings',
+        }, state)
+      })
+    },
   saveGame: () => {
     set((state) => {
       const snapshot = {
@@ -621,13 +730,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const now = Date.now()
       const secondsAway = getElapsedOfflineSeconds(savedState.lastSaveTimestamp, now)
       const appliedSeconds = getOfflineSecondsApplied(savedState.lastSaveTimestamp, now)
-      const passiveCashEarned = getCashPerSecond(savedState) * appliedSeconds
-      const researchEarned = getResearchPointsPerSecond(savedState) * appliedSeconds
-      const influenceEarned = getInfluencePerSecond(savedState) * appliedSeconds
-      const automationResult = processAutomationCycles(savedState, appliedSeconds, now)
-      const cashEarned = passiveCashEarned + (automationResult.cash - savedState.cash)
+      const eventResult = processMarketEventTimer(savedState, appliedSeconds, now)
+      const savedStateWithEvents = {
+        ...savedState,
+        ...eventResult,
+      }
+      const complianceResult = processComplianceTimer(savedStateWithEvents, appliedSeconds)
+      const savedStateWithCompliance = {
+        ...savedStateWithEvents,
+        ...complianceResult,
+      }
+      const timedBoosts = processTimedBoosts(savedStateWithCompliance, appliedSeconds)
+      const savedStateWithBoosts = {
+        ...savedStateWithCompliance,
+        timedBoosts,
+      }
+      const passiveCashEarned = getCashPerSecond(savedStateWithBoosts) * appliedSeconds
+      const researchEarned = getResearchPointsPerSecond(savedStateWithBoosts) * appliedSeconds
+      const influenceEarned = getInfluencePerSecond(savedStateWithBoosts) * appliedSeconds
+      const automationResult = processAutomationCycles(savedStateWithBoosts, appliedSeconds, now)
+      const cashEarned = passiveCashEarned + (automationResult.cash - savedStateWithBoosts.cash)
 
-      return {
+      return withMilestones({
         ...savedState,
         appInfo: state.appInfo,
         activeTab: state.activeTab,
@@ -645,11 +769,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         cash: savedState.cash + cashEarned,
         researchPoints: savedState.researchPoints + researchEarned,
         influence: savedState.influence + influenceEarned,
+        lifetimeResearchPointsEarned: savedState.lifetimeResearchPointsEarned + researchEarned,
         lifetimeCashEarned: savedState.lifetimeCashEarned + cashEarned,
         automationCycleState: automationResult.automationCycleState,
+        complianceVisible: complianceResult.complianceVisible,
+        complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+        compliancePayments: complianceResult.compliancePayments,
+        lastCompliancePayment: complianceResult.lastCompliancePayment,
+        totalComplianceReviewsTriggered: savedState.totalComplianceReviewsTriggered + (complianceResult.complianceReviewRemainingSeconds > savedState.complianceReviewRemainingSeconds ? 1 : 0),
+        timedBoosts,
+        activeMarketEvent: eventResult.activeMarketEvent,
+        activeMarketEventRemainingSeconds: eventResult.activeMarketEventRemainingSeconds,
+        nextMarketEventCooldownSeconds: eventResult.nextMarketEventCooldownSeconds,
+        marketEventHistory: eventResult.marketEventHistory,
         totalOfflineSecondsApplied: savedState.totalOfflineSecondsApplied + appliedSeconds,
         lastSaveTimestamp: now,
-      }
+        milestoneUnlockQueue: state.milestoneUnlockQueue,
+      }, state)
     })
   },
   exportSave: (): string => {
@@ -674,14 +810,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const now = Date.now()
     const secondsAway = getElapsedOfflineSeconds(importedState.lastSaveTimestamp, now)
     const appliedSeconds = getOfflineSecondsApplied(importedState.lastSaveTimestamp, now)
-    const passiveCashEarned = getCashPerSecond(importedState) * appliedSeconds
-    const researchEarned = getResearchPointsPerSecond(importedState) * appliedSeconds
-    const influenceEarned = getInfluencePerSecond(importedState) * appliedSeconds
-    const automationResult = processAutomationCycles(importedState, appliedSeconds, now)
-    const cashEarned = passiveCashEarned + (automationResult.cash - importedState.cash)
+    const eventResult = processMarketEventTimer(importedState, appliedSeconds, now)
+    const importedStateWithEvents = {
+      ...importedState,
+      ...eventResult,
+    }
+    const complianceResult = processComplianceTimer(importedStateWithEvents, appliedSeconds)
+    const importedStateWithCompliance = {
+      ...importedStateWithEvents,
+      ...complianceResult,
+    }
+    const timedBoosts = processTimedBoosts(importedStateWithCompliance, appliedSeconds)
+    const importedStateWithBoosts = {
+      ...importedStateWithCompliance,
+      timedBoosts,
+    }
+    const passiveCashEarned = getCashPerSecond(importedStateWithBoosts) * appliedSeconds
+    const researchEarned = getResearchPointsPerSecond(importedStateWithBoosts) * appliedSeconds
+    const influenceEarned = getInfluencePerSecond(importedStateWithBoosts) * appliedSeconds
+    const automationResult = processAutomationCycles(importedStateWithBoosts, appliedSeconds, now)
+    const cashEarned = passiveCashEarned + (automationResult.cash - importedStateWithBoosts.cash)
     const activeModal: ModalId | null = cashEarned > 0 || researchEarned > 0 || influenceEarned > 0 ? 'offlineEarnings' : null
 
-    const hydratedState: Partial<GameStore> = {
+    const hydratedState: Partial<GameStore> = withMilestones({
       ...importedState,
       appInfo: currentState.appInfo,
       activeTab: currentState.activeTab,
@@ -699,19 +850,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cash: importedState.cash + cashEarned,
       researchPoints: importedState.researchPoints + researchEarned,
       influence: importedState.influence + influenceEarned,
+      lifetimeResearchPointsEarned: importedState.lifetimeResearchPointsEarned + researchEarned,
       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
       automationCycleState: automationResult.automationCycleState,
+      complianceVisible: complianceResult.complianceVisible,
+      complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+      compliancePayments: complianceResult.compliancePayments,
+      lastCompliancePayment: complianceResult.lastCompliancePayment,
+      totalComplianceReviewsTriggered: importedState.totalComplianceReviewsTriggered + (complianceResult.complianceReviewRemainingSeconds > importedState.complianceReviewRemainingSeconds ? 1 : 0),
+      timedBoosts,
+      activeMarketEvent: eventResult.activeMarketEvent,
+      activeMarketEventRemainingSeconds: eventResult.activeMarketEventRemainingSeconds,
+      nextMarketEventCooldownSeconds: eventResult.nextMarketEventCooldownSeconds,
+      marketEventHistory: eventResult.marketEventHistory,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
-    }
+      milestoneUnlockQueue: currentState.milestoneUnlockQueue,
+    }, currentState)
 
     saveStateToStorage({
       ...importedState,
       cash: importedState.cash + cashEarned,
       researchPoints: importedState.researchPoints + researchEarned,
-      influence: importedState.influence + influenceEarned,
-      lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
-      automationCycleState: automationResult.automationCycleState,
+       influence: importedState.influence + influenceEarned,
+       lifetimeCashEarned: importedState.lifetimeCashEarned + cashEarned,
+        automationCycleState: automationResult.automationCycleState,
+        complianceVisible: complianceResult.complianceVisible,
+        complianceReviewRemainingSeconds: complianceResult.complianceReviewRemainingSeconds,
+        compliancePayments: complianceResult.compliancePayments,
+        lastCompliancePayment: complianceResult.lastCompliancePayment,
+        timedBoosts,
+        activeMarketEvent: eventResult.activeMarketEvent,
+       activeMarketEventRemainingSeconds: eventResult.activeMarketEventRemainingSeconds,
+       nextMarketEventCooldownSeconds: eventResult.nextMarketEventCooldownSeconds,
+      marketEventHistory: eventResult.marketEventHistory,
       totalOfflineSecondsApplied: importedState.totalOfflineSecondsApplied + appliedSeconds,
       lastSaveTimestamp: now,
     })
@@ -722,7 +894,49 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ appInfo })
   },
   setActiveTab: (tab) => {
-    set({ activeTab: tab })
+    set((state) => withMilestones({ activeTab: tab, complianceTabOpened: state.complianceTabOpened || tab === 'compliance' }, state))
+  },
+  activateTimedBoost: (boostId: TimedBoostId) => {
+    set((state) => withMilestones({
+      timedBoosts: activateTimedBoostRuntime(state, boostId),
+      totalTimedBoostActivations: state.totalTimedBoostActivations + 1,
+    }, state))
+  },
+  toggleTimedBoostAutoMode: (boostId: TimedBoostId, enabled) => {
+    set((state) => ({
+      timedBoosts: {
+        ...state.timedBoosts,
+        [boostId]: {
+          ...state.timedBoosts[boostId],
+          autoEnabled: enabled,
+        },
+      },
+    }))
+  },
+  setGlobalBoostOwned: (boostId: GlobalBoostId, owned) => {
+    set((state) => withMilestones({
+      globalBoostsOwned: {
+        ...state.globalBoostsOwned,
+        [boostId]: owned,
+      },
+    }, state))
+  },
+  payComplianceCategory: (category: CompliancePaymentCategoryId) => {
+    set((state) => withMilestones({
+      ...payComplianceCategoryNow(state, category),
+      totalCompliancePaymentsMade: state.totalCompliancePaymentsMade + 1,
+    }, state))
+  },
+  setComplianceAutoPayEnabled: (category: CompliancePaymentCategoryId, enabled) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        complianceAutoPayEnabled: {
+          ...state.settings.complianceAutoPayEnabled,
+          [category]: enabled,
+        },
+      },
+    }))
   },
   setActiveDeskView: (view: DeskViewId) => {
     set((state) => ({
@@ -788,12 +1002,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
   },
   unlockSector: (sectorId) => {
-    set((state) => ({
+    set((state) => withMilestones({
       unlockedSectors: {
         ...state.unlockedSectors,
         [sectorId]: true,
       },
-    }))
+    }, state))
   },
   assignUnitToSector: (unitId, sectorId, amount = 1) => {
     set((state) => {
@@ -816,9 +1030,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const currentAssigned = state.sectorAssignments[unitId][sectorId] ?? 0
 
-      return {
+      return withMilestones({
         sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned + quantity),
-      }
+      }, state)
     })
   },
   unassignUnitFromSector: (unitId, sectorId, amount = 1) => {
@@ -836,15 +1050,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned - quantity),
-      }
+      }, state)
     })
   },
   clearSectorAssignments: (unitId, sectorId) => {
-    set((state) => ({
+    set((state) => withMilestones({
       sectorAssignments: updateSectorAssignment(state, unitId, sectorId, 0),
-    }))
+    }, state))
   },
   assignMaxToSector: (unitId, sectorId) => {
     set((state) => {
@@ -860,32 +1074,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const currentAssigned = state.sectorAssignments[unitId][sectorId] ?? 0
 
-      return {
+      return withMilestones({
         sectorAssignments: updateSectorAssignment(state, unitId, sectorId, currentAssigned + available),
-      }
+      }, state)
     })
   },
   setAutomationMarketTarget: (unitId: AutomationUnitId, sectorId: SectorId | null) => {
-    set((state) => ({
-      automationConfig: {
-        ...state.automationConfig,
-        [unitId]: {
-          ...state.automationConfig[unitId],
-          marketTarget: sectorId,
+    set((state) => {
+      if (!isAutomationUnitUnlocked(state, unitId)) {
+        return state
+      }
+
+      if (sectorId !== null && state.unlockedSectors[sectorId] !== true) {
+        return state
+      }
+
+      return withMilestones({
+        automationConfig: {
+          ...state.automationConfig,
+          [unitId]: {
+            ...state.automationConfig[unitId],
+            marketTarget: sectorId,
+          },
         },
-      },
-    }))
+      }, state)
+    })
   },
   setAutomationStrategy: (unitId: AutomationUnitId, strategyId: AutomationStrategyId | null) => {
-    set((state) => ({
-      automationConfig: {
-        ...state.automationConfig,
-        [unitId]: {
-          ...state.automationConfig[unitId],
-          strategy: strategyId,
+    set((state) => {
+      if (!isAutomationUnitUnlocked(state, unitId)) {
+        return state
+      }
+
+      if (strategyId !== null && !isAutomationStrategyUnlocked(state, strategyId)) {
+        return state
+      }
+
+      return withMilestones({
+        automationConfig: {
+          ...state.automationConfig,
+          [unitId]: {
+            ...state.automationConfig[unitId],
+            strategy: strategyId,
+          },
         },
-      },
-    }))
+      }, state)
+    })
   },
   trainTraderSpecialist: (unitId, specializationId, amount = 1) => {
     set((state) => {
@@ -909,7 +1143,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - affordableQuantity * trainingCost,
         traderSpecialists: {
           ...state.traderSpecialists,
@@ -918,7 +1152,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             [specializationId]: state.traderSpecialists.seniorTrader[specializationId] + affordableQuantity,
           },
         },
-      }
+      }, state)
     })
   },
   applyInstitutionMandate: (unitId, mandateId, amount = 1) => {
@@ -943,7 +1177,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return state
       }
 
-      return {
+      return withMilestones({
         cash: state.cash - affordableQuantity * applicationCost,
         institutionMandates: {
           ...state.institutionMandates,
@@ -952,7 +1186,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             [mandateId]: state.institutionMandates[unitId][mandateId] + affordableQuantity,
           },
         },
-      }
+      }, state)
     })
   },
   acknowledgeSectorUnlock: (sectorId) => {
@@ -1004,6 +1238,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   clearTradeFeedback: () => {
     set({ latestTradeFeedback: null })
+  },
+  dismissMilestoneNotification: () => {
+    set((state) => ({
+      milestoneUnlockQueue: state.milestoneUnlockQueue.slice(1),
+    }))
   },
   resetFoundation: () => {
     window.localStorage.removeItem(SAVE_KEY)

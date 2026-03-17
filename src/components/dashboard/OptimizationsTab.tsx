@@ -1,238 +1,186 @@
-import { REPEATABLE_UPGRADES } from '@/data/repeatableUpgrades'
-import { useGameStore } from '@/store/gameStore'
-import { selectors } from '@/store/selectors'
-import type { RepeatableUpgradeDefinition, RepeatableUpgradeId } from '@/types/game'
-import { formatCurrency, formatNumber } from '@/utils/formatting'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
+import { REPEATABLE_UPGRADES } from '@/data/repeatableUpgrades'
+import { useGameStore } from '@/store/gameStore'
+import { selectors } from '@/store/selectors'
+import type { RepeatableUpgradeDefinition, RepeatableUpgradeFamily, RepeatableUpgradeId } from '@/types/game'
+import { formatCurrency, formatNumber } from '@/utils/formatting'
 import { PurchaseCard } from './DashboardPrimitives'
+
 const BUY_MODES = [1, 5, 10, 'max'] as const
 
-const OPTIMIZATION_SECTIONS = [
+const OPTIMIZATION_SECTIONS: Array<{
+  family: RepeatableUpgradeFamily
+  title: string
+  description: string
+}> = [
   {
-    title: 'Operations Optimizations',
-    description: 'Cash-funded repeatables for purchasable desk units and power infrastructure.',
-    upgrades: REPEATABLE_UPGRADES.filter((upgrade) => upgrade.family === 'operations'),
+    family: 'desk',
+    title: 'Desk Optimisations',
+    description: 'Manual trading, human desk output, institution output, and sector deployment refinement.',
   },
   {
-    title: 'Research Optimizations',
-    description: 'RP-funded repeatables for modeling, scientist throughput, and machine efficiency.',
-    upgrades: REPEATABLE_UPGRADES.filter((upgrade) => upgrade.family === 'research'),
+    family: 'research',
+    title: 'Research Optimisations',
+    description: 'Research generation, training quality, and analytical refinement for late-game planning.',
   },
   {
-    title: 'Influence Optimizations',
-    description: 'Influence-funded repeatables that reduce purchase costs instead of increasing output.',
-    upgrades: REPEATABLE_UPGRADES.filter((upgrade) => upgrade.family === 'influence'),
+    family: 'automation',
+    title: 'Automation Optimisations',
+    description: 'Cycle payout, runtime efficiency, power usage, and strategy quality for machine systems.',
   },
-] as const
-
-function getOptimizationLockedReason(upgrade: RepeatableUpgradeDefinition, state: ReturnType<typeof useGameStore.getState>) {
-  switch (upgrade.id) {
-    case 'juniorTraderTraining':
-    case 'behavioralModeling':
-      return `Requires at least 1 Junior Trader (${state.juniorTraderCount}/1).`
-    case 'manualTradeRefinement':
-      return 'Requires Better Terminal first.'
-    case 'internDeskTraining':
-    case 'internPlaybooks':
-      return state.purchasedResearchTech.juniorTraderProgram === true
-        ? `Requires at least 1 Intern (${state.internCount}/1).`
-        : 'Requires Junior Trader Program first.'
-    case 'internLabTraining':
-    case 'internResearchNotes':
-      return state.purchasedResearchTech.juniorScientists === true
-        ? `Requires at least 1 Intern Scientist (${state.internResearchScientistCount}/1).`
-        : 'Requires Junior Scientists research first.'
-    case 'politicalNetworking':
-    case 'constituencyResearch':
-    case 'talentHeadhunters':
-    case 'researchEndowments':
-    case 'patronageMachine':
-      return state.purchasedResearchTech.regulatoryAffairs === true
-        ? `Requires at least 1 Senator (${state.juniorPoliticianCount}/1).`
-        : 'Requires Regulatory Affairs research first.'
-    case 'automationSubsidies':
-      return state.purchasedResearchTech.regulatoryAffairs === true
-        ? state.purchasedResearchTech.quantTradingSystems === true
-          ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
-          : 'Requires Quant Trading Systems research first.'
-        : 'Requires Regulatory Affairs research first.'
-    case 'infrastructureGrants':
-      return state.purchasedResearchTech.regulatoryAffairs === true
-        ? state.purchasedResearchTech.powerSystemsEngineering === true
-          ? `Requires at least 1 Server Rack or Server Room (${state.serverRackCount + state.serverRoomCount}/1).`
-          : 'Requires Power Systems Engineering research first.'
-        : 'Requires Regulatory Affairs research first.'
-    case 'seniorDeskPerformance':
-    case 'decisionSystems':
-      return state.purchasedResearchTech.seniorRecruitment === true
-        ? `Requires at least 1 Senior Trader (${state.seniorTraderCount}/1).`
-        : 'Requires Senior Recruitment first.'
-    case 'propDeskScaling':
-    case 'propDeskResearch':
-      return state.purchasedResearchTech.propDeskOperations === true
-        ? `Requires at least 1 Prop Desk (${state.propDeskCount}/1).`
-        : 'Requires Prop Desk Operations research first.'
-    case 'institutionalDeskCoordination':
-    case 'institutionalAnalytics':
-      return state.purchasedResearchTech.institutionalDesks === true
-        ? `Requires at least 1 Institutional Desk (${state.institutionalDeskCount}/1).`
-        : 'Requires Institutional Desks research first.'
-    case 'hedgeFundExecution':
-    case 'hedgeFundResearch':
-      return state.purchasedResearchTech.hedgeFundStrategies === true
-        ? `Requires at least 1 Hedge Fund (${state.hedgeFundCount}/1).`
-        : 'Requires Hedge Fund Strategies research first.'
-    case 'investmentFirmOperations':
-    case 'firmWideSystems':
-      return state.purchasedResearchTech.investmentFirms === true
-        ? `Requires at least 1 Investment Firm (${state.investmentFirmCount}/1).`
-        : 'Requires Investment Firms research first.'
-    case 'ruleBasedExecution':
-    case 'signalRefinement':
-    case 'energyOptimization':
-      return state.purchasedResearchTech.ruleBasedAutomation === true
-        ? `Requires at least 1 Rule-Based Bot (${state.ruleBasedBotCount}/1).`
-        : 'Requires Rule-Based Automation research first.'
-    case 'mlModelDeployment':
-    case 'mlFeaturePipelines':
-      return state.purchasedResearchTech.machineLearningTrading === true
-        ? `Requires at least 1 ML Trading Bot (${state.mlTradingBotCount}/1).`
-        : 'Requires Machine Learning Trading research first.'
-    case 'aiClusterOrchestration':
-    case 'aiTrainingSystems':
-    case 'serverEfficiency':
-      return state.purchasedResearchTech.aiTradingSystems === true
-        ? `Requires at least 1 AI Trading Bot (${state.aiTradingBotCount}/1).`
-        : 'Requires AI Trading Systems research first.'
-    case 'juniorLabProtocols':
-    case 'juniorLabOptimization':
-      return `Requires at least 1 Junior Scientist (${state.juniorResearchScientistCount}/1).`
-    case 'seniorLabMethods':
-    case 'seniorLabOptimization':
-      return state.purchasedResearchTech.seniorScientists === true
-        ? `Requires at least 1 Senior Scientist (${state.seniorResearchScientistCount}/1).`
-        : 'Requires Senior Scientists research first.'
-    case 'rackDensity':
-      return `Requires at least 1 Server Rack (${state.serverRackCount}/1).`
-    case 'serverRoomExpansion':
-      return state.purchasedResearchTech.powerSystemsEngineering === true
-        ? `Requires at least 1 Server Room (${state.serverRoomCount}/1).`
-        : 'Requires Power Systems Engineering research first.'
-    case 'dataCenterOverbuild':
-      return state.purchasedResearchTech.dataCenterSystems === true
-        ? `Requires at least 1 Data Centre (${state.dataCenterCount}/1).`
-        : 'Requires Data Centre Systems research first.'
-    case 'cloudFailover':
-      return state.purchasedResearchTech.aiTradingSystems === true
-        ? `Requires at least 1 Cloud Infrastructure (${state.cloudComputeCount}/1).`
-        : 'Requires AI Trading Systems research first.'
-    default:
-      return 'Unlock the related system first.'
-  }
-}
+  {
+    family: 'governance',
+    title: 'Governance Optimisations',
+    description: 'Compliance relief, filing cost reduction, influence growth, and institution support.',
+  },
+]
 
 function formatPercent(value: number) {
   return `${(value * 100).toFixed(value * 100 < 10 ? 1 : 0)}%`
 }
 
-function getEffectPreview(upgrade: RepeatableUpgradeDefinition, rank: number) {
-  const currentValue = rank * upgrade.effectPerRank
-  const nextValue = (rank + 1) * upgrade.effectPerRank
-
-  if (upgrade.effectType === 'powerUsageReduction') {
-    return `Power reduction ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
+function getCurrentTotalEffect(upgrade: RepeatableUpgradeDefinition, multiplier: number) {
+  if (upgrade.id === 'modelEfficiency' || upgrade.id === 'computeOptimization' || upgrade.id === 'complianceSystems' || upgrade.id === 'filingEfficiency' || upgrade.id === 'institutionalAccess') {
+    return `${formatPercent(1 - multiplier)} reduction`
   }
 
-  if (upgrade.effectType === 'powerCapacity') {
-    return `Capacity bonus ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
+  return `${formatPercent(multiplier - 1)} total`
+}
+
+function getCurrencyLabel(currency: RepeatableUpgradeDefinition['currency'], amount: number) {
+  if (currency === 'cash') {
+    return formatCurrency(amount)
   }
 
-  if (upgrade.effectType === 'costReduction') {
-    return `Cost reduction ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
+  if (currency === 'researchPoints') {
+    return `${formatNumber(amount)} RP`
   }
 
-  if (upgrade.id === 'manualTradeRefinement') {
-    return `Manual trade bonus ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
-  }
+  return `${formatNumber(amount, { decimalsBelowThreshold: 2 })} inf`
+}
 
-    if (upgrade.id === 'politicalNetworking' || upgrade.id === 'constituencyResearch') {
-      return `Influence bonus ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
-    }
+function getUpgradeStatus(isVisible: boolean, isUnlocked: boolean, canAfford: boolean, rank: number, maxRank: number) {
+  if (!isVisible) return 'Locked'
+  if (!isUnlocked) return 'Locked'
+  if (rank >= maxRank) return 'Capped'
+  return canAfford ? 'Ready' : 'Need funds'
+}
 
-  return `Output bonus ${formatPercent(currentValue)} -> ${formatPercent(nextValue)}`
+function getUpgradeStatusTone(isVisible: boolean, isUnlocked: boolean, canAfford: boolean, rank: number, maxRank: number) {
+  if (!isVisible || !isUnlocked) return 'locked' as const
+  if (rank >= maxRank) return 'done' as const
+  return canAfford ? 'ready' as const : 'warning' as const
 }
 
 export function OptimizationsTab() {
   const gameState = useGameStore((state) => state)
   const buyRepeatableUpgrade = useGameStore((state) => state.buyRepeatableUpgrade)
   const setRepeatableUpgradeBuyMode = useGameStore((state) => state.setRepeatableUpgradeBuyMode)
+  const globallyUnlocked = useGameStore(selectors.repeatableUpgradesGloballyUnlocked)
+  const totalRanksPurchased = useGameStore(selectors.totalRepeatableUpgradeRanksPurchased)
 
   return (
     <Card className="terminal-panel h-full rounded-2xl border-border/80 bg-card/92">
       <CardHeader>
-        <CardTitle className="text-base uppercase tracking-[0.16em]">Optimizations</CardTitle>
-        <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Repeatable scaling for all purchasable units, scientists, machine systems, and infrastructure</CardDescription>
+        <CardTitle className="text-base uppercase tracking-[0.16em]">Optimisations</CardTitle>
+        <CardDescription className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          Broad 100-rank late-game refinement tracks unlocked after the first prestige.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex h-full min-h-0 flex-col gap-2">
+      <CardContent className="flex h-full min-h-0 flex-col gap-3">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-2">
+          <div className="rounded-xl border border-border/80 bg-background/70 p-2">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Unlocked</p>
+            <p className="mt-1 font-mono text-[13px] font-semibold text-foreground xl:text-sm">{globallyUnlocked ? 'Yes' : 'No'}</p>
+          </div>
+          <div className="rounded-xl border border-border/80 bg-background/70 p-2">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Total ranks</p>
+            <p className="mt-1 font-mono text-[13px] font-semibold text-foreground xl:text-sm">{formatNumber(totalRanksPurchased)}</p>
+          </div>
+        </div>
+
         <ScrollArea className="h-full min-h-0 pr-2">
           <div className="space-y-3">
-            {OPTIMIZATION_SECTIONS.map((section, index) => (
-              <div key={section.title} className="space-y-2">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-primary">{section.title}</p>
-                  <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{section.description}</p>
-                </div>
-                {section.upgrades.map((upgrade) => {
-                  const rank = selectors.repeatableUpgradeRank(upgrade.id)(gameState)
-                  const cost = selectors.bulkRepeatableUpgradeTotalCost(upgrade.id)(gameState)
-                  const quantity = selectors.bulkRepeatableUpgradeQuantity(upgrade.id)(gameState)
-                  const buyMode = selectors.repeatableUpgradeBuyMode(upgrade.id)(gameState)
-                  const isVisible = selectors.isRepeatableUpgradeVisible(upgrade.id)(gameState)
-                  const isUnlocked = selectors.isRepeatableUpgradeUnlocked(upgrade.id)(gameState)
-                  const shortfall = selectors.repeatableUpgradeShortfall(upgrade.id)(gameState)
-                  const canAfford = selectors.canAffordRepeatableUpgrade(upgrade.id)(gameState)
-                  const currencyLabel = upgrade.currency === 'cash' ? formatCurrency(cost) : upgrade.currency === 'researchPoints' ? `${formatNumber(cost)} RP` : `${formatNumber(cost, { decimalsBelowThreshold: 2 })} inf`
-                  const lockReason = !isVisible || !isUnlocked ? getOptimizationLockedReason(upgrade, gameState) : undefined
-                  const purchaseLabel = buyMode === 'max' ? `Max (${quantity})` : `x${quantity}`
-                  const disabledReason = lockReason ?? (shortfall > 0 ? `Need ${upgrade.currency === 'cash' ? formatCurrency(shortfall) : upgrade.currency === 'researchPoints' ? `${formatNumber(shortfall)} RP` : `${formatNumber(shortfall, { decimalsBelowThreshold: 2 })} inf`} more.` : undefined)
+            {OPTIMIZATION_SECTIONS.map((section, index) => {
+              const upgrades = REPEATABLE_UPGRADES.filter((upgrade) => upgrade.family === section.family)
 
-                  return (
-                    <PurchaseCard
-                      key={upgrade.id}
-                      title={`${upgrade.name} - Rank ${rank}`}
-                      description={`${upgrade.description} ${getEffectPreview(upgrade, rank)}`}
-                      cost={isVisible && isUnlocked ? `${purchaseLabel} costs ${currencyLabel}` : undefined}
-                      status={!isVisible ? 'Future' : !isUnlocked ? 'Locked' : canAfford ? 'Ready' : 'Need funds'}
-                      statusTone={!isVisible || !isUnlocked ? 'locked' : canAfford ? 'ready' : 'default'}
-                      actionLabel={!isVisible || !isUnlocked ? 'Locked' : currencyLabel}
-                      disabled={!canAfford}
-                      disabledReason={disabledReason}
-                      onClick={() => buyRepeatableUpgrade(upgrade.id as RepeatableUpgradeId)}
-                      footer={
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Buy</span>
-                          {BUY_MODES.map((mode) => (
-                            <Button
-                              key={`${upgrade.id}-${String(mode)}`}
-                              size="xs"
-                              variant={buyMode === mode ? 'default' : 'outline'}
-                              className="rounded-md uppercase tracking-[0.12em]"
-                              onClick={() => setRepeatableUpgradeBuyMode(upgrade.id as RepeatableUpgradeId, mode)}
-                            >
-                              {typeof mode === 'number' ? `x${mode}` : 'Max'}
-                            </Button>
-                          ))}
-                        </div>
-                      }
-                    />
-                  )
-                })}
-                {index < OPTIMIZATION_SECTIONS.length - 1 ? <Separator className="bg-border/60" /> : null}
-              </div>
-            ))}
+              return (
+                <div key={section.family} className="space-y-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary">{section.title}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{section.description}</p>
+                  </div>
+                  {upgrades.map((upgrade) => {
+                    const rank = selectors.repeatableUpgradeRank(upgrade.id)(gameState)
+                    const multiplier = selectors.repeatableUpgradeMultiplier(upgrade.id)(gameState)
+                    const cost = selectors.bulkRepeatableUpgradeTotalCost(upgrade.id)(gameState)
+                    const quantity = selectors.bulkRepeatableUpgradeQuantity(upgrade.id)(gameState)
+                    const buyMode = selectors.repeatableUpgradeBuyMode(upgrade.id)(gameState)
+                    const isVisible = selectors.isRepeatableUpgradeVisible(upgrade.id)(gameState)
+                    const isUnlocked = selectors.isRepeatableUpgradeUnlocked(upgrade.id)(gameState)
+                    const shortfall = selectors.repeatableUpgradeShortfall(upgrade.id)(gameState)
+                    const canAfford = selectors.canAffordRepeatableUpgrade(upgrade.id)(gameState)
+                    const purchaseLabel = buyMode === 'max' ? `Buy Max (${quantity})` : `Buy x${quantity}`
+                    const disabledReason = !globallyUnlocked
+                      ? 'Requires Prestige 1.'
+                      : !isUnlocked
+                        ? upgrade.unlockConditionDescription
+                        : rank >= upgrade.maxRank
+                          ? 'Maximum rank reached.'
+                          : shortfall > 0
+                            ? `Need ${getCurrencyLabel(upgrade.currency, shortfall)} more.`
+                            : undefined
+
+                    return (
+                      <PurchaseCard
+                        key={upgrade.id}
+                        title={upgrade.name}
+                        description={upgrade.description}
+                        detail={(
+                          <div className="mt-1 space-y-1 text-[11px] leading-4 text-muted-foreground">
+                            <p>{upgrade.perRankDescription}</p>
+                            <p>Current total: {getCurrentTotalEffect(upgrade, multiplier)}</p>
+                            <p>Unlock: {upgrade.unlockConditionDescription}</p>
+                          </div>
+                        )}
+                        cost={isVisible ? `${purchaseLabel} costs ${getCurrencyLabel(upgrade.currency, cost)}` : undefined}
+                        status={getUpgradeStatus(isVisible, isUnlocked, canAfford, rank, upgrade.maxRank)}
+                        statusTone={getUpgradeStatusTone(isVisible, isUnlocked, canAfford, rank, upgrade.maxRank)}
+                        badges={[
+                          { label: `${formatNumber(rank)}/${formatNumber(upgrade.maxRank)}`, tone: 'success' },
+                          { label: upgrade.family, tone: 'default' },
+                          { label: upgrade.currency, tone: 'default' },
+                        ]}
+                        actionLabel={rank >= upgrade.maxRank ? 'Maxed' : getCurrencyLabel(upgrade.currency, cost)}
+                        disabled={!canAfford || rank >= upgrade.maxRank}
+                        disabledReason={disabledReason}
+                        onClick={() => buyRepeatableUpgrade(upgrade.id as RepeatableUpgradeId)}
+                        footer={(
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Buy</span>
+                            {BUY_MODES.map((mode) => (
+                              <Button
+                                key={`${upgrade.id}-${String(mode)}`}
+                                size="xs"
+                                variant={buyMode === mode ? 'default' : 'outline'}
+                                className="rounded-md uppercase tracking-[0.12em]"
+                                onClick={() => setRepeatableUpgradeBuyMode(upgrade.id as RepeatableUpgradeId, mode)}
+                              >
+                                {typeof mode === 'number' ? `x${mode}` : 'Max'}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
+                      />
+                    )
+                  })}
+                  {index < OPTIMIZATION_SECTIONS.length - 1 ? <Separator className="bg-border/60" /> : null}
+                </div>
+              )
+            })}
           </div>
         </ScrollArea>
       </CardContent>

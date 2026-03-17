@@ -134,8 +134,8 @@ Deliver a machine-side trading layer where:
 
 ## 5. Helper Layer
 
-- [ ] Add a new automation helper module, likely `src/utils/automation.ts`
-- [ ] Add helpers such as:
+- [x] Add a new automation helper module, likely `src/utils/automation.ts`
+- [x] Add helpers such as:
   - `isAutomationUnitUnlocked(state, unitType)`
   - `isAutomationStrategyUnlocked(state, strategyId)`
   - `getAutomationOwnedCount(state, unitType)`
@@ -145,37 +145,37 @@ Deliver a machine-side trading layer where:
   - `getAutomationAdjustedPayout(state, unitType)`
   - `getAutomationAverageIncomePerSecond(state, unitType)`
   - `getAutomationProgressPercent(state, unitType)`
-- [ ] Add helper(s) for simple market target and strategy multipliers
-- [ ] Reuse existing machine efficiency / power helpers rather than duplicating them
+- [x] Add helper(s) for simple market target and strategy multipliers
+- [x] Reuse existing machine efficiency / power helpers rather than duplicating them
 
 ## 6. Store Actions and Purchase Flow
 
-- [ ] Add automation purchase action(s), either by extending `buyUnit` safely or introducing `buyAutomationUnit(unitType, quantity)`
-- [ ] Add config actions:
+- [x] Add automation purchase action(s), either by extending `buyUnit` safely or introducing `buyAutomationUnit(unitType, quantity)`
+- [x] Add config actions:
   - `setAutomationMarketTarget(unitType, sectorId | null)`
   - `setAutomationStrategy(unitType, strategyId | null)`
-- [ ] Validate that target and strategy selection respects unlock state
-- [ ] Ensure buy modes remain available for automation cards (`x1 / x5 / x10 / Max`)
-- [ ] Decide whether automation should keep using generic `ui.unitBuyModes` or get dedicated automation buy mode state
+- [x] Validate that target and strategy selection respects unlock state
+- [x] Ensure buy modes remain available for automation cards (`x1 / x5 / x10 / Max`)
+- [~] Decide whether automation should keep using generic `ui.unitBuyModes` or get dedicated automation buy mode state
 
 ## 7. Tick Loop and Cycle Processing
 
-- [ ] Refactor the main tick path in `src/store/gameStore.ts` so automation is processed separately from human passive income
-- [ ] Add cycle processing logic that:
+- [x] Refactor the main tick path in `src/store/gameStore.ts` so automation is processed separately from human passive income
+- [x] Add cycle processing logic that:
   - advances progress by `deltaSeconds`
   - loops when progress crosses cycle duration
   - pays lump sums on completion
   - updates `lastPayout`
-- [ ] Support multiple completed cycles in one large tick or offline catch-up interval
-- [ ] Ensure automation payout adds to both `cash` and `lifetimeCashEarned`
-- [ ] Keep RP and influence flows unchanged
-- [ ] Decide whether offline progress should simulate automation cycles exactly or approximate them in batches
+- [x] Support multiple completed cycles in one large tick or offline catch-up interval
+- [x] Ensure automation payout adds to both `cash` and `lifetimeCashEarned`
+- [x] Keep RP and influence flows unchanged
+- [x] Decide whether offline progress should simulate automation cycles exactly or approximate them in batches
 
 ## 8. Economy Integration
 
-- [ ] Remove automation units from continuous passive cash generation in `getIncomeBreakdown()` / `getCashPerSecond()` once cycle processing is active
-- [ ] Keep human and institutional income continuous
-- [ ] Ensure automation payout formula includes:
+- [x] Remove automation units from continuous passive cash generation in `getIncomeBreakdown()` / `getCashPerSecond()` once cycle processing is active
+- [x] Keep human and institutional income continuous
+- [x] Ensure automation payout formula includes:
   - owned count
   - base payout
   - market target multiplier
@@ -183,14 +183,14 @@ Deliver a machine-side trading layer where:
   - machine efficiency multiplier
   - automation upgrade multipliers
   - global / prestige multipliers if those should still apply to automation income
-- [ ] Audit existing repeatable upgrades and permanent upgrades that currently reference `ruleBasedBot`, `mlTradingBot`, and `aiTradingBot`
-- [ ] Rewire current automation upgrade effects so they still influence Phase 5 payouts meaningfully
-- [ ] Confirm power shortages reduce automation payout appropriately
+- [x] Audit existing repeatable upgrades and permanent upgrades that currently reference `ruleBasedBot`, `mlTradingBot`, and `aiTradingBot`
+- [x] Rewire current automation upgrade effects so they still influence Phase 5 payouts meaningfully
+- [x] Confirm power shortages reduce automation payout appropriately
 
 ## 9. UI and UX
 
-- [ ] Replace the current plain `Algorithmic Trading` unit-panel list in `src/components/dashboard/DeskTab.tsx` with dedicated automation cards
-- [ ] Each automation card should show:
+- [x] Replace the current plain `Algorithmic Trading` unit-panel list in `src/components/dashboard/DeskTab.tsx` with dedicated automation cards
+- [x] Each automation card should show:
   - unit name
   - owned count
   - target selector
@@ -202,25 +202,25 @@ Deliver a machine-side trading layer where:
   - estimated average income/sec
   - power use
   - buy controls
-- [ ] Make progress bars and payout ticks visually distinct from human desk UI
-- [ ] Add clear locked states for both unit unlocks and strategy unlocks
-- [ ] Keep the Sectors tab free of automation assignment controls
-- [ ] Keep copy concise and use hover/info affordances instead of large explainer blocks
-- [ ] Ensure the layout still works well on smaller laptop and mobile widths
+- [x] Make progress bars and payout ticks visually distinct from human desk UI
+- [x] Add clear locked states for both unit unlocks and strategy unlocks
+- [x] Keep the Sectors tab free of automation assignment controls
+- [x] Keep copy concise and use hover/info affordances instead of large explainer blocks
+- [~] Ensure the layout still works well on smaller laptop and mobile widths
 
 ## 10. Selectors, Stats, and Surface Cleanup
 
-- [ ] Add selectors for automation unlocks, config, progress, last payout, and estimated average output
-- [ ] Update `src/components/dashboard/StatsTab.tsx` to reflect the new automation ladder, including `Quant Trader`
-- [ ] Update header / summary rates so they do not mislead players once automation becomes burst-based instead of purely passive
-- [ ] Decide whether summary surfaces should show average automation rate, recent payout, or both
-- [ ] Update any remaining references that still describe bots as plain passive income units
+- [x] Add selectors for automation unlocks, config, progress, last payout, and estimated average output
+- [x] Update `src/components/dashboard/StatsTab.tsx` to reflect the new automation ladder, including `Quant Trader`
+- [x] Update header / summary rates so they do not mislead players once automation becomes burst-based instead of purely passive
+- [x] Decide whether summary surfaces should show average automation rate, recent payout, or both
+- [x] Update any remaining references that still describe bots as plain passive income units
 
 ## 11. Progression and Copy Updates
 
-- [ ] Update `src/utils/progression.ts` so the bot era description reflects strategy selection and cycle execution
-- [ ] Update unit descriptions, research descriptions, and any onboarding text for the new machine-side identity
-- [ ] Ensure the player is explicitly taught that:
+- [x] Update `src/utils/progression.ts` so the bot era description reflects strategy selection and cycle execution
+- [x] Update unit descriptions, research descriptions, and any onboarding text for the new machine-side identity
+- [x] Ensure the player is explicitly taught that:
   - humans use continuous production
   - automation uses cycle bursts
   - sectors are for human/institution deployment
@@ -237,17 +237,17 @@ Deliver a machine-side trading layer where:
 
 ## 13. Validation
 
-- [ ] Verify old saves migrate cleanly into the Phase 5 automation state
-- [ ] Verify automation units unlock correctly through research
-- [ ] Verify strategy unlocks correctly through research
-- [ ] Verify target and strategy selectors persist through save/load
-- [ ] Verify progress bars fill, reset, and wrap correctly
-- [ ] Verify payout ticks fire on every completed cycle and stay legible in the UI
-- [ ] Verify machine efficiency penalties reduce payout correctly under power shortages
-- [ ] Verify automation no longer double-counts as passive income once cycle payouts are enabled
-- [ ] Verify large tick intervals and offline progress handle multiple completed cycles correctly
-- [ ] Verify the Sectors tab stays cleaner because automation is no longer managed there
-- [ ] Verify the automation panel remains understandable with all four automation tiers present
+- [~] Verify old saves migrate cleanly into the Phase 5 automation state
+- [x] Verify automation units unlock correctly through research
+- [x] Verify strategy unlocks correctly through research
+- [~] Verify target and strategy selectors persist through save/load
+- [x] Verify progress bars fill, reset, and wrap correctly
+- [~] Verify payout ticks fire on every completed cycle and stay legible in the UI
+- [x] Verify machine efficiency penalties reduce payout correctly under power shortages
+- [x] Verify automation no longer double-counts as passive income once cycle payouts are enabled
+- [x] Verify large tick intervals and offline progress handle multiple completed cycles correctly
+- [x] Verify the Sectors tab stays cleaner because automation is no longer managed there
+- [~] Verify the automation panel remains understandable with all four automation tiers present
 
 ## Recommended Implementation Order
 
@@ -255,10 +255,10 @@ Deliver a machine-side trading layer where:
 - [ ] 2. Add automation types, state, defaults, and persistence migration
 - [ ] 3. Add automation unit definition data and strategy definition data
 - [ ] 4. Add Phase 5 research nodes and branch layout updates
-- [ ] 5. Build automation helper utilities and selectors
-- [ ] 6. Implement automation purchase and config actions
-- [ ] 7. Implement cycle runtime processing in the main tick loop
-- [ ] 8. Remove passive bot income and wire automation payout formulas into power and upgrades
-- [ ] 9. Replace the current Algorithmic Trading UI with dedicated automation cards
-- [ ] 10. Update stats, progression copy, and summary surfaces
+- [x] 5. Build automation helper utilities and selectors
+- [x] 6. Implement automation purchase and config actions
+- [x] 7. Implement cycle runtime processing in the main tick loop
+- [x] 8. Remove passive bot income and wire automation payout formulas into power and upgrades
+- [x] 9. Replace the current Algorithmic Trading UI with dedicated automation cards
+- [x] 10. Update stats, progression copy, and summary surfaces
 - [ ] 11. Run gameplay validation and tuning passes

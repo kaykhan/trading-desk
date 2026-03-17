@@ -169,7 +169,7 @@ export function OperationsTab() {
                       ? 'ready'
                       : row.status === 'Locked'
                         ? 'locked'
-                        : 'default'
+                        : 'warning'
                   }
                 />
               )
@@ -185,7 +185,7 @@ export function OperationsTab() {
                   description={upgrade.description}
                   cost={`Cost ${formatCurrency(upgrade.cost)}`}
                   status={isPurchased ? 'Purchased' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                  statusTone={isPurchased ? 'done' : shortfall > 0 ? 'default' : 'ready'}
+                  statusTone={isPurchased ? 'done' : shortfall > 0 ? 'warning' : 'ready'}
                   actionLabel={isPurchased ? 'Purchased' : 'Upgrade'}
                   disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
                   disabledReason={!isPurchased && shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined}
