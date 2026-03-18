@@ -29,7 +29,7 @@ function validateCapacityBlocking(): void {
   const state = cloneState(initialState)
   state.cash = 1_000_000
   state.internCount = 10
-  state.purchasedUpgrades.juniorHiringProgram = true
+  state.purchasedResearchTech.foundationsOfFinanceTraining = true
 
   assert(isAtDeskCapacity(state), 'desk capacity reports full at 10/10 traders')
   assert(getBulkUnitCost(state, 'intern', 1).quantity === 0, 'intern purchase is blocked at full capacity')
@@ -94,6 +94,7 @@ function validateCapacityBulkBuying(): void {
   const state = cloneState(initialState)
   state.cash = 1_000_000
   state.serverRackCount = 10
+  state.purchasedResearchTech.floorSpacePlanning = true
 
   const deskBulk = getBulkCapacityInfrastructureCost(state, 'deskSpace', 5, CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage)
   const floorMax = getBulkCapacityInfrastructureCost(state, 'floorSpace', 'max', CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage)

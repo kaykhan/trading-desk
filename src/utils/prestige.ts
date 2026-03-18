@@ -1,7 +1,14 @@
-import { GAME_CONSTANTS } from '../data/constants'
 import { initialState } from '../data/initialState'
 import { PRESTIGE_REPUTATION_GAIN_CURVE, PRESTIGE_TIERS, PRESTIGE_TIER_LABELS, getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
+import { mechanics } from '../lib/mechanics'
 import type { GameState, PrestigeTierId, PrestigeUpgradeId } from '../types/game'
+
+const PRESTIGE_CONSTANTS = mechanics.constants
+const PRESTIGE_UNLOCK_REQUIREMENTS = mechanics.prestige.unlockRequirements
+
+function getPrestigeUpgradeRank(state: GameState, upgradeId: PrestigeUpgradeId): number {
+  return state.purchasedPrestigeUpgrades[upgradeId] ?? 0
+}
 
 export function getPrestigeTierId(prestigeCount: number): PrestigeTierId | null {
   if (prestigeCount <= 0) {
@@ -25,7 +32,7 @@ export function getNextPrestigeTierLabel(prestigeCount: number): string | null {
 }
 
 export function getPrestigeGain(_lifetimeCashEarned: number, _multiplier = 1, prestigeCount = 0): number {
-  if (_lifetimeCashEarned < GAME_CONSTANTS.prestigeUnlockLifetimeCash) {
+  if (_lifetimeCashEarned < Number(PRESTIGE_UNLOCK_REQUIREMENTS.lifetimeCashAtLeast ?? PRESTIGE_CONSTANTS.prestigeUnlockLifetimeCash ?? 0)) {
     return 0
   }
 
@@ -52,68 +59,72 @@ export function getLifetimeReputation(state: GameState): number {
 }
 
 export function getGlobalRecognitionMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.globalRecognition ?? 0
-  return 1 + rank * 0.05
+  const rank = getPrestigeUpgradeRank(state, 'globalRecognition')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.globalRecognitionProfitBonusPerRank ?? 0)
 }
 
 export function getResearchPrestigeMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.institutionalKnowledge ?? 0
-  return 1 + rank * 0.1
+  const rank = getPrestigeUpgradeRank(state, 'institutionalKnowledge')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.institutionalKnowledgeResearchBonusPerRank ?? 0)
 }
 
 export function getSeedCapitalBonus(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.seedCapital ?? 0
-  return rank * 250
+  const rank = getPrestigeUpgradeRank(state, 'seedCapital')
+  return rank * Number(PRESTIGE_CONSTANTS.seedCapitalPerRank ?? 0)
 }
 
 export function getHumanStaffCostMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.betterHiringPipeline ?? 0
-  return Math.max(0.2, 1 - rank * 0.05)
+  const rank = getPrestigeUpgradeRank(state, 'betterHiringPipeline')
+  return Math.max(Number(PRESTIGE_CONSTANTS.betterHiringPipelineDiscountFloor ?? 0.2), 1 - rank * Number(PRESTIGE_CONSTANTS.betterHiringPipelineDiscountPerRank ?? 0))
 }
 
 export function getMachineOutputPrestigeMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.gridOrchestration ?? 0
-  return 1 + rank * 0.05
+  const rank = getPrestigeUpgradeRank(state, 'gridOrchestration')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.gridOrchestrationMachineBonusPerRank ?? 0)
 }
 
 export function getPowerCapacityPrestigeMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.gridOrchestration ?? 0
-  return 1 + rank * 0.05
+  const rank = getPrestigeUpgradeRank(state, 'gridOrchestration')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.gridOrchestrationPowerBonusPerRank ?? 0)
 }
 
 export function getComplianceFrameworksRelief(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.complianceFrameworks ?? 0
-  return rank * 0.05
+  const rank = getPrestigeUpgradeRank(state, 'complianceFrameworks')
+  return rank * Number(mechanics.prestige.upgrades.complianceFrameworks.effectPerRank)
 }
 
 export function getPolicyCapitalMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.policyCapital ?? 0
-  return 1 + rank * 0.05
+  const rank = getPrestigeUpgradeRank(state, 'policyCapital')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.policyCapitalInfluenceBonusPerRank ?? 0)
 }
 
 export function getMarketReputationMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.marketReputation ?? 0
-  return 1 + rank * 0.03
+  const rank = getPrestigeUpgradeRank(state, 'marketReputation')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.marketReputationSectorBonusPerRank ?? 0)
 }
 
 export function getDeskEfficiencyMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.deskEfficiency ?? 0
-  return 1 + rank * 0.04
+  const rank = getPrestigeUpgradeRank(state, 'deskEfficiency')
+  return 1 + rank * Number(PRESTIGE_CONSTANTS.deskEfficiencyHumanBonusPerRank ?? 0)
 }
 
 export function getStrategicReservesCooldownMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.strategicReserves ?? 0
-  return Math.max(0.5, 1 - rank * 0.03)
+  const rank = getPrestigeUpgradeRank(state, 'strategicReserves')
+  return Math.max(Number(PRESTIGE_CONSTANTS.strategicReservesCooldownFloor ?? 0.5), 1 - rank * Number(PRESTIGE_CONSTANTS.strategicReservesCooldownReductionPerRank ?? 0))
 }
 
 export function canPrestige(state: GameState): boolean {
-  return state.prestigeCount < 10 && getReputationGainForNextPrestige(state) > 0 && (state.quantTraderCount > 0 || state.ruleBasedBotCount > 0)
+  const prestigeCap = Number(PRESTIGE_UNLOCK_REQUIREMENTS.prestigeCountBelow ?? PRESTIGE_TIERS.length)
+  const requiredUnits = Array.isArray(PRESTIGE_UNLOCK_REQUIREMENTS.requiresAnyUnits) ? PRESTIGE_UNLOCK_REQUIREMENTS.requiresAnyUnits as Array<'quantTrader' | 'ruleBasedBot'> : ['quantTrader', 'ruleBasedBot']
+  const hasRequiredUnit = requiredUnits.some((unitId) => (unitId === 'quantTrader' ? state.quantTraderCount : state.ruleBasedBotCount) > 0)
+  return state.prestigeCount < prestigeCap && getReputationGainForNextPrestige(state) > 0 && hasRequiredUnit
 }
 
 export function createPrestigeResetState(state: GameState, plannedPurchases?: Partial<Record<PrestigeUpgradeId, number>>): GameState {
   const gainedReputation = getReputationGainForNextPrestige(state)
+  const prestigeCap = Number(PRESTIGE_UNLOCK_REQUIREMENTS.prestigeCountBelow ?? PRESTIGE_TIERS.length)
 
-  if (gainedReputation <= 0 || state.prestigeCount >= 10) {
+  if (gainedReputation <= 0 || state.prestigeCount >= prestigeCap) {
     return state
   }
 
@@ -126,7 +137,7 @@ export function createPrestigeResetState(state: GameState, plannedPurchases?: Pa
     discoveredLobbying: state.discoveredLobbying,
     reputation: nextReputation,
     reputationSpent: state.reputationSpent,
-    prestigeCount: Math.min(10, state.prestigeCount + 1),
+    prestigeCount: Math.min(prestigeCap, state.prestigeCount + 1),
     purchasedPrestigeUpgrades: { ...state.purchasedPrestigeUpgrades },
     globalBoostsOwned: { ...state.globalBoostsOwned },
     lastSaveTimestamp: Date.now(),

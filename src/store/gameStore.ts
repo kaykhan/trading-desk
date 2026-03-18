@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from '../data/automation'
 import type { AppInfo } from '../../shared/game'
-import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getFloorExpansionCost, getOfficeCost, getOfficeExpansionCost } from '../utils/capacity'
+import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getFloorExpansionCost, getOfficeCost, getOfficeExpansionCost, isCapacityInfrastructureVisible } from '../utils/capacity'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
 import { getBulkRepeatableUpgradeCost, getMaxAffordableRepeatableUpgradeQuantity, getRepeatableUpgradeDefinition, getRepeatableUpgradeRank, isRepeatableUpgradeGloballyUnlocked } from '../data/repeatableUpgrades'
@@ -10,6 +10,7 @@ import { DEFAULT_UNLOCKED_SECTORS } from '../data/sectors'
 import { initialState } from '../data/initialState'
 import { getPrestigeUpgradeDefinition } from '../data/prestigeUpgrades'
 import { getUpgradeDefinition } from '../data/upgrades'
+import { isSectorDefinitionUnlockedByResearch, mechanics } from '../lib/mechanics'
 import { getAutomationBulkCost, isAutomationStrategyUnlocked, isAutomationUnitUnlocked, processAutomationCycles } from '../utils/automation'
 import { activateTimedBoostRuntime, processTimedBoosts } from '../utils/boosts'
 import { payComplianceCategoryNow, processComplianceTimer } from '../utils/compliance'
@@ -66,21 +67,18 @@ function withMilestones(nextState: Partial<GameStore>, baseState: GameStore): Pa
 }
 
 function getSectorUnlocksAfterResearch(state: GameState, techId: ResearchTechId): Record<SectorId, boolean> {
-  if (techId === 'technologyMarkets') {
-    return {
-      ...state.unlockedSectors,
-      technology: true,
-    }
+  const nextState = {
+    ...state,
+    purchasedResearchTech: {
+      ...state.purchasedResearchTech,
+      [techId]: true,
+    },
   }
 
-  if (techId === 'energyMarkets') {
-    return {
-      ...state.unlockedSectors,
-      energy: true,
-    }
-  }
-
-  return state.unlockedSectors
+  return (Object.keys(mechanics.sectors) as SectorId[]).reduce<Record<SectorId, boolean>>((acc, sectorId) => {
+    acc[sectorId] = state.unlockedSectors[sectorId] || isSectorDefinitionUnlockedByResearch(nextState, sectorId)
+    return acc
+  }, { ...state.unlockedSectors })
 }
 
 function updateSectorAssignment(
@@ -442,7 +440,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   buyFloorSpace: (quantity = 1) => {
     set((state) => {
-      if (state.purchasedResearchTech.floorSpacePlanning !== true) {
+      if (!isCapacityInfrastructureVisible(state, 'floorSpace')) {
         return state
       }
 
@@ -460,7 +458,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   buyOffice: (quantity = 1) => {
     set((state) => {
-      if (state.purchasedResearchTech.officeExpansionPlanning !== true) {
+      if (!isCapacityInfrastructureVisible(state, 'office')) {
         return state
       }
 

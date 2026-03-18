@@ -6,8 +6,9 @@ import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
 import { getRepeatableUpgradeCost, getRepeatableUpgradeDefinition, REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { getResearchTechDefinition, RESEARCH_TECH } from '../data/researchTech'
 import { getUpgradeDefinition } from '../data/upgrades'
+import { isAutomationStrategyDefinitionUnlocked } from '../lib/mechanics'
 import type { AutomationStrategyId, AutomationUnitId, CompliancePaymentCategoryId, GameState, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, SectorId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
-import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getTotalDeskSlots, getUsedDeskSlots } from '../utils/capacity'
+import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getTotalDeskSlots, getUsedDeskSlots, isCapacityInfrastructureVisible } from '../utils/capacity'
 import { payComplianceCategoryNow } from '../utils/compliance'
 import { getAutomationBulkCost } from '../utils/automation'
 import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
@@ -161,11 +162,7 @@ function buyBestPowerInfrastructure(game: GameState): boolean {
 }
 
 function buyCapacityInfrastructure(game: GameState, infrastructureId: 'deskSpace' | 'floorSpace' | 'office'): boolean {
-  if (infrastructureId === 'floorSpace' && game.purchasedResearchTech.floorSpacePlanning !== true) {
-    return false
-  }
-
-  if (infrastructureId === 'office' && game.purchasedResearchTech.officeExpansionPlanning !== true) {
+  if (!isCapacityInfrastructureVisible(game, infrastructureId)) {
     return false
   }
 
@@ -281,12 +278,8 @@ function activateTimedBoost(game: GameState, boostId: TimedBoostId): boolean {
 }
 
 function setAutomationConfig(game: GameState): void {
-  const unlockedStrategies: AutomationStrategyId[] = []
-  if (game.purchasedResearchTech.meanReversionModels) unlockedStrategies.push('meanReversion')
-  if (game.purchasedResearchTech.momentumModels) unlockedStrategies.push('momentum')
-  if (game.purchasedResearchTech.arbitrageEngine) unlockedStrategies.push('arbitrage')
-  if (game.purchasedResearchTech.marketMakingEngine) unlockedStrategies.push('marketMaking')
-  if (game.purchasedResearchTech.scalpingFramework) unlockedStrategies.push('scalping')
+  const unlockedStrategies: AutomationStrategyId[] = (['meanReversion', 'momentum', 'arbitrage', 'marketMaking', 'scalping'] as const)
+    .filter((strategyId) => isAutomationStrategyDefinitionUnlocked(game, strategyId))
 
   const unlockedSectors: SectorId[] = ['finance', 'technology', 'energy'].filter((sectorId) => game.unlockedSectors[sectorId as SectorId]) as SectorId[]
 
@@ -423,11 +416,17 @@ function applyMandates(game: GameState): void {
 }
 
 function payCompliance(game: GameState): void {
-  if (game.complianceVisible || game.purchasedResearchTech.regulatoryAffairs) {
-    game.complianceTabOpened = true
+  if (!game.complianceVisible && game.purchasedResearchTech.regulatoryAffairs !== true) {
+    return
   }
 
+  game.complianceTabOpened = true
+
   for (const category of COMPLIANCE_CATEGORIES) {
+    if (game.compliancePayments[category].overdueAmount <= 0) {
+      continue
+    }
+
     const beforeCash = game.cash
     const result = payComplianceCategoryNow(game, category)
     if (result.cash < beforeCash) {

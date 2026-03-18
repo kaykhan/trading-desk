@@ -4,6 +4,28 @@ This document describes the **current implemented game mechanics** in the codeba
 
 It is based on the runtime logic in `src/`, not older design notes.
 
+## Canonical Data Model
+
+`mechanics.json` is now the canonical source of truth for numeric balance data, ids, unlock metadata, thresholds, durations, labels, rewards, and progression structure.
+
+The runtime intentionally does **not** use a formula DSL. Instead:
+
+- `mechanics.json` stores parameters and lightweight declarative conditions.
+- runtime code in `src/utils/*`, `src/store/*`, and `src/sim/*` owns the actual formulas and procedural behavior.
+- typed access flows through `src/types/mechanics.ts` and `src/lib/mechanics.ts`.
+
+### Main mechanics-backed registry layers
+
+- `src/lib/mechanics.ts` loads `mechanics.json`, exposes typed helpers, and evaluates shared condition metadata.
+- `src/data/units.ts`, `src/data/automation.ts`, `src/data/capacity.ts`, `src/data/powerInfrastructure.ts`, `src/data/sectors.ts`, `src/data/boosts.ts`, `src/data/marketEvents.ts`, `src/data/lobbyingPolicies.ts`, `src/data/upgrades.ts`, `src/data/repeatableUpgrades.ts`, `src/data/prestigeUpgrades.ts`, `src/data/researchTech.ts`, and `src/data/milestones.ts` all build their registries from `mechanics.json`.
+- old fallback registries like `src/data/constants.ts` and `src/data/researchTechFromMechanics.ts` have been removed.
+
+### Shared unlock and condition evaluation
+
+- `evaluateMechanicsCondition()` in `src/lib/mechanics.ts` evaluates reusable metadata such as `all`, `any`, threshold counts, research requirements, lobbying discovery, compliance visibility, and synthetic aggregate counters.
+- unlock and visibility helpers like `isUnitDefinitionUnlocked()`, `isAutomationStrategyDefinitionUnlocked()`, `isCapacityInfrastructureDefinitionVisible()`, `isPowerInfrastructureDefinitionVisible()`, and `isSectorDefinitionUnlockedByResearch()` centralize runtime gate checks.
+- milestone evaluation now reads `conditionModel` metadata from `mechanics.json`, but the condition-model interpreter still lives in code.
+
 ## Scope and Source Files
 
 The main mechanic sources are:
@@ -30,7 +52,6 @@ The main mechanic sources are:
 - `src/data/marketEvents.ts`
 - `src/data/capacity.ts`
 - `src/data/powerInfrastructure.ts`
-- `src/data/constants.ts`
 - `src/data/milestones.ts`
 
 ## 1. Core Game Loop

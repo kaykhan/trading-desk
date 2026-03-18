@@ -1,10 +1,6 @@
 import { DEFAULT_TIMED_BOOSTS, GLOBAL_BOOSTS, TIMED_BOOSTS } from '../data/boosts'
 import type { GameState, GlobalBoostId, TimedBoostId, TimedBoostRuntime } from '../types/game'
-
-function getStrategicReservesCooldownMultiplier(state: GameState): number {
-  const rank = state.purchasedPrestigeUpgrades.strategicReserves ?? 0
-  return Math.max(0.5, 1 - rank * 0.03)
-}
+import { getStrategicReservesCooldownMultiplier } from './prestige'
 
 function clampTimer(value: number): number {
   return Math.max(0, value)

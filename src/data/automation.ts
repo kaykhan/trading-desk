@@ -1,4 +1,5 @@
 import type { AutomationStrategyId, AutomationUnitId, SectorId } from '../types/game'
+import { mechanics } from '../lib/mechanics'
 
 export type AutomationUnitDefinition = {
   id: AutomationUnitId
@@ -24,79 +25,79 @@ export const AUTOMATION_UNITS: Record<AutomationUnitId, AutomationUnitDefinition
   quantTrader: {
     id: 'quantTrader',
     legacyUnitId: 'quantTrader',
-    name: 'Quant Trader',
-    cycleDurationSeconds: 4,
-    basePayout: 20,
-    powerUse: 0,
-    description: 'Fast early systematic execution that bridges human desks into machine trading.',
+    name: String(mechanics.units.quantTrader.name),
+    cycleDurationSeconds: Number(mechanics.units.quantTrader.cycleDurationSeconds),
+    basePayout: Number(mechanics.units.quantTrader.cyclePayout),
+    powerUse: Number(mechanics.units.quantTrader.livePowerUse),
+    description: String(mechanics.units.quantTrader.description),
   },
   ruleBasedBot: {
     id: 'ruleBasedBot',
     legacyUnitId: 'ruleBasedBot',
-    name: 'Rule-Based Bot',
-    cycleDurationSeconds: 6,
-    basePayout: 70,
-    powerUse: 1.5,
-    description: 'Reliable machine execution built around explicit signals and systematic rules.',
+    name: String(mechanics.units.ruleBasedBot.name),
+    cycleDurationSeconds: Number(mechanics.units.ruleBasedBot.cycleDurationSeconds),
+    basePayout: Number(mechanics.units.ruleBasedBot.cyclePayout),
+    powerUse: Number(mechanics.units.ruleBasedBot.livePowerUse),
+    description: String(mechanics.units.ruleBasedBot.description),
   },
   mlTradingBot: {
     id: 'mlTradingBot',
     legacyUnitId: 'mlTradingBot',
-    name: 'ML Bot',
-    cycleDurationSeconds: 12,
-    basePayout: 220,
-    powerUse: 8,
-    description: 'Heavier model-driven systems with longer analytical cycles and chunkier payouts.',
+    name: String(mechanics.units.mlTradingBot.name),
+    cycleDurationSeconds: Number(mechanics.units.mlTradingBot.cycleDurationSeconds),
+    basePayout: Number(mechanics.units.mlTradingBot.cyclePayout),
+    powerUse: Number(mechanics.units.mlTradingBot.livePowerUse),
+    description: String(mechanics.units.mlTradingBot.description),
   },
   aiTradingBot: {
     id: 'aiTradingBot',
     legacyUnitId: 'aiTradingBot',
-    name: 'AI Bot',
-    cycleDurationSeconds: 20,
-    basePayout: 650,
-    powerUse: 30,
-    description: 'Late autonomous execution with the largest payout bursts and the highest infrastructure load.',
+    name: String(mechanics.units.aiTradingBot.name),
+    cycleDurationSeconds: Number(mechanics.units.aiTradingBot.cycleDurationSeconds),
+    basePayout: Number(mechanics.units.aiTradingBot.cyclePayout),
+    powerUse: Number(mechanics.units.aiTradingBot.livePowerUse),
+    description: String(mechanics.units.aiTradingBot.description),
   },
 }
 
 export const AUTOMATION_STRATEGIES: Record<AutomationStrategyId, AutomationStrategyDefinition> = {
   meanReversion: {
     id: 'meanReversion',
-    name: 'Mean Reversion',
-    description: 'Steadier reversion logic that performs best in Finance and remains safe elsewhere.',
+    name: String(mechanics.automationStrategies.meanReversion.name),
+    description: String(mechanics.automationStrategies.meanReversion.description),
   },
   momentum: {
     id: 'momentum',
-    name: 'Momentum',
-    description: 'Trend-following logic that leans into higher-growth markets, especially Technology.',
+    name: String(mechanics.automationStrategies.momentum.name),
+    description: String(mechanics.automationStrategies.momentum.description),
   },
   arbitrage: {
     id: 'arbitrage',
-    name: 'Arbitrage',
-    description: 'Cross-market spread capture with balanced performance and mild upside in Finance.',
+    name: String(mechanics.automationStrategies.arbitrage.name),
+    description: String(mechanics.automationStrategies.arbitrage.description),
   },
   marketMaking: {
     id: 'marketMaking',
-    name: 'Market Making',
-    description: 'Liquidity-focused execution with stable baseline output and modest Finance synergy.',
+    name: String(mechanics.automationStrategies.marketMaking.name),
+    description: String(mechanics.automationStrategies.marketMaking.description),
   },
   scalping: {
     id: 'scalping',
-    name: 'Scalping',
-    description: 'Fast opportunistic execution that gains more from shorter-cycle market environments.',
+    name: String(mechanics.automationStrategies.scalping.name),
+    description: String(mechanics.automationStrategies.scalping.description),
   },
 }
 
 export const DEFAULT_AUTOMATION_CONFIG: Record<AutomationUnitId, { strategy: AutomationStrategyId | null; marketTarget: SectorId | null }> = {
-  quantTrader: { strategy: null, marketTarget: null },
-  ruleBasedBot: { strategy: null, marketTarget: null },
-  mlTradingBot: { strategy: null, marketTarget: null },
-  aiTradingBot: { strategy: null, marketTarget: null },
+  quantTrader: { strategy: mechanics.startingState.automationConfig.quantTrader.strategy, marketTarget: mechanics.startingState.automationConfig.quantTrader.marketTarget },
+  ruleBasedBot: { strategy: mechanics.startingState.automationConfig.ruleBasedBot.strategy, marketTarget: mechanics.startingState.automationConfig.ruleBasedBot.marketTarget },
+  mlTradingBot: { strategy: mechanics.startingState.automationConfig.mlTradingBot.strategy, marketTarget: mechanics.startingState.automationConfig.mlTradingBot.marketTarget },
+  aiTradingBot: { strategy: mechanics.startingState.automationConfig.aiTradingBot.strategy, marketTarget: mechanics.startingState.automationConfig.aiTradingBot.marketTarget },
 }
 
 export const DEFAULT_AUTOMATION_CYCLE_STATE: Record<AutomationUnitId, { progressSeconds: number; lastPayout: number; lastCompletedAt: number | null }> = {
-  quantTrader: { progressSeconds: 0, lastPayout: 0, lastCompletedAt: null },
-  ruleBasedBot: { progressSeconds: 0, lastPayout: 0, lastCompletedAt: null },
-  mlTradingBot: { progressSeconds: 0, lastPayout: 0, lastCompletedAt: null },
-  aiTradingBot: { progressSeconds: 0, lastPayout: 0, lastCompletedAt: null },
+  quantTrader: { ...mechanics.startingState.automationCycleState.quantTrader },
+  ruleBasedBot: { ...mechanics.startingState.automationCycleState.ruleBasedBot },
+  mlTradingBot: { ...mechanics.startingState.automationCycleState.mlTradingBot },
+  aiTradingBot: { ...mechanics.startingState.automationCycleState.aiTradingBot },
 }

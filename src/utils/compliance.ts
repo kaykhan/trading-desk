@@ -1,5 +1,5 @@
-import { GAME_CONSTANTS } from '../data/constants'
 import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
+import { mechanics } from '../lib/mechanics'
 import type { ComplianceCostBreakdown, CompliancePaymentCategoryId, CompliancePaymentEntry, CompliancePaymentState, ComplianceSourceSummary, GameState } from '../types/game'
 import { getTimedComplianceReliefMultiplier } from './boosts'
 import { getComplianceFrameworksRelief } from './prestige'
@@ -16,10 +16,18 @@ import {
   getStaffComplianceCostReliefRate,
 } from './lobbying'
 
-const COMPLIANCE_REVIEW_INTERVAL_SECONDS = 60
-const COMPLIANCE_REVEAL_BURDEN = 5
-const COMPLIANCE_EFFICIENCY_FLOOR = 0.75
-const COMPLIANCE_EFFICIENCY_LOSS_PER_BURDEN = 0.005
+const COMPLIANCE_REVIEW_INTERVAL_SECONDS = mechanics.runtime.compliance.reviewIntervalSeconds
+const COMPLIANCE_REVEAL_BURDEN = mechanics.runtime.compliance.revealBurdenThreshold
+const COMPLIANCE_EFFICIENCY_FLOOR = mechanics.runtime.compliance.efficiencyFloor
+const COMPLIANCE_EFFICIENCY_LOSS_PER_BURDEN = mechanics.runtime.compliance.efficiencyLossPerBurden
+const COMPLIANCE_PARAMS = mechanics.compliance
+const UPGRADE_MULTIPLIERS = mechanics.multipliers.upgrades
+const POLICY_MULTIPLIERS = mechanics.multipliers.policies
+const OVERDUE_PENALTY = COMPLIANCE_PARAMS.overduePenalty as Record<'human' | 'energy' | 'automation' | 'institutional', { floor: number; ratePerCurrency: number }>
+
+function getComplianceNumber(bucket: string, key: string): number {
+  return Number((COMPLIANCE_PARAMS[bucket] as Record<string, number>)[key])
+}
 
 function roundComplianceValue(value: number): number {
   return Math.max(0, Math.round(value * 100) / 100)
@@ -34,37 +42,37 @@ function getServerEfficiencyReduction(state: GameState): number {
 }
 
 function getCompliancePowerCapacity(state: GameState): number {
-  let capacity = GAME_CONSTANTS.baseUtilityPowerCapacity
-    + state.serverRackCount * GAME_CONSTANTS.serverRackPowerCapacity * (state.purchasedUpgrades.rackStacking ? 1.25 : 1)
-    + state.serverRoomCount * GAME_CONSTANTS.serverRoomPowerCapacity * (state.purchasedUpgrades.roomScaleout ? 1.25 : 1)
-    + state.dataCenterCount * GAME_CONSTANTS.dataCenterPowerCapacity * (state.purchasedUpgrades.dataCenterFabric ? 1.3 : 1)
-    + state.cloudComputeCount * GAME_CONSTANTS.cloudComputePowerCapacity * (state.purchasedUpgrades.cloudBurstContracts ? 1.35 : 1)
+  let capacity = Number(mechanics.constants.baseUtilityPowerCapacity)
+    + state.serverRackCount * mechanics.powerInfrastructure.serverRack.powerCapacity * (state.purchasedUpgrades.rackStacking ? Number(UPGRADE_MULTIPLIERS.rackStacking) : 1)
+    + state.serverRoomCount * mechanics.powerInfrastructure.serverRoom.powerCapacity * (state.purchasedUpgrades.roomScaleout ? Number(UPGRADE_MULTIPLIERS.roomScaleout) : 1)
+    + state.dataCenterCount * mechanics.powerInfrastructure.dataCenter.powerCapacity * (state.purchasedUpgrades.dataCenterFabric ? Number(UPGRADE_MULTIPLIERS.dataCenterFabric) : 1)
+    + state.cloudComputeCount * mechanics.powerInfrastructure.cloudCompute.powerCapacity * (state.purchasedUpgrades.cloudBurstContracts ? Number(UPGRADE_MULTIPLIERS.cloudBurstContracts) : 1)
 
   if (state.purchasedPolicies.priorityGridAccess) {
-    capacity *= 1.15
+    capacity *= Number(POLICY_MULTIPLIERS.priorityGridAccessPowerCapacity)
   }
 
   if (state.purchasedUpgrades.powerDistribution) {
-    capacity *= 1.2
+    capacity *= Number(UPGRADE_MULTIPLIERS.powerDistribution)
   }
 
   return capacity
 }
 
 function getCompliancePowerUsage(state: GameState): number {
-  let ruleBasedBotUsage = state.ruleBasedBotCount * GAME_CONSTANTS.ruleBasedBotPowerUsage
-  let mlBotUsage = state.mlTradingBotCount * GAME_CONSTANTS.mlTradingBotPowerUsage
-  let aiBotUsage = state.aiTradingBotCount * GAME_CONSTANTS.aiTradingBotPowerUsage
+  let ruleBasedBotUsage = state.ruleBasedBotCount * Number(mechanics.units.ruleBasedBot.livePowerUse)
+  let mlBotUsage = state.mlTradingBotCount * Number(mechanics.units.mlTradingBot.livePowerUse)
+  let aiBotUsage = state.aiTradingBotCount * Number(mechanics.units.aiTradingBot.livePowerUse)
 
   if (state.purchasedPolicies.dataCenterEnergyCredits) {
-    ruleBasedBotUsage *= 0.8
-    mlBotUsage *= 0.8
+    ruleBasedBotUsage *= Number(POLICY_MULTIPLIERS.dataCenterEnergyCreditsBotPowerUsage)
+    mlBotUsage *= Number(POLICY_MULTIPLIERS.dataCenterEnergyCreditsBotPowerUsage)
   }
 
   if (state.purchasedUpgrades.coolingSystems) {
-    ruleBasedBotUsage *= 0.9
-    mlBotUsage *= 0.9
-    aiBotUsage *= 0.9
+    ruleBasedBotUsage *= Number(UPGRADE_MULTIPLIERS.coolingSystemsPowerUsage)
+    mlBotUsage *= Number(UPGRADE_MULTIPLIERS.coolingSystemsPowerUsage)
+    aiBotUsage *= Number(UPGRADE_MULTIPLIERS.coolingSystemsPowerUsage)
   }
 
   ruleBasedBotUsage *= 1 - getEnergyOptimizationReduction(state)
@@ -92,13 +100,13 @@ export function getComplianceRevealBurdenThreshold(): number {
 
 export function getStaffComplianceBurden(state: GameState): number {
   return roundComplianceValue(
-    state.internCount * 0.1
-      + state.juniorTraderCount * 0.2
-      + state.seniorTraderCount * 0.4
-      + state.internResearchScientistCount * 0.08
-      + state.juniorResearchScientistCount * 0.15
-      + state.seniorResearchScientistCount * 0.3
-      + state.juniorPoliticianCount * 0.25,
+    state.internCount * getComplianceNumber('burdenPerUnit', 'intern')
+      + state.juniorTraderCount * getComplianceNumber('burdenPerUnit', 'juniorTrader')
+      + state.seniorTraderCount * getComplianceNumber('burdenPerUnit', 'seniorTrader')
+      + state.internResearchScientistCount * getComplianceNumber('burdenPerUnit', 'internResearchScientist')
+      + state.juniorResearchScientistCount * getComplianceNumber('burdenPerUnit', 'juniorResearchScientist')
+      + state.seniorResearchScientistCount * getComplianceNumber('burdenPerUnit', 'seniorResearchScientist')
+      + state.juniorPoliticianCount * getComplianceNumber('burdenPerUnit', 'juniorPolitician'),
   )
 }
 
@@ -156,9 +164,9 @@ export function getSectorComplianceBurden(state: GameState): number {
     + state.sectorAssignments.investmentFirm.finance
 
   const financeSectorPresence = financeExposure > 0 ? 1.5 : 0
-  const unlockedSectorBreadth = (state.unlockedSectors.technology ? 0.5 : 0) + (state.unlockedSectors.energy ? 0.5 : 0)
+  const unlockedSectorBreadth = (state.unlockedSectors.technology ? getComplianceNumber('sectorBurden', 'technologyBreadth') : 0) + (state.unlockedSectors.energy ? getComplianceNumber('sectorBurden', 'energyBreadth') : 0)
 
-  return roundComplianceValue(Math.max(0, financeSectorPresence + financeExposure * 0.05 + unlockedSectorBreadth - getSectorComplianceRelief(state)))
+  return roundComplianceValue(Math.max(0, financeSectorPresence + financeExposure * getComplianceNumber('sectorBurden', 'financeAssignedUnit') + unlockedSectorBreadth - getSectorComplianceRelief(state)))
 }
 
 export function getBaseSectorComplianceBurden(state: GameState): number {
@@ -170,24 +178,24 @@ export function getBaseSectorComplianceBurden(state: GameState): number {
     + state.sectorAssignments.hedgeFund.finance
     + state.sectorAssignments.investmentFirm.finance
 
-  const financeSectorPresence = financeExposure > 0 ? 1.5 : 0
-  const unlockedSectorBreadth = (state.unlockedSectors.technology ? 0.5 : 0) + (state.unlockedSectors.energy ? 0.5 : 0)
+  const financeSectorPresence = financeExposure > 0 ? getComplianceNumber('sectorBurden', 'financePresence') : 0
+  const unlockedSectorBreadth = (state.unlockedSectors.technology ? getComplianceNumber('sectorBurden', 'technologyBreadth') : 0) + (state.unlockedSectors.energy ? getComplianceNumber('sectorBurden', 'energyBreadth') : 0)
 
-  return roundComplianceValue(financeSectorPresence + financeExposure * 0.05 + unlockedSectorBreadth)
+  return roundComplianceValue(financeSectorPresence + financeExposure * getComplianceNumber('sectorBurden', 'financeAssignedUnit') + unlockedSectorBreadth)
 }
 
 export function getEnergyComplianceBurden(state: GameState): number {
   const powerCapacity = getCompliancePowerCapacity(state)
   const powerUsage = getCompliancePowerUsage(state)
 
-  return roundComplianceValue(powerCapacity * 0.01 + powerUsage * 0.02)
+  return roundComplianceValue(powerCapacity * getComplianceNumber('energyBurden', 'powerCapacityFactor') + powerUsage * getComplianceNumber('energyBurden', 'powerUsageFactor'))
 }
 
 export function getBaseEnergyComplianceBurden(state: GameState): number {
   const powerCapacity = getCompliancePowerCapacity(state)
   const powerUsage = getCompliancePowerUsage(state)
 
-  return roundComplianceValue(powerCapacity * 0.01 + powerUsage * 0.02)
+  return roundComplianceValue(powerCapacity * getComplianceNumber('energyBurden', 'powerCapacityFactor') + powerUsage * getComplianceNumber('energyBurden', 'powerUsageFactor'))
 }
 
 export function getBaseComplianceBurden(state: GameState): number {
@@ -201,7 +209,7 @@ export function getBaseComplianceBurden(state: GameState): number {
 }
 
 export function getEffectiveComplianceBurden(state: GameState): number {
-  const upgradeRelief = state.purchasedUpgrades.regulatoryCounsel ? 0.08 : 0
+  const upgradeRelief = state.purchasedUpgrades.regulatoryCounsel ? 1 - Number(UPGRADE_MULTIPLIERS.regulatoryCounselBurdenMultiplier) : 0
   return roundComplianceValue(Math.max(0, getBaseComplianceBurden(state) * (1 - getComplianceFrameworksRelief(state)) * (1 - upgradeRelief) * getRepeatableUpgradeMultiplier(state, 'complianceSystems') - getComplianceBurdenRelief(state)))
 }
 
@@ -232,7 +240,7 @@ export function getStaffComplianceCost(state: GameState): number {
       + state.juniorPoliticianCount * 3,
   )
 
-  const upgradeRelief = state.purchasedUpgrades.complianceSoftwareSuite ? 0.1 : 0
+  const upgradeRelief = state.purchasedUpgrades.complianceSoftwareSuite ? 1 - Number(UPGRADE_MULTIPLIERS.complianceSoftwareSuite) : 0
 
   return roundComplianceValue(baseValue * (1 - getStaffComplianceCostReliefRate(state)) * (1 - upgradeRelief) * getRepeatableUpgradeMultiplier(state, 'filingEfficiency'))
 }
@@ -254,7 +262,7 @@ export function getEnergyComplianceCost(state: GameState): number {
 }
 
 export function getBaseEnergyComplianceCost(state: GameState): number {
-  return roundComplianceValue(getCompliancePowerCapacity(state) * 0.2 + getCompliancePowerUsage(state) * 0.3)
+  return roundComplianceValue(getCompliancePowerCapacity(state) * getComplianceNumber('energyReviewCost', 'powerCapacityFactor') + getCompliancePowerUsage(state) * getComplianceNumber('energyReviewCost', 'powerUsageFactor'))
 }
 
 export function getAutomationComplianceCost(state: GameState): number {
@@ -265,7 +273,7 @@ export function getAutomationComplianceCost(state: GameState): number {
       + state.aiTradingBotCount * 12,
   )
 
-  const upgradeRelief = state.purchasedUpgrades.filingAutomation ? 0.1 : 0
+  const upgradeRelief = state.purchasedUpgrades.filingAutomation ? 1 - Number(UPGRADE_MULTIPLIERS.filingAutomation) : 0
 
   return roundComplianceValue(baseValue * (1 - getAutomationComplianceCostReliefRate(state)) * (1 - upgradeRelief) * getRepeatableUpgradeMultiplier(state, 'filingEfficiency'))
 }
@@ -287,7 +295,7 @@ export function getInstitutionalComplianceCost(state: GameState): number {
       + state.investmentFirmCount * 40,
   )
 
-  const upgradeRelief = (state.purchasedUpgrades.complianceSoftwareSuite ? 0.1 : 0) + (state.purchasedUpgrades.filingAutomation ? 0.1 : 0)
+  const upgradeRelief = (state.purchasedUpgrades.complianceSoftwareSuite ? 1 - Number(UPGRADE_MULTIPLIERS.complianceSoftwareSuite) : 0) + (state.purchasedUpgrades.filingAutomation ? 1 - Number(UPGRADE_MULTIPLIERS.filingAutomation) : 0)
 
   return roundComplianceValue(baseValue * (1 - getInstitutionalComplianceCostReliefRate(state)) * (1 - upgradeRelief) * getRepeatableUpgradeMultiplier(state, 'filingEfficiency') * getRepeatableUpgradeMultiplier(state, 'institutionalAccess'))
 }
@@ -488,7 +496,7 @@ function rollComplianceCycleForward(state: GameState): CompliancePaymentState {
 }
 
 function getComplianceCategoryAutoPayOrder(): CompliancePaymentCategoryId[] {
-  return ['staff', 'energy', 'automation', 'institutional']
+  return [...mechanics.runtime.compliance.autoPayOrder]
 }
 
 function autoPayComplianceCategories(state: GameState, cash: number, compliancePayments: CompliancePaymentState): { cash: number; compliancePayments: CompliancePaymentState; totalPaid: number } {
@@ -633,22 +641,22 @@ export function payComplianceCategoryNow(
 
 export function getHumanCompliancePenaltyMultiplier(state: GameState): number {
   const staffOverdue = state.compliancePayments.staff.overdueAmount
-  return Math.min(1, Math.max(0.82, 1 - staffOverdue * 0.0008) + getHumanCompliancePenaltyRelief(state))
+  return Math.min(1, Math.max(OVERDUE_PENALTY.human.floor, 1 - staffOverdue * OVERDUE_PENALTY.human.ratePerCurrency) + getHumanCompliancePenaltyRelief(state))
 }
 
 export function getEnergyCompliancePenaltyMultiplier(state: GameState): number {
   const energyOverdue = state.compliancePayments.energy.overdueAmount
-  return Math.max(0.82, 1 - energyOverdue * 0.0008)
+  return Math.max(OVERDUE_PENALTY.energy.floor, 1 - energyOverdue * OVERDUE_PENALTY.energy.ratePerCurrency)
 }
 
 export function getAutomationCompliancePenaltyMultiplier(state: GameState): number {
   const automationOverdue = state.compliancePayments.automation.overdueAmount
-  return Math.max(0.78, 1 - automationOverdue * 0.001)
+  return Math.max(OVERDUE_PENALTY.automation.floor, 1 - automationOverdue * OVERDUE_PENALTY.automation.ratePerCurrency)
 }
 
 export function getInstitutionalCompliancePenaltyMultiplier(state: GameState): number {
   const institutionalOverdue = state.compliancePayments.institutional.overdueAmount
-  return Math.max(0.78, 1 - institutionalOverdue * 0.001) * Math.min(1, 1 + (1 - getRepeatableUpgradeMultiplier(state, 'institutionalAccess')))
+  return Math.max(OVERDUE_PENALTY.institutional.floor, 1 - institutionalOverdue * OVERDUE_PENALTY.institutional.ratePerCurrency) * Math.min(1, 1 + (1 - getRepeatableUpgradeMultiplier(state, 'institutionalAccess')))
 }
 
 export function getComplianceEfficiencyPercent(state: GameState): number {
@@ -717,5 +725,5 @@ export const COMPLIANCE_CONSTANTS = {
   revealBurden: COMPLIANCE_REVEAL_BURDEN,
   efficiencyFloor: COMPLIANCE_EFFICIENCY_FLOOR,
   efficiencyLossPerBurden: COMPLIANCE_EFFICIENCY_LOSS_PER_BURDEN,
-  utilityPowerCapacity: GAME_CONSTANTS.baseUtilityPowerCapacity,
+  utilityPowerCapacity: Number(mechanics.constants.baseUtilityPowerCapacity),
 } as const

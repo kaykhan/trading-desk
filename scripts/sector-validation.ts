@@ -12,6 +12,10 @@ function cloneState(state: GameState): GameState {
       intern: { ...state.sectorAssignments.intern },
       juniorTrader: { ...state.sectorAssignments.juniorTrader },
       seniorTrader: { ...state.sectorAssignments.seniorTrader },
+      propDesk: { ...state.sectorAssignments.propDesk },
+      institutionalDesk: { ...state.sectorAssignments.institutionalDesk },
+      hedgeFund: { ...state.sectorAssignments.hedgeFund },
+      investmentFirm: { ...state.sectorAssignments.investmentFirm },
     },
     purchasedUpgrades: { ...state.purchasedUpgrades },
     purchasedResearchTech: { ...state.purchasedResearchTech },
@@ -121,8 +125,8 @@ function validateSaveNormalization(): void {
     return
   }
 
-  assert(normalized.unlockedSectors.technology === true, 'technology auto-unlocks from algorithmic research during migration')
-  assert(normalized.unlockedSectors.energy === true, 'energy auto-unlocks from power research during migration')
+  assert(normalized.unlockedSectors.technology === false, 'technology remains locked unless technology market research is present during migration')
+  assert(normalized.unlockedSectors.energy === false, 'energy remains locked unless energy market research is present during migration')
   assert(totalAssigned(normalized, 'intern') <= normalized.internCount, 'normalized intern assignments clamp to owned count')
   assert(totalAssigned(normalized, 'juniorTrader') <= normalized.juniorTraderCount, 'normalized junior assignments clamp to owned count')
   assert(totalAssigned(normalized, 'seniorTrader') <= normalized.seniorTraderCount, 'normalized senior assignments clamp to owned count')

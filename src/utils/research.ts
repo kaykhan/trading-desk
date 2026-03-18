@@ -1,4 +1,5 @@
 import { getResearchTechDefinition, getResearchTechsByBranch } from '../data/researchTech'
+import { isResearchGateMet, isSectorDefinitionUnlockedByResearch } from '../lib/mechanics'
 import type { GameState, ResearchBranchId, ResearchTechDefinition, ResearchTechId } from '../types/game'
 
 export function isResearchTechPurchased(state: GameState, techId: ResearchTechId): boolean {
@@ -88,21 +89,21 @@ export function getAvailableResearchTechsByBranch(state: GameState, branchId: Re
 }
 
 export function isTechnologySectorUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'technologyMarkets')
+  return isSectorDefinitionUnlockedByResearch(state, 'technology')
 }
 
 export function isEnergySectorUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'energyMarkets')
+  return isSectorDefinitionUnlockedByResearch(state, 'energy')
 }
 
 export function isAutomationUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'algorithmicTrading')
+  return isResearchGateMet(state, 'algorithmicTrading')
 }
 
 export function isPowerInfrastructureUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'powerSystemsEngineering')
+  return isResearchGateMet(state, 'powerSystemsEngineering')
 }
 
 export function isLobbyingUnlocked(state: GameState): boolean {
-  return isResearchTechPurchased(state, 'regulatoryAffairs')
+  return isResearchGateMet(state, 'regulatoryAffairs')
 }

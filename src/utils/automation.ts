@@ -1,5 +1,6 @@
 import { AUTOMATION_STRATEGIES, AUTOMATION_STRATEGY_IDS, AUTOMATION_UNIT_IDS, AUTOMATION_UNITS } from '../data/automation'
 import { getSectorDefinition } from '../data/sectors'
+import { isAutomationStrategyDefinitionUnlocked, isUnitDefinitionUnlocked, mechanics } from '../lib/mechanics'
 import { getTimedAutomationBoostMultiplier } from './boosts'
 import { getAutomationCompliancePenaltyMultiplier, getComplianceEfficiencyMultiplier } from './compliance'
 import { getScaledCost, getGlobalMultiplier, getMachineEfficiencyMultiplier, getPowerCapacity, getPowerUsage, getPrestigeMultiplier, getRuleBasedBotOptimizationMultiplier, getMlTradingBotOptimizationMultiplier, getAiTradingBotOptimizationMultiplier } from './economy'
@@ -7,6 +8,36 @@ import { getAutomationEventMultiplier, getSectorEventMultiplier } from './market
 import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import { getMachineOutputPrestigeMultiplier } from './prestige'
 import type { AutomationStrategyId, AutomationUnitId, GameState, SectorId } from '../types/game'
+
+const UPGRADE_MULTIPLIERS = mechanics.multipliers.upgrades
+
+function getAutomationUnitMechanics(unitId: AutomationUnitId) {
+  return mechanics.units[unitId]
+}
+
+function getAutomationCostScaling(unitId: AutomationUnitId): number {
+  return Number(getAutomationUnitMechanics(unitId).costScaling)
+}
+
+function getAutomationBaseCost(unitId: AutomationUnitId): number {
+  return Number(getAutomationUnitMechanics(unitId).baseCost)
+}
+
+function getAutomationCycleDurationMultiplier(state: GameState, unitId: AutomationUnitId): number {
+  if (unitId === 'ruleBasedBot' && state.purchasedUpgrades.executionRoutingStack) {
+    return Number(UPGRADE_MULTIPLIERS.executionRoutingStackDuration)
+  }
+
+  if (unitId === 'mlTradingBot' && state.purchasedUpgrades.inferenceBatching) {
+    return Number(UPGRADE_MULTIPLIERS.inferenceBatchingDuration)
+  }
+
+  return 1
+}
+
+function getAutomationCycleDurationWithModifiers(state: GameState, unitId: AutomationUnitId): number {
+  return getAutomationCycleDuration(unitId) * getAutomationCycleDurationMultiplier(state, unitId) * getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+}
 
 export function getAutomationOwnedCount(state: GameState, unitId: AutomationUnitId): number {
   if (unitId === 'quantTrader') return state.quantTraderCount
@@ -16,18 +47,11 @@ export function getAutomationOwnedCount(state: GameState, unitId: AutomationUnit
 }
 
 export function isAutomationUnitUnlocked(state: GameState, unitId: AutomationUnitId): boolean {
-  if (unitId === 'quantTrader') return state.purchasedResearchTech.algorithmicTrading === true
-  if (unitId === 'ruleBasedBot') return state.purchasedResearchTech.ruleBasedAutomation === true
-  if (unitId === 'mlTradingBot') return state.purchasedResearchTech.machineLearningTrading === true && state.dataCenterCount > 0
-  return state.purchasedResearchTech.aiTradingSystems === true && state.cloudComputeCount > 0
+  return isUnitDefinitionUnlocked(state, unitId)
 }
 
 export function isAutomationStrategyUnlocked(state: GameState, strategyId: AutomationStrategyId): boolean {
-  if (strategyId === 'meanReversion') return state.purchasedResearchTech.meanReversionModels === true
-  if (strategyId === 'momentum') return state.purchasedResearchTech.momentumModels === true
-  if (strategyId === 'arbitrage') return state.purchasedResearchTech.arbitrageEngine === true
-  if (strategyId === 'marketMaking') return state.purchasedResearchTech.marketMakingEngine === true
-  return state.purchasedResearchTech.scalpingFramework === true
+  return isAutomationStrategyDefinitionUnlocked(state, strategyId)
 }
 
 export function getAutomationCycleDuration(unitId: AutomationUnitId): number {
@@ -40,21 +64,8 @@ export function getAutomationBasePayout(unitId: AutomationUnitId): number {
 
 export function getAutomationNextCost(state: GameState, unitId: AutomationUnitId): number {
   const owned = getAutomationOwnedCount(state, unitId)
-  const definition = AUTOMATION_UNITS[unitId]
   const machineReduction = getAutomationCostReduction(state)
   return Math.max(1, Math.floor(getScaledCost(getAutomationBaseCost(unitId), getAutomationCostScaling(unitId), owned) * (1 - machineReduction)))
-}
-
-export function getAutomationCostScaling(unitId: AutomationUnitId): number {
-  if (unitId === 'quantTrader') return 1.22
-  return AUTOMATION_UNITS[unitId].id === unitId ? (unitId === 'ruleBasedBot' ? 1.24 : unitId === 'mlTradingBot' ? 1.26 : 1.28) : 1.22
-}
-
-export function getAutomationBaseCost(unitId: AutomationUnitId): number {
-  if (unitId === 'quantTrader') return 2500
-  if (unitId === 'ruleBasedBot') return 12000
-  if (unitId === 'mlTradingBot') return 80000
-  return 400000
 }
 
 function getAutomationCostReduction(state: GameState): number {
@@ -104,12 +115,12 @@ export function getAutomationPowerUse(state: GameState, unitId: AutomationUnitId
 
   let powerUse = AUTOMATION_UNITS[unitId].powerUse
   if (unitId === 'ruleBasedBot' || unitId === 'mlTradingBot') {
-    if (state.purchasedPolicies.dataCenterEnergyCredits) powerUse *= 0.8
-    if (state.purchasedUpgrades.coolingSystems) powerUse *= 0.9
+    if (state.purchasedPolicies.dataCenterEnergyCredits) powerUse *= Number(mechanics.multipliers.policies.dataCenterEnergyCreditsBotPowerUsage)
+    if (state.purchasedUpgrades.coolingSystems) powerUse *= Number(UPGRADE_MULTIPLIERS.coolingSystemsPowerUsage)
     powerUse *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
   }
   if (unitId === 'aiTradingBot') {
-    if (state.purchasedUpgrades.coolingSystems) powerUse *= 0.9
+    if (state.purchasedUpgrades.coolingSystems) powerUse *= Number(UPGRADE_MULTIPLIERS.coolingSystemsPowerUsage)
     powerUse *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
   }
   return powerUse
@@ -117,22 +128,22 @@ export function getAutomationPowerUse(state: GameState, unitId: AutomationUnitId
 
 export function getAutomationOptimizationMultiplier(state: GameState, unitId: AutomationUnitId): number {
   if (unitId === 'quantTrader') {
-    const systematic = state.purchasedUpgrades.systematicExecution ? 1.15 : 1
+    const systematic = state.purchasedUpgrades.systematicExecution ? Number(UPGRADE_MULTIPLIERS.systematicExecution) : 1
     return systematic * getRepeatableUpgradeMultiplier(state, 'executionStackTuning') * getMachineOutputPrestigeMultiplier(state)
   }
   if (unitId === 'ruleBasedBot') {
     let multiplier = getRuleBasedBotOptimizationMultiplier(state) * getRepeatableUpgradeMultiplier(state, 'signalQualityControl')
-    if (state.purchasedUpgrades.systematicExecution) multiplier *= 1.15
-    if (state.purchasedUpgrades.botTelemetry) multiplier *= 1.15
+    if (state.purchasedUpgrades.systematicExecution) multiplier *= Number(UPGRADE_MULTIPLIERS.systematicExecution)
+    if (state.purchasedUpgrades.botTelemetry) multiplier *= Number(UPGRADE_MULTIPLIERS.botTelemetry)
     return multiplier * getMachineOutputPrestigeMultiplier(state)
   }
   if (unitId === 'mlTradingBot') {
     let multiplier = getMlTradingBotOptimizationMultiplier(state) * getRepeatableUpgradeMultiplier(state, 'signalQualityControl')
-    if (state.purchasedUpgrades.modelServingCluster) multiplier *= 1.2
+    if (state.purchasedUpgrades.modelServingCluster) multiplier *= Number(UPGRADE_MULTIPLIERS.modelServingCluster)
     return multiplier * getMachineOutputPrestigeMultiplier(state)
   }
   let multiplier = getAiTradingBotOptimizationMultiplier(state) * getRepeatableUpgradeMultiplier(state, 'signalQualityControl')
-  if (state.purchasedUpgrades.aiRiskStack) multiplier *= 1.2
+  if (state.purchasedUpgrades.aiRiskStack) multiplier *= Number(UPGRADE_MULTIPLIERS.aiRiskStack)
   return multiplier * getMachineOutputPrestigeMultiplier(state)
 }
 
@@ -143,11 +154,7 @@ export function getAutomationMarketMultiplier(target: SectorId | null): number {
 
 export function getAutomationStrategyMultiplier(strategyId: AutomationStrategyId | null, target: SectorId | null): number {
   if (!strategyId) return 1
-  if (strategyId === 'meanReversion') return target === 'finance' ? 1.12 : 1.02
-  if (strategyId === 'momentum') return target === 'technology' ? 1.16 : target === 'energy' ? 1.05 : 0.98
-  if (strategyId === 'arbitrage') return target === 'finance' ? 1.08 : 1.03
-  if (strategyId === 'marketMaking') return target === 'finance' ? 1.1 : 1.01
-  return target === 'technology' ? 1.1 : target === 'finance' ? 1.04 : 1.06
+  return mechanics.automationStrategies[strategyId].targetMultipliers[target ?? 'none']
 }
 
 export function getAutomationAdjustedPayout(state: GameState, unitId: AutomationUnitId): number {
@@ -170,28 +177,19 @@ export function getAutomationAdjustedPayout(state: GameState, unitId: Automation
 }
 
 export function getAutomationAverageIncomePerSecond(state: GameState, unitId: AutomationUnitId): number {
-  let duration = getAutomationCycleDuration(unitId)
-  if (unitId === 'ruleBasedBot' && state.purchasedUpgrades.executionRoutingStack) duration *= 0.9
-  if (unitId === 'mlTradingBot' && state.purchasedUpgrades.inferenceBatching) duration *= 0.9
-  duration *= getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+  const duration = getAutomationCycleDurationWithModifiers(state, unitId)
   if (duration <= 0) return 0
   return getAutomationAdjustedPayout(state, unitId) / duration
 }
 
 export function getAutomationProgressPercent(state: GameState, unitId: AutomationUnitId): number {
-  let duration = getAutomationCycleDuration(unitId)
-  if (unitId === 'ruleBasedBot' && state.purchasedUpgrades.executionRoutingStack) duration *= 0.9
-  if (unitId === 'mlTradingBot' && state.purchasedUpgrades.inferenceBatching) duration *= 0.9
-  duration *= getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+  const duration = getAutomationCycleDurationWithModifiers(state, unitId)
   if (duration <= 0) return 0
   return Math.min(1, Math.max(0, state.automationCycleState[unitId].progressSeconds / duration))
 }
 
 export function getAutomationTimeRemaining(state: GameState, unitId: AutomationUnitId): number {
-  let duration = getAutomationCycleDuration(unitId)
-  if (unitId === 'ruleBasedBot' && state.purchasedUpgrades.executionRoutingStack) duration *= 0.9
-  if (unitId === 'mlTradingBot' && state.purchasedUpgrades.inferenceBatching) duration *= 0.9
-  duration *= getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+  const duration = getAutomationCycleDurationWithModifiers(state, unitId)
   return Math.max(0, duration - state.automationCycleState[unitId].progressSeconds)
 }
 
@@ -207,10 +205,7 @@ export function processAutomationCycles(state: GameState, deltaSeconds: number, 
       continue
     }
 
-    let duration = getAutomationCycleDuration(unitId)
-    if (unitId === 'ruleBasedBot' && state.purchasedUpgrades.executionRoutingStack) duration *= 0.9
-    if (unitId === 'mlTradingBot' && state.purchasedUpgrades.inferenceBatching) duration *= 0.9
-    duration *= getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+    const duration = getAutomationCycleDurationWithModifiers(state, unitId)
     let progress = current.progressSeconds + deltaSeconds
     let payout = 0
 

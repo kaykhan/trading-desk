@@ -558,6 +558,49 @@ export type MilestoneReward = {
   note?: string
 }
 
+export type MilestoneConditionModel =
+  | 'manualTradesAtLeast'
+  | 'oneTimeUpgradesPurchasedAtLeast'
+  | 'unitCountAtLeast'
+  | 'infrastructureCountAtLeast'
+  | 'mixedUnitThresholds'
+  | 'firstCompliancePayment'
+  | 'deskOrDeskPlusInstitutionIncomeAtLeast'
+  | 'humanCountAtLeast'
+  | 'researchUnlocked'
+  | 'researchNodesPurchasedAtLeast'
+  | 'effectiveServerRackCountAtLeast'
+  | 'lifetimeResearchAtLeast'
+  | 'complianceReviewsAtLeast'
+  | 'assignedUnitsAtLeast'
+  | 'specialistResearchUnlockedAtLeast'
+  | 'specialistsAtLeast'
+  | 'correctSpecialistAssignmentsAtLeast'
+  | 'researchTechPurchased'
+  | 'automationStrategiesUnlockedAtLeast'
+  | 'configuredAutomationClassesAtLeast'
+  | 'upgradesPurchasedInGroupAtLeast'
+  | 'sectorUnlocked'
+  | 'sectorIncomeAtLeast'
+  | 'activeAssignedSectorsAtLeast'
+  | 'unlockedSectorsAtLeast'
+  | 'lobbyingUnlockedOrDiscovered'
+  | 'purchasedPoliciesAtLeast'
+  | 'mandateResearchUnlockedAtLeast'
+  | 'mandatedInstitutionsAtLeast'
+  | 'correctMandateAssignmentsAtLeast'
+  | 'automationCountAtLeast'
+  | 'anyTimedBoostUnlocked'
+  | 'timedBoostActivationsAtLeast'
+  | 'ownedGlobalBoostsAtLeast'
+  | 'prestigeCountAtLeast'
+  | 'reputationSpentAtLeast'
+  | 'prestigeRanksPurchasedAtLeast'
+  | 'optimisationRanksAtLeast'
+  | 'optimisationRanksByFamilyAtLeast'
+
+export type MilestoneTargetId = UnitId | CapacityInfrastructureId | PowerInfrastructureId | SectorId | ResearchTechId | UpgradeGroup | RepeatableUpgradeFamily
+
 export type MilestoneDefinition = {
   id: MilestoneId
   category: MilestoneCategoryId
@@ -566,6 +609,10 @@ export type MilestoneDefinition = {
   description: string
   visibleByDefault: boolean
   reward: MilestoneReward
+  conditionModel: MilestoneConditionModel
+  conditionValue?: number
+  targetId?: MilestoneTargetId
+  thresholds?: Partial<Record<UnitId, number>>
   achievementKey?: string
 }
 

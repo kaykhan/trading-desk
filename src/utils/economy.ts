@@ -1,8 +1,8 @@
-import { GAME_CONSTANTS } from '../data/constants'
 import { POWER_INFRASTRUCTURE } from '../data/powerInfrastructure'
 import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import { getSectorDefinition, SECTOR_IDS } from '../data/sectors'
 import { UNITS } from '../data/units'
+import { isPowerInfrastructureDefinitionVisible, isUnitDefinitionUnlocked, mechanics } from '../lib/mechanics'
 import type { BuyMode, GameState, GenericSectorAssignableUnitId, HumanAssignableUnitId, PowerInfrastructureId, RepeatableUpgradeId, SectorId, UpgradeId, UnitId } from '../types/game'
 import { getAvailableDeskSlots, canBuyHumanUnit, getCapacityPowerUsage } from './capacity'
 import { getGlobalEnergySupplyBoostMultiplier, getGlobalInfluenceBoostMultiplier, getGlobalProfitBoostMultiplier, getTimedHumanOutputBoostMultiplier, getTimedProfitBoostMultiplier, getTimedResearchBoostMultiplier, getTimedSectorOutputBoostMultiplier } from './boosts'
@@ -20,6 +20,41 @@ function isDeskLimitedUnit(unitId: UnitId): boolean {
     || unitId === 'internResearchScientist'
     || unitId === 'juniorResearchScientist'
     || unitId === 'seniorResearchScientist'
+}
+
+const ECONOMY_CONSTANTS = mechanics.constants
+const UPGRADE_MULTIPLIERS = mechanics.multipliers.upgrades
+const POLICY_MULTIPLIERS = mechanics.multipliers.policies
+
+function hasHumanStaffDiscount(unitId: UnitId): boolean {
+  return mechanics.units[unitId].costModel === 'unitExponentialWithHumanDiscount'
+}
+
+function getUpgradeMultiplier(state: GameState, purchasedKey: UpgradeId, multiplierKey: keyof typeof mechanics.multipliers.upgrades): number {
+  return state.purchasedUpgrades[purchasedKey] ? Number(UPGRADE_MULTIPLIERS[multiplierKey]) : 1
+}
+
+function getPolicyMultiplier(state: GameState, purchasedKey: keyof GameState['purchasedPolicies'], multiplierKey: keyof typeof mechanics.multipliers.policies): number {
+  return state.purchasedPolicies[purchasedKey] ? Number(POLICY_MULTIPLIERS[multiplierKey]) : 1
+}
+
+function getInfrastructureUpgradeCapacityMultiplier(state: GameState, upgradeId: UpgradeId, multiplierKey: keyof typeof mechanics.multipliers.upgrades): number {
+  return state.purchasedUpgrades[upgradeId] ? Number(UPGRADE_MULTIPLIERS[multiplierKey]) : 1
+}
+
+function getBotPowerUsageMultiplier(state: GameState, includeEnergyCredits: boolean): number {
+  let multiplier = 1
+
+  if (includeEnergyCredits) {
+    multiplier *= getPolicyMultiplier(state, 'dataCenterEnergyCredits', 'dataCenterEnergyCreditsBotPowerUsage')
+  }
+
+  multiplier *= getUpgradeMultiplier(state, 'coolingSystems', 'coolingSystemsPowerUsage')
+  return multiplier
+}
+
+function getAutomationUnitDefinition(unitId: Extract<UnitId, 'ruleBasedBot' | 'mlTradingBot' | 'aiTradingBot'>) {
+  return mechanics.units[unitId]
 }
 
 export function getScaledCost(baseCost: number, scaling: number, owned: number): number {
@@ -134,22 +169,22 @@ export function getPrestigeMultiplier(state: GameState): number {
 }
 
 export function getManualIncome(state: GameState): number {
-  let value: number = GAME_CONSTANTS.baseClickIncome
+  let value: number = Number(ECONOMY_CONSTANTS.baseClickIncome)
 
   if (state.purchasedUpgrades.betterTerminal) {
-    value = 2
+    value = Number(UPGRADE_MULTIPLIERS.betterTerminalBaseClickIncome)
   }
 
   if (state.purchasedUpgrades.premiumDataFeed) {
-    value *= 1.25
+    value *= Number(UPGRADE_MULTIPLIERS.premiumDataFeedManual)
   }
 
   if (state.purchasedUpgrades.tradeShortcuts) {
-    value += 1
+    value += Number(UPGRADE_MULTIPLIERS.tradeShortcutsManualFlat)
   }
 
   if (state.purchasedUpgrades.premiumDataFeed) {
-    value *= 1.25
+    value *= Number(UPGRADE_MULTIPLIERS.premiumDataFeedManual)
   }
 
   return value * getManualTradeOptimizationMultiplier(state) * getGlobalMultiplier(state) * getPrestigeMultiplier(state)
@@ -159,19 +194,19 @@ export function getInternIncome(state: GameState): number {
   let value = UNITS.intern.baseIncomePerSecond
 
   if (state.purchasedUpgrades.premiumDataFeed) {
-    value *= 1.1
+    value *= Number(UPGRADE_MULTIPLIERS.premiumDataFeedHuman)
   }
 
   if (state.purchasedUpgrades.deskAnalytics) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.deskAnalyticsHuman)
   }
 
   if (state.purchasedUpgrades.crossDeskCoordination) {
-    value *= 1.15
+    value *= Number(UPGRADE_MULTIPLIERS.crossDeskCoordinationHuman)
   }
 
   if (state.purchasedUpgrades.structuredOnboarding) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.structuredOnboardingHuman)
   }
 
   return value * getInternOptimizationMultiplier(state) * getDeskEfficiencyMultiplier(state)
@@ -181,19 +216,19 @@ export function getJuniorTraderIncome(state: GameState): number {
   let value: number = UNITS.juniorTrader.baseIncomePerSecond
 
   if (state.purchasedUpgrades.premiumDataFeed) {
-    value *= 1.1
+    value *= Number(UPGRADE_MULTIPLIERS.premiumDataFeedHuman)
   }
 
   if (state.purchasedUpgrades.deskAnalytics) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.deskAnalyticsHuman)
   }
 
   if (state.purchasedUpgrades.crossDeskCoordination) {
-    value *= 1.15
+    value *= Number(UPGRADE_MULTIPLIERS.crossDeskCoordinationHuman)
   }
 
   if (state.purchasedUpgrades.structuredOnboarding) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.structuredOnboardingHuman)
   }
 
   return value * getJuniorTraderOptimizationMultiplier(state) * getDeskEfficiencyMultiplier(state)
@@ -203,19 +238,19 @@ export function getSeniorTraderIncome(state: GameState): number {
   let value = UNITS.seniorTrader.baseIncomePerSecond
 
   if (state.purchasedPolicies.executiveCompensationReform) {
-    value *= 1.15
+    value *= Number(UPGRADE_MULTIPLIERS.executiveCompensationReformSeniorTrader)
   }
 
   if (state.purchasedUpgrades.premiumDataFeed) {
-    value *= 1.1
+    value *= Number(UPGRADE_MULTIPLIERS.premiumDataFeedHuman)
   }
 
   if (state.purchasedUpgrades.deskAnalytics) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.deskAnalyticsHuman)
   }
 
   if (state.purchasedUpgrades.crossDeskCoordination) {
-    value *= 1.15
+    value *= Number(UPGRADE_MULTIPLIERS.crossDeskCoordinationHuman)
   }
 
   return value * getSeniorTraderOptimizationMultiplier(state) * getDeskEfficiencyMultiplier(state)
@@ -281,11 +316,11 @@ export function getPropDeskIncome(state: GameState): number {
   let value = UNITS.propDesk.baseIncomePerSecond
 
   if (state.purchasedUpgrades.propDeskOperatingModel) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.propDeskOperatingModel)
   }
 
   if (state.purchasedUpgrades.institutionalOperatingStandards) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.institutionalOperatingStandards)
   }
 
   return value * getPropDeskOptimizationMultiplier(state)
@@ -295,11 +330,11 @@ export function getInstitutionalDeskIncome(state: GameState): number {
   let value = UNITS.institutionalDesk.baseIncomePerSecond
 
   if (state.purchasedUpgrades.institutionalClientBook) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.institutionalClientBook)
   }
 
   if (state.purchasedUpgrades.institutionalOperatingStandards) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.institutionalOperatingStandards)
   }
 
   return value * getInstitutionalDeskOptimizationMultiplier(state)
@@ -309,11 +344,11 @@ export function getHedgeFundIncome(state: GameState): number {
   let value = UNITS.hedgeFund.baseIncomePerSecond
 
   if (state.purchasedUpgrades.fundStrategyCommittee) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.fundStrategyCommittee)
   }
 
   if (state.purchasedUpgrades.institutionalOperatingStandards) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.institutionalOperatingStandards)
   }
 
   return value * getHedgeFundOptimizationMultiplier(state)
@@ -323,28 +358,20 @@ export function getInvestmentFirmIncome(state: GameState): number {
   let value = UNITS.investmentFirm.baseIncomePerSecond
 
   if (state.purchasedUpgrades.globalDistributionNetwork) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.globalDistributionNetwork)
   }
 
   if (state.purchasedUpgrades.institutionalOperatingStandards) {
-    value *= 1.12
+    value *= Number(UPGRADE_MULTIPLIERS.institutionalOperatingStandards)
   }
 
   return value * getInvestmentFirmOptimizationMultiplier(state)
 }
 
 export function getRuleBasedBotPowerUsage(state: GameState): number {
-  let perBotUsage = GAME_CONSTANTS.ruleBasedBotPowerUsage
-
-  if (state.purchasedPolicies.dataCenterEnergyCredits) {
-    perBotUsage *= 0.8
-  }
-
-  if (state.purchasedUpgrades.coolingSystems) {
-    perBotUsage *= 0.9
-  }
-
-  perBotUsage *= 1 - getEnergyOptimizationReduction(state)
+  let perBotUsage = Number(getAutomationUnitDefinition('ruleBasedBot').livePowerUse)
+  perBotUsage *= getBotPowerUsageMultiplier(state, true)
+  perBotUsage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
 
   return state.ruleBasedBotCount * perBotUsage
 }
@@ -366,22 +393,21 @@ export function getUnitPowerUsagePerPurchase(state: GameState, unitId: UnitId): 
   if (unitId === 'juniorResearchScientist') return 0
   if (unitId === 'seniorResearchScientist') return 0
   if (unitId === 'ruleBasedBot') {
-    let usage = GAME_CONSTANTS.ruleBasedBotPowerUsage
-    if (state.purchasedPolicies.dataCenterEnergyCredits) usage *= 0.8
-    if (state.purchasedUpgrades.coolingSystems) usage *= 0.9
-    usage *= 1 - getEnergyOptimizationReduction(state)
+    let usage = Number(getAutomationUnitDefinition('ruleBasedBot').livePowerUse)
+    usage *= getBotPowerUsageMultiplier(state, true)
+    usage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
     return usage
   }
   if (unitId === 'mlTradingBot') {
-    let usage = GAME_CONSTANTS.mlTradingBotPowerUsage
-    if (state.purchasedPolicies.dataCenterEnergyCredits) usage *= 0.8
-    if (state.purchasedUpgrades.coolingSystems) usage *= 0.9
-    usage *= 1 - getEnergyOptimizationReduction(state)
+    let usage = Number(getAutomationUnitDefinition('mlTradingBot').livePowerUse)
+    usage *= getBotPowerUsageMultiplier(state, true)
+    usage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
     return usage
   }
   if (unitId === 'aiTradingBot') {
-    let usage = state.purchasedUpgrades.coolingSystems ? GAME_CONSTANTS.aiTradingBotPowerUsage * 0.9 : GAME_CONSTANTS.aiTradingBotPowerUsage
-    usage *= 1 - getServerEfficiencyReduction(state)
+    let usage = Number(getAutomationUnitDefinition('aiTradingBot').livePowerUse)
+    usage *= getBotPowerUsageMultiplier(state, false)
+    usage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
     return usage
   }
   return 0
@@ -392,46 +418,36 @@ export function getResearchStaffPowerUsage(state: GameState): number {
 }
 
 export function getMlTradingBotPowerUsage(state: GameState): number {
-  let perBotUsage = GAME_CONSTANTS.mlTradingBotPowerUsage
-
-  if (state.purchasedPolicies.dataCenterEnergyCredits) {
-    perBotUsage *= 0.8
-  }
-
-  if (state.purchasedUpgrades.coolingSystems) {
-    perBotUsage *= 0.9
-  }
-
-  perBotUsage *= 1 - getEnergyOptimizationReduction(state)
+  let perBotUsage = Number(getAutomationUnitDefinition('mlTradingBot').livePowerUse)
+  perBotUsage *= getBotPowerUsageMultiplier(state, true)
+  perBotUsage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
 
   return state.mlTradingBotCount * perBotUsage
 }
 
 export function getAiTradingBotPowerUsage(state: GameState): number {
-  let perBotUsage = state.purchasedUpgrades.coolingSystems
-    ? GAME_CONSTANTS.aiTradingBotPowerUsage * 0.9
-    : GAME_CONSTANTS.aiTradingBotPowerUsage
-
-  perBotUsage *= 1 - getServerEfficiencyReduction(state)
+  let perBotUsage = Number(getAutomationUnitDefinition('aiTradingBot').livePowerUse)
+  perBotUsage *= getBotPowerUsageMultiplier(state, false)
+  perBotUsage *= getRepeatableUpgradeMultiplier(state, 'computeOptimization')
 
   return state.aiTradingBotCount * perBotUsage
 }
 
 export function getPowerCapacity(state: GameState): number {
-  const utilityCapacity = GAME_CONSTANTS.baseUtilityPowerCapacity
-  const rackCapacity = state.serverRackCount * GAME_CONSTANTS.serverRackPowerCapacity * getServerRackCapacityMultiplier(state) * (state.purchasedUpgrades.rackStacking ? 1.25 : 1)
-  const roomCapacity = state.serverRoomCount * GAME_CONSTANTS.serverRoomPowerCapacity * getServerRoomCapacityMultiplier(state) * (state.purchasedUpgrades.roomScaleout ? 1.25 : 1)
-  const dataCenterCapacity = state.dataCenterCount * GAME_CONSTANTS.dataCenterPowerCapacity * getDataCenterCapacityMultiplier(state) * (state.purchasedUpgrades.dataCenterFabric ? 1.3 : 1)
-  const cloudCapacity = state.cloudComputeCount * GAME_CONSTANTS.cloudComputePowerCapacity * getCloudInfrastructureCapacityMultiplier(state) * (state.purchasedUpgrades.cloudBurstContracts ? 1.35 : 1)
+  const utilityCapacity = Number(ECONOMY_CONSTANTS.baseUtilityPowerCapacity)
+  const rackCapacity = state.serverRackCount * POWER_INFRASTRUCTURE.serverRack.powerCapacity * getServerRackCapacityMultiplier(state) * getInfrastructureUpgradeCapacityMultiplier(state, 'rackStacking', 'rackStacking')
+  const roomCapacity = state.serverRoomCount * POWER_INFRASTRUCTURE.serverRoom.powerCapacity * getServerRoomCapacityMultiplier(state) * getInfrastructureUpgradeCapacityMultiplier(state, 'roomScaleout', 'roomScaleout')
+  const dataCenterCapacity = state.dataCenterCount * POWER_INFRASTRUCTURE.dataCenter.powerCapacity * getDataCenterCapacityMultiplier(state) * getInfrastructureUpgradeCapacityMultiplier(state, 'dataCenterFabric', 'dataCenterFabric')
+  const cloudCapacity = state.cloudComputeCount * POWER_INFRASTRUCTURE.cloudCompute.powerCapacity * getCloudInfrastructureCapacityMultiplier(state) * getInfrastructureUpgradeCapacityMultiplier(state, 'cloudBurstContracts', 'cloudBurstContracts')
 
   let capacity = utilityCapacity + rackCapacity + roomCapacity + dataCenterCapacity + cloudCapacity
 
   if (state.purchasedPolicies.priorityGridAccess) {
-    capacity *= 1.15
+    capacity *= Number(POLICY_MULTIPLIERS.priorityGridAccessPowerCapacity)
   }
 
   if (state.purchasedUpgrades.powerDistribution) {
-    capacity *= 1.2
+    capacity *= Number(UPGRADE_MULTIPLIERS.powerDistribution)
   }
 
   return capacity * getPowerCapacityPrestigeMultiplier(state) * getGlobalEnergySupplyBoostMultiplier(state)
@@ -461,7 +477,7 @@ export function getMachineEfficiencyMultiplier(state: GameState): number {
   let efficiency = capacity / usage
 
   if (state.purchasedPolicies.aiInfrastructureIncentives) {
-    efficiency *= 1.1
+    efficiency *= Number(POLICY_MULTIPLIERS.aiInfrastructureIncentivesOverCapRatio)
   }
 
   return Math.min(1, efficiency) * getMachineEfficiencyEventModifier(state) * energyCompliancePenalty
@@ -487,19 +503,7 @@ function getDiscountedUnitCostAtOwned(state: GameState, unitId: UnitId, owned: n
   const unit = UNITS[unitId]
   let discount = 1
 
-  if (unitId === 'intern' || unitId === 'juniorTrader') {
-    discount *= getHumanStaffCostMultiplier(state)
-  }
-
-  if (unitId === 'seniorTrader' || unitId === 'propDesk' || unitId === 'institutionalDesk' || unitId === 'hedgeFund' || unitId === 'investmentFirm') {
-    discount *= getHumanStaffCostMultiplier(state)
-  }
-
-  if (unitId === 'internResearchScientist' || unitId === 'juniorResearchScientist' || unitId === 'seniorResearchScientist') {
-    discount *= getHumanStaffCostMultiplier(state)
-  }
-
-  if (unitId === 'juniorPolitician') {
+  if (hasHumanStaffDiscount(unitId)) {
     discount *= getHumanStaffCostMultiplier(state)
   }
 
@@ -515,12 +519,13 @@ export function getResearchPointsPerSecond(state: GameState): number {
   const juniorOutput = state.juniorResearchScientistCount * (UNITS.juniorResearchScientist.baseResearchPointsPerSecond ?? 0) * getJuniorScientistOptimizationMultiplier(state)
   const seniorOutput = state.seniorResearchScientistCount * (UNITS.seniorResearchScientist.baseResearchPointsPerSecond ?? 0) * getSeniorScientistOptimizationMultiplier(state)
   const boostedInternOutput = state.purchasedUpgrades.sharedResearchLibrary ? internOutput * 1.12 : internOutput
-  const boostedJuniorOutput = (state.purchasedUpgrades.labAutomation ? juniorOutput * 1.2 : juniorOutput) * (state.purchasedUpgrades.sharedResearchLibrary ? 1.12 : 1)
-  const boostedSeniorOutput = (state.purchasedUpgrades.researchGrants ? seniorOutput * 1.25 : seniorOutput) * (state.purchasedUpgrades.sharedResearchLibrary ? 1.12 : 1)
-  const networkBoost = state.purchasedUpgrades.institutionalResearchNetwork ? 1.2 : 1
-  const suiteBoost = state.purchasedUpgrades.backtestingSuite ? 1.15 : 1
-  const crossDisciplinaryBoost = state.purchasedUpgrades.crossDisciplinaryModels ? 1.1 : 1
-  return (boostedInternOutput + boostedJuniorOutput + boostedSeniorOutput) * networkBoost * suiteBoost * crossDisciplinaryBoost * researchOptimization * getResearchPrestigeMultiplier(state) * infrastructureEfficiency * complianceEfficiency * humanCompliancePenalty * getTimedResearchBoostMultiplier(state)
+  const boostedJuniorOutput = (state.purchasedUpgrades.labAutomation ? juniorOutput * Number(UPGRADE_MULTIPLIERS.labAutomationResearch) : juniorOutput) * (state.purchasedUpgrades.sharedResearchLibrary ? Number(UPGRADE_MULTIPLIERS.sharedResearchLibraryResearch) : 1)
+  const boostedSeniorOutput = (state.purchasedUpgrades.researchGrants ? seniorOutput * Number(UPGRADE_MULTIPLIERS.researchGrantsResearch) : seniorOutput) * (state.purchasedUpgrades.sharedResearchLibrary ? Number(UPGRADE_MULTIPLIERS.sharedResearchLibraryResearch) : 1)
+  const networkBoost = state.purchasedUpgrades.institutionalResearchNetwork ? Number(UPGRADE_MULTIPLIERS.institutionalResearchNetworkResearch) : 1
+  const suiteBoost = state.purchasedUpgrades.backtestingSuite ? Number(UPGRADE_MULTIPLIERS.backtestingSuiteResearch) : 1
+  const crossDisciplinaryBoost = state.purchasedUpgrades.crossDisciplinaryModels ? Number(UPGRADE_MULTIPLIERS.crossDisciplinaryModelsResearch) : 1
+  const sharedLibraryBoost = state.purchasedUpgrades.sharedResearchLibrary ? Number(UPGRADE_MULTIPLIERS.sharedResearchLibraryResearch) : 1
+  return ((internOutput * sharedLibraryBoost) + boostedJuniorOutput + boostedSeniorOutput) * networkBoost * suiteBoost * crossDisciplinaryBoost * researchOptimization * getResearchPrestigeMultiplier(state) * infrastructureEfficiency * complianceEfficiency * humanCompliancePenalty * getTimedResearchBoostMultiplier(state)
 }
 
 export function getInfluencePerSecond(state: GameState): number {
@@ -534,15 +539,15 @@ export function getInfluencePerSecond(state: GameState): number {
   let value = baseOutput
 
   if (state.purchasedUpgrades.policyAnalysisDesk) {
-    value *= 1.25
+    value *= Number(UPGRADE_MULTIPLIERS.policyAnalysisDesk)
   }
 
   if (state.purchasedUpgrades.donorNetwork) {
-    value *= 1.2
+    value *= Number(UPGRADE_MULTIPLIERS.donorNetwork)
   }
 
   if (state.purchasedUpgrades.governmentRelationsOffice) {
-    value *= 1.15
+    value *= Number(UPGRADE_MULTIPLIERS.governmentRelationsOffice)
   }
 
   return value * infrastructureEfficiency * getGlobalInfluenceBoostMultiplier(state) * getPolicyCapitalMultiplier(state)
@@ -680,67 +685,7 @@ export function getInternCost(state: GameState): number {
 }
 
 export function isUnitUnlocked(state: GameState, unitId: UnitId): boolean {
-  if (unitId === 'intern') {
-    return state.purchasedResearchTech.foundationsOfFinanceTraining === true
-  }
-
-  if (unitId === 'juniorTrader') {
-    return state.purchasedResearchTech.juniorTraderProgram === true
-  }
-
-  if (unitId === 'seniorTrader') {
-    return state.purchasedResearchTech.seniorRecruitment === true
-  }
-
-  if (unitId === 'quantTrader') {
-    return state.purchasedResearchTech.algorithmicTrading === true
-  }
-
-  if (unitId === 'internResearchScientist') {
-    return state.purchasedResearchTech.foundationsOfFinanceTraining === true
-  }
-
-  if (unitId === 'juniorResearchScientist') {
-    return state.purchasedResearchTech.juniorScientists === true
-  }
-
-  if (unitId === 'seniorResearchScientist') {
-    return state.purchasedResearchTech.seniorScientists === true
-  }
-
-  if (unitId === 'juniorPolitician') {
-    return isLobbyingUnlocked(state)
-  }
-
-  if (unitId === 'propDesk') {
-    return state.purchasedResearchTech.propDeskOperations === true
-  }
-
-  if (unitId === 'institutionalDesk') {
-    return state.purchasedResearchTech.institutionalDesks === true && state.serverRoomCount > 0
-  }
-
-  if (unitId === 'hedgeFund') {
-    return state.purchasedResearchTech.hedgeFundStrategies === true && state.dataCenterCount > 0
-  }
-
-  if (unitId === 'investmentFirm') {
-    return state.purchasedResearchTech.investmentFirms === true && state.cloudComputeCount > 0
-  }
-
-  if (unitId === 'ruleBasedBot') {
-    return state.purchasedResearchTech.ruleBasedAutomation === true
-  }
-
-  if (unitId === 'mlTradingBot') {
-    return state.purchasedResearchTech.machineLearningTrading === true && state.dataCenterCount > 0
-  }
-
-  if (unitId === 'aiTradingBot') {
-    return state.purchasedResearchTech.aiTradingSystems === true && state.cloudComputeCount > 0
-  }
-
-  return false
+  return isUnitDefinitionUnlocked(state, unitId)
 }
 
 export function getUnitCount(state: GameState, unitId: UnitId): number {
@@ -870,19 +815,7 @@ export function isPowerInfrastructureUnlocked(_state: GameState): boolean {
 }
 
 export function isPowerInfrastructureVisible(state: GameState, infrastructureId: PowerInfrastructureId): boolean {
-  if (infrastructureId === 'serverRack') {
-    return true
-  }
-
-  if (infrastructureId === 'serverRoom') {
-    return state.purchasedResearchTech.serverRoomSystems === true
-  }
-
-  if (infrastructureId === 'dataCenter') {
-    return state.purchasedResearchTech.dataCenterSystems === true
-  }
-
-  return state.purchasedResearchTech.cloudInfrastructure === true
+  return isPowerInfrastructureDefinitionVisible(state, infrastructureId)
 }
 
 export function getPowerInfrastructureCount(state: GameState, infrastructureId: PowerInfrastructureId): number {
@@ -900,8 +833,8 @@ export function getPowerInfrastructureCount(state: GameState, infrastructureId: 
 
 export function getNextPowerInfrastructureCost(state: GameState, infrastructureId: PowerInfrastructureId): number {
   const definition = POWER_INFRASTRUCTURE[infrastructureId]
-  const subsidyDiscount = state.purchasedPolicies.industrialPowerSubsidies ? 0.1 : 0
-  return Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, getPowerInfrastructureCount(state, infrastructureId)) * (1 - subsidyDiscount)))
+  const subsidyMultiplier = state.purchasedPolicies.industrialPowerSubsidies ? Number(POLICY_MULTIPLIERS.industrialPowerSubsidiesPowerPurchase) : 1
+  return Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, getPowerInfrastructureCount(state, infrastructureId)) * subsidyMultiplier))
 }
 
 export function getBulkPowerInfrastructureCost(state: GameState, infrastructureId: PowerInfrastructureId, quantity: BuyMode): { quantity: number; totalCost: number } {
@@ -918,8 +851,8 @@ export function getBulkPowerInfrastructureCost(state: GameState, infrastructureI
     let simulatedOwned = owned
 
     while (true) {
-      const subsidyDiscount = state.purchasedPolicies.industrialPowerSubsidies ? 0.1 : 0
-      const nextCost = Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, simulatedOwned) * (1 - subsidyDiscount)))
+        const subsidyMultiplier = state.purchasedPolicies.industrialPowerSubsidies ? Number(POLICY_MULTIPLIERS.industrialPowerSubsidiesPowerPurchase) : 1
+        const nextCost = Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, simulatedOwned) * subsidyMultiplier))
 
       if (totalCost + nextCost > state.cash) {
         break
@@ -936,8 +869,8 @@ export function getBulkPowerInfrastructureCost(state: GameState, infrastructureI
   let totalCost = 0
 
   for (let i = 0; i < quantity; i += 1) {
-    const subsidyDiscount = state.purchasedPolicies.industrialPowerSubsidies ? 0.1 : 0
-    totalCost += Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, owned + i) * (1 - subsidyDiscount)))
+    const subsidyMultiplier = state.purchasedPolicies.industrialPowerSubsidies ? Number(POLICY_MULTIPLIERS.industrialPowerSubsidiesPowerPurchase) : 1
+    totalCost += Math.max(1, Math.floor(getScaledCost(definition.baseCost, definition.costScaling, owned + i) * subsidyMultiplier))
   }
 
   return { quantity, totalCost }

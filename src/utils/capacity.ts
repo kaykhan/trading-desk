@@ -1,3 +1,4 @@
+import { isCapacityInfrastructureDefinitionVisible } from '../lib/mechanics'
 import { CAPACITY_CONSTANTS } from '../data/capacity'
 import type { BuyMode, CapacityInfrastructureId, GameState } from '../types/game'
 import { getPowerCapacity, getPowerUsage } from './economy'
@@ -92,12 +93,20 @@ export function getNextCapacityCost(state: GameState, infrastructureId: Capacity
   return getOfficeCost(state)
 }
 
+export function isCapacityInfrastructureVisible(state: GameState, infrastructureId: CapacityInfrastructureId): boolean {
+  return isCapacityInfrastructureDefinitionVisible(state, infrastructureId)
+}
+
 export function getBulkCapacityInfrastructureCost(
   state: GameState,
   infrastructureId: CapacityInfrastructureId,
   quantity: BuyMode,
   powerUsagePerPurchase: number,
 ): { quantity: number; totalCost: number } {
+  if (!isCapacityInfrastructureVisible(state, infrastructureId)) {
+    return { quantity: 0, totalCost: 0 }
+  }
+
   const owned = getCapacityCount(state, infrastructureId)
 
   const getCostAtOwned = (ownedCount: number): number => {

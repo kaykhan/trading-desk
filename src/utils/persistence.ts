@@ -9,10 +9,11 @@ import { RESEARCH_TECH } from '../data/researchTech'
 import { DEFAULT_UNLOCKED_SECTORS, SECTOR_IDS } from '../data/sectors'
 import { UPGRADES } from '../data/upgrades'
 import { MILESTONES } from '../data/milestones'
+import { mechanics } from '../lib/mechanics'
 import type { AutomationStrategyId, AutomationUnitId, BuyMode, CompliancePaymentCategoryId, GameState, GenericSectorAssignableUnitId, GlobalBoostId, HumanAssignableUnitId, InstitutionalMandateId, InstitutionalMandateUnitId, LobbyingPolicyId, MarketEventHistoryEntry, MarketEventId, PrestigeUpgradeId, RepeatableUpgradeId, ResearchTechId, SectorId, TimedBoostId, TraderSpecialistUnitId, TraderSpecializationId, UpgradeId } from '../types/game'
 import { inferCompliancePaymentsMadeFromState, inferComplianceReviewCountFromState, inferTimedBoostActivationsFromState } from './milestones'
 
-export const SAVE_KEY = 'stock-incremental-save-v1'
+export const SAVE_KEY = mechanics.runtime.save.storageKey
 
 const UPGRADE_IDS = UPGRADES.map((upgrade) => upgrade.id)
 const PRESTIGE_UPGRADE_IDS = PRESTIGE_UPGRADES.map((upgrade) => upgrade.id)

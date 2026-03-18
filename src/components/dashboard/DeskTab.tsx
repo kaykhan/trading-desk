@@ -10,7 +10,7 @@ import { AUTOMATION_STRATEGIES, AUTOMATION_STRATEGY_IDS, AUTOMATION_UNIT_IDS, AU
 import { selectors } from '@/store/selectors'
 import type { AutomationUnitId, BuyMode, DeskViewId, InstitutionalMandateId, InstitutionalMandateUnitId, SectorId, TraderSpecialistUnitId, TraderSpecializationId, UnitId } from '@/types/game'
 import { formatCurrency, formatNumber, formatPlainRate, formatRate } from '@/utils/formatting'
-import { GAME_CONSTANTS } from '@/data/constants'
+import { mechanics } from '@/lib/mechanics'
 import { getUnlockedAutomationStrategies } from '@/utils/automation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -397,7 +397,7 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
   const powerUse = useGameStore(selectors.automationPowerUse(unitId))
   const unlockedStrategies = getUnlockedAutomationStrategies(gameState)
   const canAfford = quantity > 0 && gameState.cash >= totalCost
-  const justPaid = runtime.lastCompletedAt !== null && Date.now() - runtime.lastCompletedAt < GAME_CONSTANTS.automationPayoutFlashMs
+  const justPaid = runtime.lastCompletedAt !== null && Date.now() - runtime.lastCompletedAt < Number(mechanics.constants.automationPayoutFlashMs)
   const payoutFlashClass = justPaid
     ? unitId === 'quantTrader'
       ? 'border-amber-400/50 bg-amber-500/10 text-amber-100'
@@ -543,6 +543,9 @@ export function DeskTab() {
   const deskSpaceBuyMode = useGameStore(selectors.capacityBuyMode('deskSpace'))
   const floorSpaceBuyMode = useGameStore(selectors.capacityBuyMode('floorSpace'))
   const officeBuyMode = useGameStore(selectors.capacityBuyMode('office'))
+  const deskSpaceVisible = useGameStore(selectors.capacityInfrastructureVisible('deskSpace'))
+  const floorSpaceVisible = useGameStore(selectors.capacityInfrastructureVisible('floorSpace'))
+  const officeVisible = useGameStore(selectors.capacityInfrastructureVisible('office'))
   const deskSpaceTotalCost = useGameStore(selectors.bulkCapacityInfrastructureTotalCost('deskSpace'))
   const floorSpaceTotalCost = useGameStore(selectors.bulkCapacityInfrastructureTotalCost('floorSpace'))
   const officeTotalCost = useGameStore(selectors.bulkCapacityInfrastructureTotalCost('office'))
@@ -687,7 +690,7 @@ export function DeskTab() {
       unitId: 'ruleBasedBot',
       title: 'Rule-Based Bot',
       purchaseLabel: 'Deploy',
-      lockedReason: `Unlock with Algorithmic Trading after reaching 5 Seniors (${gameState.seniorTraderCount}/5).`,
+      lockedReason: `Requires Rule-Based Automation research (${gameState.purchasedResearchTech.ruleBasedAutomation ? 'done' : 'not researched'}).`,
       totalLabel: 'Machine',
       extraBadges: ['5 power each'],
     },
@@ -703,7 +706,7 @@ export function DeskTab() {
       unitId: 'aiTradingBot',
       title: 'AI Bot',
       purchaseLabel: 'Deploy',
-      lockedReason: `Late-run machine tier. Requires AI Trading Systems, 3 ML Bots (${gameState.mlTradingBotCount}/3), and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`,
+      lockedReason: `Requires AI Trading Systems research and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`,
       totalLabel: 'Machine',
       extraBadges: ['48 power each'],
     },
@@ -804,6 +807,10 @@ export function DeskTab() {
   const canAffordServerRoom = useGameStore(selectors.canAffordPowerInfrastructureInCurrentMode('serverRoom'))
   const canAffordDataCenter = useGameStore(selectors.canAffordPowerInfrastructureInCurrentMode('dataCenter'))
   const canAffordCloudCompute = useGameStore(selectors.canAffordPowerInfrastructureInCurrentMode('cloudCompute'))
+  const serverRackVisible = useGameStore(selectors.powerInfrastructureVisible('serverRack'))
+  const serverRoomVisible = useGameStore(selectors.powerInfrastructureVisible('serverRoom'))
+  const dataCenterVisible = useGameStore(selectors.powerInfrastructureVisible('dataCenter'))
+  const cloudComputeVisible = useGameStore(selectors.powerInfrastructureVisible('cloudCompute'))
   const manualTradeOptimizationBonus = manualTradeOptimizationRank * 8
   const totalTraderIncome = internIncome + juniorIncome + seniorIncome + propDeskIncome + institutionalDeskIncome + hedgeFundIncome + investmentFirmIncome
   const showTradingView = activeDeskView === 'trading'
@@ -1048,9 +1055,9 @@ export function DeskTab() {
             <p className="text-[11px] leading-4 text-muted-foreground">Buy more space for traders and scientists here. Desk Space is the cheapest patch for one more staff seat, Floor Space is the first real expansion, and Office is the large-scale late purchase.</p>
             <div className="space-y-2">
                {[
-                { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= (deskSpaceQuantity > 0 ? deskSpaceTotalCost : deskSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState), visible: true, lockedReason: 'Starter office expansion available from the start.' },
-                { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= (floorSpaceQuantity > 0 ? floorSpaceTotalCost : floorSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: gameState.purchasedResearchTech.floorSpacePlanning === true, lockedReason: 'Requires Floor Space Planning research.' },
-                { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= (officeQuantity > 0 ? officeTotalCost : officeCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: gameState.purchasedResearchTech.officeExpansionPlanning === true, lockedReason: 'Requires Office Expansion Planning research.' },
+                { id: 'deskSpace' as const, count: gameState.deskSpaceCount, buyMode: deskSpaceBuyMode, totalCost: deskSpaceTotalCost, quantity: deskSpaceQuantity, nextCost: deskSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.deskSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.deskSpace.name, description: CAPACITY_INFRASTRUCTURE.deskSpace.description, canAffordCash: gameState.cash >= (deskSpaceQuantity > 0 ? deskSpaceTotalCost : deskSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.deskSpace.powerUsage * Math.max(1, deskSpaceQuantity))(gameState), visible: deskSpaceVisible, lockedReason: 'Starter office expansion available from the start.' },
+                { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= (floorSpaceQuantity > 0 ? floorSpaceTotalCost : floorSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: floorSpaceVisible, lockedReason: 'Requires Floor Space Planning research.' },
+                { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= (officeQuantity > 0 ? officeTotalCost : officeCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: officeVisible, lockedReason: 'Requires Office Expansion Planning research.' },
                 ].map((item) => (
                 <PurchaseCard
                   key={item.id}
@@ -1094,10 +1101,10 @@ export function DeskTab() {
             <p className="text-[11px] leading-4 text-muted-foreground">Machine infrastructure powers bots and compute systems. Expand this lane to support higher bot tiers and avoid over-capacity penalties.</p>
             <div className="space-y-2">
               {[
-              { id: 'serverRack' as const, count: serverRackCount, buyMode: serverRackBuyMode, totalCost: serverRackTotalCost, quantity: serverRackQuantity, nextCost: nextServerRackCost, canAfford: canAffordServerRack, visible: true, lockedReason: 'Starter infrastructure.' },
-               { id: 'serverRoom' as const, count: serverRoomCount, buyMode: serverRoomBuyMode, totalCost: serverRoomTotalCost, quantity: serverRoomQuantity, nextCost: nextServerRoomCost, canAfford: canAffordServerRoom, visible: gameState.purchasedResearchTech.serverRoomSystems === true, lockedReason: 'Requires Server Room Systems research.' },
-               { id: 'dataCenter' as const, count: dataCenterCount, buyMode: dataCenterBuyMode, totalCost: dataCenterTotalCost, quantity: dataCenterQuantity, nextCost: nextDataCenterCost, canAfford: canAffordDataCenter, visible: gameState.purchasedResearchTech.dataCenterSystems === true, lockedReason: 'Late-run infrastructure. Requires Data Centre Systems research.' },
-               { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: gameState.purchasedResearchTech.cloudInfrastructure === true, lockedReason: 'Late-run infrastructure. Requires Cloud Infrastructure research.' },
+              { id: 'serverRack' as const, count: serverRackCount, buyMode: serverRackBuyMode, totalCost: serverRackTotalCost, quantity: serverRackQuantity, nextCost: nextServerRackCost, canAfford: canAffordServerRack, visible: serverRackVisible, lockedReason: 'Requires Power Systems Engineering research.' },
+               { id: 'serverRoom' as const, count: serverRoomCount, buyMode: serverRoomBuyMode, totalCost: serverRoomTotalCost, quantity: serverRoomQuantity, nextCost: nextServerRoomCost, canAfford: canAffordServerRoom, visible: serverRoomVisible, lockedReason: 'Requires Server Room Systems research.' },
+               { id: 'dataCenter' as const, count: dataCenterCount, buyMode: dataCenterBuyMode, totalCost: dataCenterTotalCost, quantity: dataCenterQuantity, nextCost: nextDataCenterCost, canAfford: canAffordDataCenter, visible: dataCenterVisible, lockedReason: 'Late-run infrastructure. Requires Data Centre Systems research.' },
+               { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: cloudComputeVisible, lockedReason: 'Late-run infrastructure. Requires Cloud Infrastructure research.' },
               ].map((item) => {
                 const definition = POWER_INFRASTRUCTURE[item.id]
                  const status = item.visible && powerResearchUnlocked ? (item.canAfford ? 'Ready' : 'Need cash') : 'Locked'

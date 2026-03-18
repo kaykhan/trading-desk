@@ -1,16 +1,16 @@
 import { GLOBAL_BOOSTS, TIMED_BOOSTS } from '../data/boosts'
 import { MILESTONE_CATEGORY_LABELS, MILESTONES } from '../data/milestones'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
+import { REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { RESEARCH_TECH } from '../data/researchTech'
 import { SECTOR_IDS } from '../data/sectors'
-import { REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { UPGRADES } from '../data/upgrades'
-import type { GameState, MilestoneDefinition, MilestoneId, MilestoneReward, RepeatableUpgradeFamily, ResearchTechId, UpgradeGroup } from '../types/game'
+import type { GameState, MilestoneConditionModel, MilestoneDefinition, MilestoneId, MilestoneReward, RepeatableUpgradeFamily, ResearchTechId, UnitId } from '../types/game'
 import { getOwnedGlobalBoostCount, isTimedBoostAutoUnlocked } from './boosts'
 import { getComplianceReviewIntervalSeconds } from './compliance'
 import { getIncomeBreakdown } from './economy'
 import { getLifetimeReputation } from './prestige'
-import { isAutomationUnlocked, isLobbyingUnlocked, isPowerInfrastructureUnlocked } from './research'
+import { isAutomationUnlocked, isLobbyingUnlocked } from './research'
 
 type MilestoneEvaluation = {
   unlockedMilestones: Partial<Record<MilestoneId, boolean>>
@@ -30,7 +30,7 @@ function getPurchasedUpgradeCount(state: GameState): number {
   return UPGRADES.reduce((total, upgrade) => total + (state.purchasedUpgrades[upgrade.id] === true ? 1 : 0), 0)
 }
 
-function getPurchasedUpgradeCountByGroup(state: GameState, group: UpgradeGroup): number {
+function getPurchasedUpgradeCountByGroup(state: GameState, group: MilestoneDefinition['targetId']): number {
   return UPGRADES.reduce((total, upgrade) => total + (upgrade.group === group && state.purchasedUpgrades[upgrade.id] === true ? 1 : 0), 0)
 }
 
@@ -89,13 +89,9 @@ function getTotalCorrectMandateAssignments(state: GameState): number {
   return (Object.keys(state.institutionMandates) as Array<keyof typeof state.institutionMandates>).reduce((total, unitId) => total + SECTOR_IDS.reduce((sectorTotal, sectorId) => sectorTotal + Math.min(state.institutionMandates[unitId][sectorId] ?? 0, state.sectorAssignments[unitId][sectorId] ?? 0), 0), 0)
 }
 
-function getTotalInstitutionUnits(state: GameState): number {
-  return state.propDeskCount + state.institutionalDeskCount + state.hedgeFundCount + state.investmentFirmCount
-}
-
 function getTotalUnlockedAutomationStrategies(state: GameState): number {
-  const ids: ResearchTechId[] = ['meanReversionModels', 'momentumModels', 'arbitrageEngine', 'marketMakingEngine', 'scalpingFramework']
-  return ids.reduce((total, id) => total + (state.purchasedResearchTech[id] === true ? 1 : 0), 0)
+  return Object.keys(GLOBAL_BOOSTS) && ['meanReversionModels', 'momentumModels', 'arbitrageEngine', 'marketMakingEngine', 'scalpingFramework']
+    .reduce((total, id) => total + (state.purchasedResearchTech[id as ResearchTechId] === true ? 1 : 0), 0)
 }
 
 function getTotalConfiguredAutomationClasses(state: GameState): number {
@@ -132,100 +128,122 @@ function getOptimisationRanksByFamily(state: GameState, family: RepeatableUpgrad
     .reduce((total, upgrade) => total + (state.repeatableUpgradeRanks[upgrade.id] ?? 0), 0)
 }
 
-function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): boolean {
-  const effectiveServerRackCount = Math.max(0, state.serverRackCount - 1)
+function getUnitCount(state: GameState, unitId: UnitId): number {
+  if (unitId === 'intern') return state.internCount
+  if (unitId === 'juniorTrader') return state.juniorTraderCount
+  if (unitId === 'seniorTrader') return state.seniorTraderCount
+  if (unitId === 'quantTrader') return state.quantTraderCount
+  if (unitId === 'propDesk') return state.propDeskCount
+  if (unitId === 'institutionalDesk') return state.institutionalDeskCount
+  if (unitId === 'hedgeFund') return state.hedgeFundCount
+  if (unitId === 'investmentFirm') return state.investmentFirmCount
+  if (unitId === 'ruleBasedBot') return state.ruleBasedBotCount
+  if (unitId === 'mlTradingBot') return state.mlTradingBotCount
+  if (unitId === 'aiTradingBot') return state.aiTradingBotCount
+  if (unitId === 'internResearchScientist') return state.internResearchScientistCount
+  if (unitId === 'juniorResearchScientist') return state.juniorResearchScientistCount
+  if (unitId === 'seniorResearchScientist') return state.seniorResearchScientistCount
+  return state.juniorPoliticianCount
+}
 
-  switch (milestoneId) {
-    case 'firstTrade': return state.lifetimeManualTrades >= 1
-    case 'activeDesk': return state.lifetimeManualTrades >= 25
-    case 'firstIntern': return state.internCount >= 1
-    case 'smallTeam': return state.internCount >= 5
-    case 'firstJuniorTrader': return state.juniorTraderCount >= 1
-    case 'firstDeskSpace': return state.deskSpaceCount >= 1
-    case 'fourUpgrades': return getPurchasedUpgradeCount(state) >= 3
-    case 'juniorDesk': return state.juniorTraderCount >= 5
-    case 'firstSeniorTrader': return state.seniorTraderCount >= 1
-    case 'builtTheDesk': return state.internCount >= 3 && state.juniorTraderCount >= 3 && state.seniorTraderCount >= 1
-    case 'firstUpgrade': return getPurchasedUpgradeCount(state) >= 1
-    case 'deskMomentum': return getIncomeBreakdown(state).generalDeskIncome >= 100 || (getIncomeBreakdown(state).internIncome + getIncomeBreakdown(state).juniorIncome + getIncomeBreakdown(state).seniorIncome + getIncomeBreakdown(state).propDeskIncome + getIncomeBreakdown(state).institutionalDeskIncome + getIncomeBreakdown(state).hedgeFundIncome + getIncomeBreakdown(state).investmentFirmIncome) >= 100
-    case 'tenInterns': return state.internCount >= 10
-    case 'tenJuniors': return state.juniorTraderCount >= 10
-    case 'threeSeniors': return state.seniorTraderCount >= 3
-    case 'firstDeskOptimization': return getOptimisationRanksByFamily(state, 'desk') >= 1
-    case 'humanDeskScaled': return state.internCount + state.juniorTraderCount + state.seniorTraderCount >= 25
-    case 'unlockResearch': return getResearchUnlocked(state)
-    case 'firstInternScientist': return state.internResearchScientistCount >= 1
-    case 'fiveInternScientists': return state.internResearchScientistCount >= 5
-    case 'firstFloorSpace': return state.floorSpaceCount >= 1
-    case 'firstSeniorScientist': return state.seniorResearchScientistCount >= 1
-    case 'firstResearchNode': return getPurchasedResearchNodeCount(state) >= 1
-    case 'hundredRP': return state.lifetimeResearchPointsEarned >= 100
-    case 'fiveUpgrades': return getPurchasedUpgradeCount(state) >= 5
-    case 'fiveResearchNodes': return getPurchasedResearchNodeCount(state) >= 5
-    case 'firstResearchOptimization': return getOptimisationRanksByFamily(state, 'research') >= 1
-    case 'firstExtraSector': return getUnlockedSectorCount(state) >= 2
-    case 'unlockTechnologySector': return state.unlockedSectors.technology === true
-    case 'unlockEnergySector': return state.unlockedSectors.energy === true
-    case 'firstSectorAssignment': return getTotalAssignedUnitsToSectors(state) >= 1
-    case 'multiSectorPresence': return getActiveAssignedSectorCount(state) >= 2
-    case 'sectorFloorBuilt': return getTotalAssignedUnitsToSectors(state) >= 10
-    case 'financeFocus': return getIncomeBreakdown(state).sectorBreakdown.finance.totalIncome >= 250
-    case 'technologyFocus': return getIncomeBreakdown(state).sectorBreakdown.technology.totalIncome >= 250
-    case 'energyFocus': return getIncomeBreakdown(state).sectorBreakdown.energy.totalIncome >= 250
-    case 'firstSpecialistTrainingResearch': return getTotalSpecialistTrainingResearchUnlocked(state) >= 1
-    case 'firstSpecialist': return getTotalSpecialists(state) >= 1
-    case 'correctPlacement': return getTotalCorrectSpecialistAssignments(state) >= 1
-    case 'specialistDesk': return getTotalSpecialists(state) >= 5
-    case 'firstMandateResearch': return getTotalMandateFrameworkResearchUnlocked(state) >= 1
-    case 'firstMandate': return getTotalMandatedInstitutions(state) >= 1
-    case 'alignedInstitution': return getTotalCorrectMandateAssignments(state) >= 1
-    case 'firstPropDesk': return state.propDeskCount >= 1
-    case 'firstInstitutionalDesk': return state.institutionalDeskCount >= 1
-    case 'firstHedgeFund': return state.hedgeFundCount >= 1
-    case 'firstInvestmentFirm': return state.investmentFirmCount >= 1
-    case 'institutionPortfolio': return state.propDeskCount >= 1 && state.institutionalDeskCount >= 1 && state.hedgeFundCount >= 1
-    case 'institutionUpgrade': return getPurchasedUpgradeCountByGroup(state, 'institutions') >= 1
-    case 'unlockAutomation': return isAutomationUnlocked(state)
-    case 'firstQuantTrader': return state.quantTraderCount >= 1
-    case 'unlockRuleBot': return state.purchasedResearchTech.ruleBasedAutomation === true
-    case 'firstRuleBot': return state.ruleBasedBotCount >= 1
-    case 'firstStrategyUnlocked': return getTotalUnlockedAutomationStrategies(state) >= 1
-    case 'firstAutomationConfigured': return getTotalConfiguredAutomationClasses(state) >= 1
-    case 'machineDesk': return getTotalAutomationUnits(state) >= 5
-    case 'firstMLBot': return state.mlTradingBotCount >= 1
-    case 'firstAIBot': return state.aiTradingBotCount >= 1
-    case 'firstAutomationUpgrade': return getPurchasedUpgradeCountByGroup(state, 'automation') >= 1
-    case 'firstAutomationOptimization': return getOptimisationRanksByFamily(state, 'automation') >= 1
-    case 'firstServerRack': return effectiveServerRackCount >= 1
-    case 'firstServerRoom': return state.serverRoomCount >= 1
-    case 'firstDataCentre': return state.dataCenterCount >= 1
-    case 'firstCloudCompute': return state.cloudComputeCount >= 1
-    case 'firstInfrastructureUpgrade': return getPurchasedUpgradeCountByGroup(state, 'infrastructure') >= 1
-    case 'firstComplianceReview': return state.totalComplianceReviewsTriggered >= 1
-    case 'firstCompliancePayment': return state.totalCompliancePaymentsMade >= 1 || state.lastCompliancePayment > 0
-    case 'unlockLobbying': return isLobbyingUnlocked(state) || state.discoveredLobbying
-    case 'firstLobbyingPolicy': return getTotalPurchasedPolicies(state) >= 1
-    case 'threePolicies': return getTotalPurchasedPolicies(state) >= 3
-    case 'firstGovernanceUpgrade': return getPurchasedUpgradeCountByGroup(state, 'complianceLobbying') >= 1
-    case 'firstGovernanceOptimization': return getOptimisationRanksByFamily(state, 'governance') >= 1
-    case 'unlockBoosts': return getBoostsUnlocked(state)
-    case 'firstTimedBoost': return state.totalTimedBoostActivations >= 1
-    case 'firstGlobalBoost': return getTotalOwnedGlobalBoosts(state) >= 1
-    case 'boostAutomationUnlocked': return isTimedBoostAutoUnlocked(state)
-    case 'firstPrestige': return state.prestigeCount >= 1
-    case 'firstReputationSpend': return state.reputationSpent >= 1
-    case 'bronzePrestige': return state.prestigeCount >= 2
-    case 'silverPrestige': return state.prestigeCount >= 3
-    case 'goldPrestige': return state.prestigeCount >= 4
-    case 'firstPrestigeGoalRank': return getTotalPrestigeGoalRanksPurchased(state) >= 1
-    case 'tenPrestigeRanks': return getTotalPrestigeGoalRanksPurchased(state) >= 10
-    case 'onyxLegacy': return state.prestigeCount >= 10
-    case 'unlockOptimisations': return state.prestigeCount >= 1
-    case 'firstOptimisation': return getTotalOptimisationRanks(state) >= 1
-    case 'tenOptimisationRanks': return getTotalOptimisationRanks(state) >= 10
-    case 'fiftyOptimisationRanks': return getTotalOptimisationRanks(state) >= 50
-    case 'hundredOptimisationRanks': return getTotalOptimisationRanks(state) >= 100
-    default: return false
+function getInfrastructureCount(state: GameState, targetId: string): number {
+  if (targetId === 'deskSpace') return state.deskSpaceCount
+  if (targetId === 'floorSpace') return state.floorSpaceCount
+  if (targetId === 'office') return state.officeCount
+  if (targetId === 'serverRack') return state.serverRackCount
+  if (targetId === 'serverRoom') return state.serverRoomCount
+  if (targetId === 'dataCenter') return state.dataCenterCount
+  if (targetId === 'cloudCompute') return state.cloudComputeCount
+  return 0
+}
+
+function evaluateMilestoneCondition(state: GameState, milestone: MilestoneDefinition): boolean {
+  const model: MilestoneConditionModel = milestone.conditionModel
+  const targetId = milestone.targetId
+  const value = milestone.conditionValue ?? 0
+  const effectiveServerRackCount = Math.max(0, state.serverRackCount - 1)
+  const breakdown = getIncomeBreakdown(state)
+
+  switch (model) {
+    case 'manualTradesAtLeast':
+      return state.lifetimeManualTrades >= value
+    case 'oneTimeUpgradesPurchasedAtLeast':
+      return getPurchasedUpgradeCount(state) >= value
+    case 'unitCountAtLeast':
+      return typeof targetId === 'string' && getUnitCount(state, targetId as UnitId) >= value
+    case 'infrastructureCountAtLeast':
+      return typeof targetId === 'string' && getInfrastructureCount(state, targetId) >= value
+    case 'mixedUnitThresholds':
+      return Object.entries(milestone.thresholds ?? {}).every(([unitId, threshold]) => getUnitCount(state, unitId as UnitId) >= Number(threshold ?? 0))
+    case 'firstCompliancePayment':
+      return state.totalCompliancePaymentsMade >= 1 || state.lastCompliancePayment > 0
+    case 'deskOrDeskPlusInstitutionIncomeAtLeast':
+      return breakdown.generalDeskIncome >= value
+        || (breakdown.internIncome + breakdown.juniorIncome + breakdown.seniorIncome + breakdown.propDeskIncome + breakdown.institutionalDeskIncome + breakdown.hedgeFundIncome + breakdown.investmentFirmIncome) >= value
+    case 'humanCountAtLeast':
+      return state.internCount + state.juniorTraderCount + state.seniorTraderCount >= value
+    case 'researchUnlocked':
+      return getResearchUnlocked(state)
+    case 'researchNodesPurchasedAtLeast':
+      return getPurchasedResearchNodeCount(state) >= value
+    case 'effectiveServerRackCountAtLeast':
+      return effectiveServerRackCount >= value
+    case 'lifetimeResearchAtLeast':
+      return state.lifetimeResearchPointsEarned >= value
+    case 'complianceReviewsAtLeast':
+      return state.totalComplianceReviewsTriggered >= value
+    case 'assignedUnitsAtLeast':
+      return getTotalAssignedUnitsToSectors(state) >= value
+    case 'specialistResearchUnlockedAtLeast':
+      return getTotalSpecialistTrainingResearchUnlocked(state) >= value
+    case 'specialistsAtLeast':
+      return getTotalSpecialists(state) >= value
+    case 'correctSpecialistAssignmentsAtLeast':
+      return getTotalCorrectSpecialistAssignments(state) >= value
+    case 'researchTechPurchased':
+      return typeof targetId === 'string' && state.purchasedResearchTech[targetId as ResearchTechId] === true
+    case 'automationStrategiesUnlockedAtLeast':
+      return getTotalUnlockedAutomationStrategies(state) >= value
+    case 'configuredAutomationClassesAtLeast':
+      return getTotalConfiguredAutomationClasses(state) >= value
+    case 'upgradesPurchasedInGroupAtLeast':
+      return getPurchasedUpgradeCountByGroup(state, targetId) >= value
+    case 'sectorUnlocked':
+      return typeof targetId === 'string' && state.unlockedSectors[targetId as keyof typeof state.unlockedSectors] === true
+    case 'sectorIncomeAtLeast':
+      return typeof targetId === 'string' && breakdown.sectorBreakdown[targetId as keyof typeof breakdown.sectorBreakdown].totalIncome >= value
+    case 'activeAssignedSectorsAtLeast':
+      return getActiveAssignedSectorCount(state) >= value
+    case 'unlockedSectorsAtLeast':
+      return getUnlockedSectorCount(state) >= value
+    case 'lobbyingUnlockedOrDiscovered':
+      return isLobbyingUnlocked(state) || state.discoveredLobbying
+    case 'purchasedPoliciesAtLeast':
+      return getTotalPurchasedPolicies(state) >= value
+    case 'mandateResearchUnlockedAtLeast':
+      return getTotalMandateFrameworkResearchUnlocked(state) >= value
+    case 'mandatedInstitutionsAtLeast':
+      return getTotalMandatedInstitutions(state) >= value
+    case 'correctMandateAssignmentsAtLeast':
+      return getTotalCorrectMandateAssignments(state) >= value
+    case 'automationCountAtLeast':
+      return getTotalAutomationUnits(state) >= value
+    case 'anyTimedBoostUnlocked':
+      return getBoostsUnlocked(state)
+    case 'timedBoostActivationsAtLeast':
+      return state.totalTimedBoostActivations >= value
+    case 'ownedGlobalBoostsAtLeast':
+      return getTotalOwnedGlobalBoosts(state) >= value
+    case 'prestigeCountAtLeast':
+      return state.prestigeCount >= value
+    case 'reputationSpentAtLeast':
+      return state.reputationSpent >= value
+    case 'prestigeRanksPurchasedAtLeast':
+      return getTotalPrestigeGoalRanksPurchased(state) >= value
+    case 'optimisationRanksAtLeast':
+      return getTotalOptimisationRanks(state) >= value
+    case 'optimisationRanksByFamilyAtLeast':
+      return typeof targetId === 'string' && getOptimisationRanksByFamily(state, targetId as RepeatableUpgradeFamily) >= value
   }
 }
 
@@ -273,7 +291,7 @@ export function evaluateMilestones(state: GameState): MilestoneEvaluation {
       continue
     }
 
-    if (!getMilestoneCondition(state, milestone.id)) {
+    if (!evaluateMilestoneCondition(state, milestone)) {
       continue
     }
 
@@ -335,29 +353,43 @@ export function getMilestoneDefinition(milestoneId: MilestoneId): MilestoneDefin
 }
 
 export function getMilestoneProgressLabel(state: GameState, milestoneId: MilestoneId): string | null {
-  switch (milestoneId) {
-    case 'activeDesk': return `${state.lifetimeManualTrades}/25 trades`
-    case 'smallTeam': return `${state.internCount}/5 interns`
-    case 'firstDeskSpace': return `${state.deskSpaceCount}/1 desk space`
-    case 'fourUpgrades': return `${getPurchasedUpgradeCount(state)}/3 upgrades`
-    case 'juniorDesk': return `${state.juniorTraderCount}/5 juniors`
-    case 'fiveInternScientists': return `${state.internResearchScientistCount}/5 intern scientists`
-    case 'firstFloorSpace': return `${state.floorSpaceCount}/1 floor space`
-    case 'fiveUpgrades': return `${getPurchasedUpgradeCount(state)}/5 upgrades`
-    case 'tenInterns': return `${state.internCount}/10 interns`
-    case 'tenJuniors': return `${state.juniorTraderCount}/10 juniors`
-    case 'threeSeniors': return `${state.seniorTraderCount}/3 seniors`
-    case 'humanDeskScaled': return `${state.internCount + state.juniorTraderCount + state.seniorTraderCount}/25 staff`
-    case 'hundredRP': return `${Math.floor(state.lifetimeResearchPointsEarned)}/100 RP`
-    case 'fiveResearchNodes': return `${getPurchasedResearchNodeCount(state)}/5 nodes`
-    case 'sectorFloorBuilt': return `${getTotalAssignedUnitsToSectors(state)}/10 assigned`
-    case 'machineDesk': return `${getTotalAutomationUnits(state)}/5 units`
-    case 'threePolicies': return `${getTotalPurchasedPolicies(state)}/3 policies`
-    case 'tenPrestigeRanks': return `${getTotalPrestigeGoalRanksPurchased(state)}/10 ranks`
-    case 'tenOptimisationRanks': return `${getTotalOptimisationRanks(state)}/10 ranks`
-    case 'fiftyOptimisationRanks': return `${getTotalOptimisationRanks(state)}/50 ranks`
-    case 'hundredOptimisationRanks': return `${getTotalOptimisationRanks(state)}/100 ranks`
-    default: return null
+  const milestone = getMilestoneDefinition(milestoneId)
+
+  if (!milestone) {
+    return null
+  }
+
+  const value = milestone.conditionValue ?? 0
+
+  switch (milestone.conditionModel) {
+    case 'manualTradesAtLeast':
+      return `${state.lifetimeManualTrades}/${value} trades`
+    case 'unitCountAtLeast':
+      return typeof milestone.targetId === 'string' ? `${getUnitCount(state, milestone.targetId as UnitId)}/${value} ${milestone.targetId}` : null
+    case 'infrastructureCountAtLeast':
+      return typeof milestone.targetId === 'string' ? `${getInfrastructureCount(state, milestone.targetId)}/${value} ${milestone.targetId}` : null
+    case 'oneTimeUpgradesPurchasedAtLeast':
+      return `${getPurchasedUpgradeCount(state)}/${value} upgrades`
+    case 'humanCountAtLeast':
+      return `${state.internCount + state.juniorTraderCount + state.seniorTraderCount}/${value} staff`
+    case 'lifetimeResearchAtLeast':
+      return `${Math.floor(state.lifetimeResearchPointsEarned)}/${value} RP`
+    case 'researchNodesPurchasedAtLeast':
+      return `${getPurchasedResearchNodeCount(state)}/${value} nodes`
+    case 'assignedUnitsAtLeast':
+      return `${getTotalAssignedUnitsToSectors(state)}/${value} assigned`
+    case 'automationCountAtLeast':
+      return `${getTotalAutomationUnits(state)}/${value} units`
+    case 'purchasedPoliciesAtLeast':
+      return `${getTotalPurchasedPolicies(state)}/${value} policies`
+    case 'prestigeRanksPurchasedAtLeast':
+      return `${getTotalPrestigeGoalRanksPurchased(state)}/${value} ranks`
+    case 'optimisationRanksAtLeast':
+      return `${getTotalOptimisationRanks(state)}/${value} ranks`
+    case 'optimisationRanksByFamilyAtLeast':
+      return typeof milestone.targetId === 'string' ? `${getOptimisationRanksByFamily(state, milestone.targetId as RepeatableUpgradeFamily)}/${value} ranks` : null
+    default:
+      return null
   }
 }
 

@@ -1,49 +1,26 @@
-import type { UpgradeDefinition } from '../types/game'
+import { isMechanicsConditionMet, mechanics } from '../lib/mechanics'
+import type { GameState, UpgradeDefinition, UpgradeId } from '../types/game'
 
-export const UPGRADES: UpgradeDefinition[] = [
-  { id: 'betterTerminal', name: 'Better Terminal', category: 'trading', group: 'tradingDesk', cost: 20, description: 'Manual trade value increases from $1 to $2 per click.' },
-  { id: 'tradeShortcuts', name: 'Trade Shortcuts', category: 'trading', group: 'tradingDesk', cost: 60, description: 'Manual trades gain +1 flat cash per click.', visibleWhen: (state) => state.internCount >= 1 },
-  { id: 'premiumDataFeed', name: 'Premium Data Feed', category: 'trading', group: 'tradingDesk', cost: 350, description: 'Manual trade income +25%. Intern, Junior Trader, and Senior Trader output +10%.', visibleWhen: (state) => state.juniorTraderCount >= 1 },
-  { id: 'deskAnalytics', name: 'Desk Analytics', category: 'operations', group: 'tradingDesk', cost: 900, description: 'Intern, Junior Trader, and Senior Trader output +12%.', visibleWhen: (state) => state.juniorTraderCount >= 1 },
-  { id: 'crossDeskCoordination', name: 'Cross-Desk Coordination', category: 'operations', group: 'tradingDesk', cost: 18_000, description: 'All human output +15%.', visibleWhen: (state) => state.seniorTraderCount >= 1 },
-  { id: 'structuredOnboarding', name: 'Structured Onboarding', category: 'operations', group: 'tradingDesk', cost: 6_000, description: 'Intern and Junior Trader output +20%.', visibleWhen: (state) => state.internCount >= 5 && state.juniorTraderCount >= 2 },
+function buildVisibleWhen(visibleWhen: unknown): UpgradeDefinition['visibleWhen'] {
+  if (visibleWhen == null) {
+    return undefined
+  }
 
-  { id: 'labAutomation', name: 'Lab Automation', category: 'operations', group: 'research', cost: 12_000, description: 'Junior Scientist Research output +20%.', visibleWhen: (state) => state.juniorResearchScientistCount >= 1 },
-  { id: 'researchGrants', name: 'Research Grants', category: 'operations', group: 'research', cost: 40_000, description: 'Senior Scientist Research output +25%.', visibleWhen: (state) => state.seniorResearchScientistCount >= 1 },
-  { id: 'sharedResearchLibrary', name: 'Shared Research Library', category: 'operations', group: 'research', cost: 110_000, description: 'All scientist Research output +12%.', visibleWhen: (state) => state.juniorResearchScientistCount >= 2 && state.seniorResearchScientistCount >= 1 },
-  { id: 'backtestingSuite', name: 'Backtesting Suite', category: 'operations', group: 'research', cost: 250_000, description: 'Total Research Point generation +15%.', visibleWhen: (state) => (state.internResearchScientistCount + state.juniorResearchScientistCount + state.seniorResearchScientistCount) > 0 && state.purchasedResearchTech.juniorScientists === true },
-  { id: 'institutionalResearchNetwork', name: 'Institutional Research Network', category: 'operations', group: 'research', cost: 900_000, description: 'All scientist Research output +20%.', visibleWhen: (state) => state.internResearchScientistCount + state.juniorResearchScientistCount + state.seniorResearchScientistCount >= 4 },
-  { id: 'crossDisciplinaryModels', name: 'Cross-Disciplinary Models', category: 'operations', group: 'research', cost: 2_000_000, description: 'Research generation +10% and training systems work 10% more efficiently.', visibleWhen: (state) => state.internResearchScientistCount + state.juniorResearchScientistCount + state.seniorResearchScientistCount >= 6 },
+  return (state: GameState) => isMechanicsConditionMet(visibleWhen, state)
+}
 
-  { id: 'propDeskOperatingModel', name: 'Prop Desk Operating Model', category: 'operations', group: 'institutions', cost: 140_000, description: 'Prop Desk output +20%.', visibleWhen: (state) => state.propDeskCount >= 1 },
-  { id: 'institutionalClientBook', name: 'Institutional Client Book', category: 'operations', group: 'institutions', cost: 650_000, description: 'Institutional Desk output +20%.', visibleWhen: (state) => state.institutionalDeskCount >= 1 },
-  { id: 'fundStrategyCommittee', name: 'Fund Strategy Committee', category: 'operations', group: 'institutions', cost: 3_500_000, description: 'Hedge Fund output +20%.', visibleWhen: (state) => state.hedgeFundCount >= 1 },
-  { id: 'globalDistributionNetwork', name: 'Global Distribution Network', category: 'operations', group: 'institutions', cost: 18_000_000, description: 'Investment Firm output +20%.', visibleWhen: (state) => state.investmentFirmCount >= 1 },
-  { id: 'institutionalOperatingStandards', name: 'Institutional Operating Standards', category: 'operations', group: 'institutions', cost: 8_000_000, description: 'All institution-tier output +12%.', visibleWhen: (state) => state.propDeskCount >= 1 && state.institutionalDeskCount >= 1 },
-  { id: 'mandateAlignmentFramework', name: 'Mandate Alignment Framework', category: 'operations', group: 'institutions', cost: 12_000_000, description: 'Mandated institution units gain +10% additional matching-sector bonus.', visibleWhen: (state) => Object.values(state.institutionMandates.propDesk).reduce((sum, value) => sum + value, 0) + Object.values(state.institutionMandates.institutionalDesk).reduce((sum, value) => sum + value, 0) + Object.values(state.institutionMandates.hedgeFund).reduce((sum, value) => sum + value, 0) + Object.values(state.institutionMandates.investmentFirm).reduce((sum, value) => sum + value, 0) >= 2 },
+export const UPGRADES: UpgradeDefinition[] = (Object.entries(mechanics.upgrades) as Array<[UpgradeId, typeof mechanics.upgrades[UpgradeId]]>).map(([id, upgrade]) => ({
+  id,
+  name: upgrade.name,
+  category: upgrade.category,
+  group: upgrade.group,
+  cost: upgrade.cost,
+  description: upgrade.description,
+  visibleWhen: buildVisibleWhen(upgrade.visibleWhen),
+}))
 
-  { id: 'systematicExecution', name: 'Systematic Execution', category: 'operations', group: 'automation', cost: 100_000, description: 'Quant Trader and Rule-Based Bot cycle payout +15%.', visibleWhen: (state) => state.quantTraderCount >= 1 || state.ruleBasedBotCount >= 1 },
-  { id: 'botTelemetry', name: 'Bot Telemetry', category: 'operations', group: 'automation', cost: 130_000, description: 'Rule-Based Bot cycle payout +15%.', visibleWhen: (state) => state.ruleBasedBotCount >= 1 },
-  { id: 'executionRoutingStack', name: 'Execution Routing Stack', category: 'operations', group: 'automation', cost: 220_000, description: 'Rule-Based Bot cycle duration -10%.', visibleWhen: (state) => state.ruleBasedBotCount >= 2 },
-  { id: 'modelServingCluster', name: 'Model Serving Cluster', category: 'operations', group: 'automation', cost: 700_000, description: 'ML Bot cycle payout +20%.', visibleWhen: (state) => state.mlTradingBotCount >= 1 },
-  { id: 'inferenceBatching', name: 'Inference Batching', category: 'operations', group: 'automation', cost: 1_200_000, description: 'ML Bot cycle duration -10%.', visibleWhen: (state) => state.mlTradingBotCount >= 2 },
-  { id: 'aiRiskStack', name: 'AI Risk Stack', category: 'operations', group: 'automation', cost: 4_500_000, description: 'AI Bot cycle payout +20%.', visibleWhen: (state) => state.aiTradingBotCount >= 1 },
-
-  { id: 'rackStacking', name: 'Rack Stacking', category: 'operations', group: 'infrastructure', cost: 8_000, description: 'Server Rack capacity +20%.', visibleWhen: (state) => state.serverRackCount >= 1 },
-  { id: 'coolingSystems', name: 'Cooling Systems', category: 'operations', group: 'infrastructure', cost: 250_000, description: 'Machine power usage -10%.', visibleWhen: (state) => (state.ruleBasedBotCount + state.mlTradingBotCount + state.aiTradingBotCount > 0) && (state.serverRackCount + state.serverRoomCount + state.dataCenterCount + state.cloudComputeCount > 0) },
-  { id: 'roomScaleout', name: 'Room Scaleout', category: 'operations', group: 'infrastructure', cost: 120_000, description: 'Server Room capacity +20%.', visibleWhen: (state) => state.serverRoomCount >= 1 },
-  { id: 'powerDistribution', name: 'Power Distribution', category: 'operations', group: 'infrastructure', cost: 600_000, description: 'Total infrastructure capacity +15%.', visibleWhen: (state) => state.serverRackCount >= 1 && (state.ruleBasedBotCount + state.mlTradingBotCount + state.aiTradingBotCount > 0) },
-  { id: 'dataCenterFabric', name: 'Data Centre Fabric', category: 'operations', group: 'infrastructure', cost: 2_200_000, description: 'Data Centre capacity +25%.', visibleWhen: (state) => state.dataCenterCount >= 1 },
-  { id: 'cloudBurstContracts', name: 'Cloud Burst Contracts', category: 'operations', group: 'infrastructure', cost: 10_000_000, description: 'Cloud Infrastructure capacity +25%.', visibleWhen: (state) => state.cloudComputeCount >= 1 },
-
-  { id: 'policyAnalysisDesk', name: 'Policy Analysis Desk', category: 'operations', group: 'complianceLobbying', cost: 90_000, description: 'Influence generation +25%.', visibleWhen: (state) => state.juniorPoliticianCount > 0 },
-  { id: 'regulatoryCounsel', name: 'Regulatory Counsel', category: 'operations', group: 'complianceLobbying', cost: 180_000, description: 'Compliance burden contribution -8%.', visibleWhen: (state) => state.complianceVisible },
-  { id: 'donorNetwork', name: 'Donor Network', category: 'operations', group: 'complianceLobbying', cost: 250_000, description: 'Influence generation +20%.', visibleWhen: (state) => state.juniorPoliticianCount > 0 && Object.values(state.purchasedPolicies).some(Boolean) },
-  { id: 'complianceSoftwareSuite', name: 'Compliance Software Suite', category: 'operations', group: 'complianceLobbying', cost: 750_000, description: 'Staff and Institutional Compliance costs -10%.', visibleWhen: (state) => state.complianceVisible && (state.propDeskCount + state.institutionalDeskCount + state.hedgeFundCount + state.investmentFirmCount > 0) },
-  { id: 'governmentRelationsOffice', name: 'Government Relations Office', category: 'operations', group: 'complianceLobbying', cost: 2_500_000, description: 'All Influence gain +15%.', visibleWhen: (state) => state.juniorPoliticianCount > 0 && Object.values(state.purchasedPolicies).filter(Boolean).length >= 3 },
-  { id: 'filingAutomation', name: 'Filing Automation', category: 'operations', group: 'complianceLobbying', cost: 4_000_000, description: 'Automation and Institutional Compliance costs -10%.', visibleWhen: (state) => state.complianceVisible && (state.ruleBasedBotCount + state.mlTradingBotCount + state.aiTradingBotCount > 0) },
-]
+const UPGRADE_MAP = Object.fromEntries(UPGRADES.map((upgrade) => [upgrade.id, upgrade])) as Record<UpgradeId, UpgradeDefinition>
 
 export function getUpgradeDefinition(upgradeId: UpgradeDefinition['id']): UpgradeDefinition | undefined {
-  return UPGRADES.find((upgrade) => upgrade.id === upgradeId)
+  return UPGRADE_MAP[upgradeId]
 }

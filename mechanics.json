@@ -32,7 +32,12 @@
         "milestones"
       ]
     },
-    "buyModes": [1, 5, 10, "max"],
+    "buyModes": [
+      1,
+      5,
+      10,
+      "max"
+    ],
     "offline": {
       "capSeconds": 28800,
       "simulatedSystems": [
@@ -58,7 +63,12 @@
       "revealBurdenThreshold": 5,
       "efficiencyFloor": 0.75,
       "efficiencyLossPerBurden": 0.005,
-      "autoPayOrder": ["staff", "energy", "automation", "institutional"]
+      "autoPayOrder": [
+        "staff",
+        "energy",
+        "automation",
+        "institutional"
+      ]
     }
   },
   "startingState": {
@@ -92,6 +102,22 @@
       "dataCenter": 0,
       "cloudCompute": 0
     },
+    "lifetime": {
+      "lifetimeManualTrades": 0,
+      "lifetimeResearchPointsEarned": 0,
+      "lifetimeCashEarned": 0,
+      "totalComplianceReviewsTriggered": 0,
+      "totalCompliancePaymentsMade": 0,
+      "totalTimedBoostActivations": 0,
+      "reputationSpent": 0,
+      "prestigeCount": 0,
+      "totalOfflineSecondsApplied": 0
+    },
+    "flags": {
+      "discoveredLobbying": false,
+      "complianceVisible": false,
+      "complianceTabOpened": false
+    },
     "baseDeskSlots": 10,
     "unlockedSectors": {
       "finance": true,
@@ -104,11 +130,36 @@
       "activeMarketEventRemainingSeconds": 0
     },
     "timedBoosts": {
-      "aggressiveTradingWindow": { "isActive": false, "remainingActiveSeconds": 0, "remainingCooldownSeconds": 0, "autoEnabled": false },
-      "deployReserveCapital": { "isActive": false, "remainingActiveSeconds": 0, "remainingCooldownSeconds": 0, "autoEnabled": false },
-      "overclockServers": { "isActive": false, "remainingActiveSeconds": 0, "remainingCooldownSeconds": 0, "autoEnabled": false },
-      "researchSprint": { "isActive": false, "remainingActiveSeconds": 0, "remainingCooldownSeconds": 0, "autoEnabled": false },
-      "complianceFreeze": { "isActive": false, "remainingActiveSeconds": 0, "remainingCooldownSeconds": 0, "autoEnabled": false }
+      "aggressiveTradingWindow": {
+        "isActive": false,
+        "remainingActiveSeconds": 0,
+        "remainingCooldownSeconds": 0,
+        "autoEnabled": false
+      },
+      "deployReserveCapital": {
+        "isActive": false,
+        "remainingActiveSeconds": 0,
+        "remainingCooldownSeconds": 0,
+        "autoEnabled": false
+      },
+      "overclockServers": {
+        "isActive": false,
+        "remainingActiveSeconds": 0,
+        "remainingCooldownSeconds": 0,
+        "autoEnabled": false
+      },
+      "researchSprint": {
+        "isActive": false,
+        "remainingActiveSeconds": 0,
+        "remainingCooldownSeconds": 0,
+        "autoEnabled": false
+      },
+      "complianceFreeze": {
+        "isActive": false,
+        "remainingActiveSeconds": 0,
+        "remainingCooldownSeconds": 0,
+        "autoEnabled": false
+      }
     },
     "globalBoostsOwned": {
       "globalProfitBoost": false,
@@ -117,16 +168,146 @@
       "globalReputationBoost": false
     },
     "automationConfig": {
-      "quantTrader": { "strategy": null, "marketTarget": null },
-      "ruleBasedBot": { "strategy": null, "marketTarget": null },
-      "mlTradingBot": { "strategy": null, "marketTarget": null },
-      "aiTradingBot": { "strategy": null, "marketTarget": null }
+      "quantTrader": {
+        "strategy": null,
+        "marketTarget": null
+      },
+      "ruleBasedBot": {
+        "strategy": null,
+        "marketTarget": null
+      },
+      "mlTradingBot": {
+        "strategy": null,
+        "marketTarget": null
+      },
+      "aiTradingBot": {
+        "strategy": null,
+        "marketTarget": null
+      }
     },
     "automationCycleState": {
-      "quantTrader": { "progressSeconds": 0, "lastPayout": 0, "lastCompletedAt": null },
-      "ruleBasedBot": { "progressSeconds": 0, "lastPayout": 0, "lastCompletedAt": null },
-      "mlTradingBot": { "progressSeconds": 0, "lastPayout": 0, "lastCompletedAt": null },
-      "aiTradingBot": { "progressSeconds": 0, "lastPayout": 0, "lastCompletedAt": null }
+      "quantTrader": {
+        "progressSeconds": 0,
+        "lastPayout": 0,
+        "lastCompletedAt": null
+      },
+      "ruleBasedBot": {
+        "progressSeconds": 0,
+        "lastPayout": 0,
+        "lastCompletedAt": null
+      },
+      "mlTradingBot": {
+        "progressSeconds": 0,
+        "lastPayout": 0,
+        "lastCompletedAt": null
+      },
+      "aiTradingBot": {
+        "progressSeconds": 0,
+        "lastPayout": 0,
+        "lastCompletedAt": null
+      }
+    },
+    "compliancePayments": {
+      "staff": {
+        "overdueAmount": 0,
+        "paidThisCycle": 0,
+        "lastPayment": 0
+      },
+      "energy": {
+        "overdueAmount": 0,
+        "paidThisCycle": 0,
+        "lastPayment": 0
+      },
+      "automation": {
+        "overdueAmount": 0,
+        "paidThisCycle": 0,
+        "lastPayment": 0
+      },
+      "institutional": {
+        "overdueAmount": 0,
+        "paidThisCycle": 0,
+        "lastPayment": 0
+      }
+    },
+    "lastCompliancePayment": 0,
+    "activeMarketEvent": null,
+    "marketEventHistory": [],
+    "sectorAssignments": {
+      "intern": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "juniorTrader": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "seniorTrader": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "propDesk": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "institutionalDesk": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "hedgeFund": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "investmentFirm": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      }
+    },
+    "traderSpecialists": {
+      "seniorTrader": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      }
+    },
+    "institutionMandates": {
+      "propDesk": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "institutionalDesk": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "hedgeFund": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      },
+      "investmentFirm": {
+        "finance": 0,
+        "technology": 0,
+        "energy": 0
+      }
+    },
+    "purchased": {
+      "upgrades": {},
+      "researchTech": {},
+      "policies": {},
+      "prestigeUpgrades": {},
+      "repeatableUpgradeRanks": {},
+      "unlockedMilestones": {}
+    },
+    "timestamps": {
+      "lastSaveTimestamp": "runtime_now"
     },
     "settings": {
       "autosaveEnabled": true,
@@ -137,12 +318,90 @@
         "institutional": false
       },
       "shortNumberThreshold": 1000000
+    },
+    "ui": {
+      "activeDeskView": "trading",
+      "capacityBuyModes": {
+        "deskSpace": 1,
+        "floorSpace": 1,
+        "office": 1
+      },
+      "powerBuyModes": {
+        "serverRack": 1,
+        "serverRoom": 1,
+        "dataCenter": 1,
+        "cloudCompute": 1
+      },
+      "repeatableUpgradeBuyModes": {
+        "manualExecutionRefinement": 1,
+        "humanDeskTuning": 1,
+        "institutionalProcessRefinement": 1,
+        "sectorAllocationEfficiency": 1,
+        "researchThroughput": 1,
+        "trainingMethodology": 1,
+        "analyticalModeling": 1,
+        "executionStackTuning": 1,
+        "modelEfficiency": 1,
+        "computeOptimization": 1,
+        "signalQualityControl": 1,
+        "complianceSystems": 1,
+        "filingEfficiency": 1,
+        "policyReach": 1,
+        "institutionalAccess": 1
+      },
+      "researchBranchExpanded": {
+        "humanCapital": false,
+        "markets": false,
+        "infrastructure": false,
+        "automation": false,
+        "boosts": false,
+        "regulation": false
+      },
+      "prestigePurchasePlan": {
+        "globalRecognition": 0,
+        "seedCapital": 0,
+        "betterHiringPipeline": 0,
+        "institutionalKnowledge": 0,
+        "gridOrchestration": 0,
+        "complianceFrameworks": 0,
+        "policyCapital": 0,
+        "marketReputation": 0,
+        "deskEfficiency": 0,
+        "strategicReserves": 0
+      },
+      "dismissedSectorUnlocks": {
+        "finance": true,
+        "technology": false,
+        "energy": false
+      },
+      "dismissedCapacityFull": false,
+      "unitBuyModes": {
+        "intern": 1,
+        "juniorTrader": 1,
+        "seniorTrader": 1,
+        "quantTrader": 1,
+        "propDesk": 1,
+        "institutionalDesk": 1,
+        "hedgeFund": 1,
+        "investmentFirm": 1,
+        "ruleBasedBot": 1,
+        "mlTradingBot": 1,
+        "aiTradingBot": 1,
+        "internResearchScientist": 1,
+        "juniorResearchScientist": 1,
+        "seniorResearchScientist": 1,
+        "juniorPolitician": 1
+      }
     }
   },
   "constants": {
     "baseClickIncome": 1,
     "baseUtilityPowerCapacity": 12,
     "prestigeUnlockLifetimeCash": 4000000,
+    "mlTradingBotRuleBasedRequirement": 5,
+    "aiTradingBotMlRequirement": 3,
+    "directReputationBonusPerPoint": 0.05,
+    "brandRecognitionBonusPerRank": 0.1,
     "seedCapitalPerRank": 250,
     "betterHiringPipelineDiscountPerRank": 0.05,
     "betterHiringPipelineDiscountFloor": 0.2,
@@ -190,10 +449,26 @@
     },
     "prestigeBanding": {
       "bands": [
-        { "minRank": 0, "maxRank": 2, "cost": 1 },
-        { "minRank": 3, "maxRank": 5, "cost": 2 },
-        { "minRank": 6, "maxRank": 7, "cost": 3 },
-        { "minRank": 8, "maxRank": 99, "cost": 4 }
+        {
+          "minRank": 0,
+          "maxRank": 2,
+          "cost": 1
+        },
+        {
+          "minRank": 3,
+          "maxRank": 5,
+          "cost": 2
+        },
+        {
+          "minRank": 6,
+          "maxRank": 7,
+          "cost": 3
+        },
+        {
+          "minRank": 8,
+          "maxRank": 99,
+          "cost": 4
+        }
       ]
     },
     "nonScalingFixedCost": {
@@ -220,6 +495,8 @@
   "multipliers": {
     "timedBoosts": {
       "aggressiveTradingWindow": {
+        "name": "Aggressive Trading Window",
+        "description": "Temporarily increases human and sector output.",
         "humanOutput": 1.3,
         "institutionOutput": 1.2,
         "durationSeconds": 300,
@@ -227,24 +504,32 @@
         "unlockResearchTechId": "aggressiveTradingWindowProtocols"
       },
       "deployReserveCapital": {
+        "name": "Deploy Reserve Capital",
+        "description": "Temporarily increases all profits.",
         "profit": 1.25,
         "durationSeconds": 300,
         "cooldownSeconds": 1800,
         "unlockResearchTechId": "deployReserveCapitalProtocols"
       },
       "overclockServers": {
+        "name": "Overclock Servers",
+        "description": "Temporarily boosts automation execution.",
         "automationOutput": 1.3,
         "durationSeconds": 300,
         "cooldownSeconds": 3600,
         "unlockResearchTechId": "overclockServersProtocols"
       },
       "researchSprint": {
+        "name": "Research Sprint",
+        "description": "Temporarily increases Research Point generation.",
         "researchOutput": 1.5,
         "durationSeconds": 300,
         "cooldownSeconds": 1800,
         "unlockResearchTechId": "researchSprintProtocols"
       },
       "complianceFreeze": {
+        "name": "Compliance Freeze",
+        "description": "Temporarily softens compliance pressure.",
         "complianceRelief": 1.1,
         "durationSeconds": 300,
         "cooldownSeconds": 3600,
@@ -252,20 +537,77 @@
       }
     },
     "globalBoosts": {
-      "globalProfitBoost": 1.05,
-      "globalEnergySupplyBoost": 1.05,
-      "globalInfluenceBoost": 1.05,
-      "globalReputationBoost": 1.05
+      "globalProfitBoost": {
+        "name": "Global Profit Boost",
+        "description": "Increase overall profits by 5%.",
+        "multiplier": 1.05
+      },
+      "globalEnergySupplyBoost": {
+        "name": "Global Energy Supply Boost",
+        "description": "Increase global energy supply by 5%.",
+        "multiplier": 1.05
+      },
+      "globalInfluenceBoost": {
+        "name": "Global Influence Boost",
+        "description": "Increase global influence gain by 5%.",
+        "multiplier": 1.05
+      },
+      "globalReputationBoost": {
+        "name": "Global Reputation Boost",
+        "description": "Increase global reputation gain by 5%.",
+        "multiplier": 1.05
+      }
     },
     "marketEvents": {
-      "techRally": { "durationSeconds": 90, "sector": "technology", "sectorOutputMultiplier": 1.2 },
-      "energyBoom": { "durationSeconds": 90, "sector": "energy", "sectorOutputMultiplier": 1.2 },
-      "financialTightening": { "durationSeconds": 90, "sector": "finance", "sectorOutputMultiplier": 0.85 },
-      "volatilitySpike": { "durationSeconds": 75, "automationOutputMultiplier": 1.1 },
-      "liquidityCrunch": { "durationSeconds": 75, "globalOutputMultiplier": 0.92 },
-      "gridStressWarning": { "durationSeconds": 60, "machineEfficiencyMultiplier": 0.9 }
+      "techRally": {
+        "name": "Tech Rally",
+        "category": "sector",
+        "description": "Growth optimism pushes technology names higher.",
+        "durationSeconds": 90,
+        "affectedSector": "technology",
+        "sectorOutputMultiplier": 1.2
+      },
+      "energyBoom": {
+        "name": "Energy Boom",
+        "category": "sector",
+        "description": "Energy markets are catching a strong bid.",
+        "durationSeconds": 90,
+        "affectedSector": "energy",
+        "sectorOutputMultiplier": 1.2
+      },
+      "financialTightening": {
+        "name": "Financial Tightening",
+        "category": "sector",
+        "description": "Risk appetite fades across finance-heavy names.",
+        "durationSeconds": 90,
+        "affectedSector": "finance",
+        "sectorOutputMultiplier": 0.85
+      },
+      "volatilitySpike": {
+        "name": "Volatility Spike",
+        "category": "systemic",
+        "description": "Fast-moving markets reward machine execution.",
+        "durationSeconds": 75,
+        "automationOutputMultiplier": 1.1
+      },
+      "liquidityCrunch": {
+        "name": "Liquidity Crunch",
+        "category": "systemic",
+        "description": "Capital is harder to move and broad output softens.",
+        "durationSeconds": 75,
+        "globalOutputMultiplier": 0.92
+      },
+      "gridStressWarning": {
+        "name": "Grid Stress Warning",
+        "category": "systemic",
+        "description": "Machine infrastructure is running under extra strain.",
+        "durationSeconds": 60,
+        "machineEfficiencyMultiplier": 0.9
+      }
     },
     "upgrades": {
+      "betterTerminalBaseClickIncome": 2,
+      "tradeShortcutsManualFlat": 1,
       "premiumDataFeedManual": 1.25,
       "premiumDataFeedHuman": 1.1,
       "deskAnalyticsHuman": 1.12,
@@ -386,14 +728,32 @@
       "powerUsageFactor": 0.3
     },
     "overduePenalty": {
-      "human": { "floor": 0.82, "ratePerCurrency": 0.0008 },
-      "energy": { "floor": 0.82, "ratePerCurrency": 0.0008 },
-      "automation": { "floor": 0.78, "ratePerCurrency": 0.001 },
-      "institutional": { "floor": 0.78, "ratePerCurrency": 0.001 }
+      "human": {
+        "floor": 0.82,
+        "ratePerCurrency": 0.0008
+      },
+      "energy": {
+        "floor": 0.82,
+        "ratePerCurrency": 0.0008
+      },
+      "automation": {
+        "floor": 0.78,
+        "ratePerCurrency": 0.001
+      },
+      "institutional": {
+        "floor": 0.78,
+        "ratePerCurrency": 0.001
+      }
     },
     "formulasUseCurrentRuntimeBehavior": {
       "institutionalAccessAffectsCost": true,
       "institutionalAccessOverduePenaltySofteningEffective": false
+    },
+    "costReliefCaps": {
+      "staff": 0.5,
+      "energy": 0.5,
+      "automation": 0.5,
+      "institutional": 0.5
     }
   },
   "sectors": {
@@ -401,18 +761,21 @@
       "id": "finance",
       "name": "Finance",
       "baseProfitMultiplier": 1,
+      "description": "Stable baseline market activity for desk-aligned capital.",
       "unlockResearchTechId": null
     },
     "technology": {
       "id": "technology",
       "name": "Technology",
       "baseProfitMultiplier": 1.2,
+      "description": "Higher-growth deployment lane with the strongest immediate profit premium.",
       "unlockResearchTechId": "technologyMarkets"
     },
     "energy": {
       "id": "energy",
       "name": "Energy",
       "baseProfitMultiplier": 1.08,
+      "description": "Steady infrastructure-adjacent market with moderate upside and future power synergy.",
       "unlockResearchTechId": "energyMarkets"
     }
   },
@@ -420,6 +783,7 @@
     "intern": {
       "name": "Intern",
       "kind": "human",
+      "description": "Cheap first hires who only bring in a little cash while the desk gets off the ground.",
       "baseCost": 15,
       "costScaling": 1.15,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -434,6 +798,7 @@
     "juniorTrader": {
       "name": "Junior Trader",
       "kind": "human",
+      "description": "The first real trading staff tier, stronger than interns and built to carry the early desk.",
       "baseCost": 120,
       "costScaling": 1.17,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -448,6 +813,7 @@
     "seniorTrader": {
       "name": "Senior Trader",
       "kind": "human",
+      "description": "Higher-tier staff with stronger long-term output.",
       "baseCost": 3500,
       "costScaling": 1.19,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -462,6 +828,7 @@
     "quantTrader": {
       "name": "Quant Trader",
       "kind": "automation",
+      "description": "The first systematic execution lane, bridging senior human traders into machine-led trading systems.",
       "baseCost": 2500,
       "costScaling": 1.22,
       "costModel": "unitExponential",
@@ -479,6 +846,7 @@
     "propDesk": {
       "name": "Prop Desk",
       "kind": "institution",
+      "description": "A coordinated in-house team that marks the jump from individual traders to a real desk.",
       "baseCost": 18000,
       "costScaling": 1.2,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -493,6 +861,7 @@
     "institutionalDesk": {
       "name": "Institutional Desk",
       "kind": "institution",
+      "description": "A larger trading organization built for heavier flow and more serious market presence.",
       "baseCost": 150000,
       "costScaling": 1.21,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -500,7 +869,9 @@
       "deskSlotsUsed": 0,
       "livePowerUse": 0,
       "unlockResearchTechId": "institutionalDesks",
-      "additionalPurchaseRequirement": { "serverRoomCountAtLeast": 1 },
+      "additionalPurchaseRequirement": {
+        "serverRoomCountAtLeast": 1
+      },
       "sectorAssignable": true,
       "specialistEligible": false,
       "mandateEligible": true
@@ -508,6 +879,7 @@
     "hedgeFund": {
       "name": "Hedge Fund",
       "kind": "institution",
+      "description": "A major institutional capital player with large returns and serious scale.",
       "baseCost": 1100000,
       "costScaling": 1.22,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -515,7 +887,9 @@
       "deskSlotsUsed": 0,
       "livePowerUse": 0,
       "unlockResearchTechId": "hedgeFundStrategies",
-      "additionalPurchaseRequirement": { "dataCenterCountAtLeast": 1 },
+      "additionalPurchaseRequirement": {
+        "dataCenterCountAtLeast": 1
+      },
       "sectorAssignable": true,
       "specialistEligible": false,
       "mandateEligible": true
@@ -523,6 +897,7 @@
     "investmentFirm": {
       "name": "Investment Firm",
       "kind": "institution",
+      "description": "A broad top-tier organization that dominates the late human trading ladder.",
       "baseCost": 8500000,
       "costScaling": 1.23,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -530,7 +905,9 @@
       "deskSlotsUsed": 0,
       "livePowerUse": 0,
       "unlockResearchTechId": "investmentFirms",
-      "additionalPurchaseRequirement": { "cloudComputeCountAtLeast": 1 },
+      "additionalPurchaseRequirement": {
+        "cloudComputeCountAtLeast": 1
+      },
       "sectorAssignable": true,
       "specialistEligible": false,
       "mandateEligible": true
@@ -538,6 +915,7 @@
     "ruleBasedBot": {
       "name": "Rule-Based Bot",
       "kind": "automation",
+      "description": "Reliable machine execution that runs simple systematic strategies in visible trading cycles.",
       "baseCost": 12000,
       "costScaling": 1.24,
       "costModel": "unitExponential",
@@ -555,6 +933,7 @@
     "mlTradingBot": {
       "name": "ML Bot",
       "kind": "automation",
+      "description": "A heavier model-driven machine tier with longer cycles and larger chunk payouts.",
       "baseCost": 80000,
       "costScaling": 1.26,
       "costModel": "unitExponential",
@@ -564,7 +943,9 @@
       "deskSlotsUsed": 0,
       "livePowerUse": 8,
       "unlockResearchTechId": "machineLearningTrading",
-      "additionalPurchaseRequirement": { "dataCenterCountAtLeast": 1 },
+      "additionalPurchaseRequirement": {
+        "dataCenterCountAtLeast": 1
+      },
       "checksLivePower": true,
       "sectorAssignable": false,
       "specialistEligible": false,
@@ -573,6 +954,7 @@
     "aiTradingBot": {
       "name": "AI Bot",
       "kind": "automation",
+      "description": "Late autonomous systems with the longest cycles, biggest payouts, and the heaviest compute demands.",
       "baseCost": 400000,
       "costScaling": 1.28,
       "costModel": "unitExponential",
@@ -582,7 +964,9 @@
       "deskSlotsUsed": 0,
       "livePowerUse": 30,
       "unlockResearchTechId": "aiTradingSystems",
-      "additionalPurchaseRequirement": { "cloudComputeCountAtLeast": 1 },
+      "additionalPurchaseRequirement": {
+        "cloudComputeCountAtLeast": 1
+      },
       "checksLivePower": true,
       "sectorAssignable": false,
       "specialistEligible": false,
@@ -591,6 +975,7 @@
     "internResearchScientist": {
       "name": "Intern Scientist",
       "kind": "research",
+      "description": "Entry research assistants who generate a small stream of Research Points.",
       "baseCost": 600,
       "costScaling": 1.19,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -605,6 +990,7 @@
     "juniorResearchScientist": {
       "name": "Junior Scientist",
       "kind": "research",
+      "description": "Core research staff that generates steady Research Points once the science team is formalized.",
       "baseCost": 2400,
       "costScaling": 1.21,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -619,6 +1005,7 @@
     "seniorResearchScientist": {
       "name": "Senior Scientist",
       "kind": "research",
+      "description": "Advanced research leadership with stronger RP output.",
       "baseCost": 9500,
       "costScaling": 1.22,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -633,6 +1020,7 @@
     "juniorPolitician": {
       "name": "Senator",
       "kind": "influence",
+      "description": "Institutional operators who build slow influence for policy work.",
       "baseCost": 14000,
       "costScaling": 1.23,
       "costModel": "unitExponentialWithHumanDiscount",
@@ -649,6 +1037,7 @@
     "baseDeskSlots": 10,
     "deskSpace": {
       "name": "Desk Space",
+      "description": "Adds 1 Desk Slot for one additional staff seat and its energy footprint.",
       "baseCost": 180,
       "costScaling": 1.08,
       "costModel": "capacityExponential",
@@ -658,6 +1047,7 @@
     },
     "floorSpace": {
       "name": "Floor Space",
+      "description": "Adds 25 Desk Slots through a larger floor allocation and its support load.",
       "baseCost": 8500,
       "costScaling": 1.24,
       "costModel": "capacityExponential",
@@ -667,6 +1057,7 @@
     },
     "office": {
       "name": "Office",
+      "description": "Adds 100 Desk Slots through a major office acquisition and the required energy load.",
       "baseCost": 42000,
       "costScaling": 1.38,
       "costModel": "capacityExponential",
@@ -678,6 +1069,7 @@
   "powerInfrastructure": {
     "serverRack": {
       "name": "Server Rack",
+      "description": "The first tiny infrastructure step for early automation experiments and a handful of machines.",
       "baseCost": 1800,
       "costScaling": 1.14,
       "costModel": "powerExponentialWithPolicyDiscount",
@@ -686,6 +1078,7 @@
     },
     "serverRoom": {
       "name": "Server Room",
+      "description": "A proper in-house machine floor that supports sustained Rule-Based and ML system growth.",
       "baseCost": 100000,
       "costScaling": 1.15,
       "costModel": "powerExponentialWithPolicyDiscount",
@@ -694,6 +1087,7 @@
     },
     "dataCenter": {
       "name": "Data Centre",
+      "description": "Heavy machine infrastructure required to sustain ML and AI trading systems at scale.",
       "baseCost": 1000000,
       "costScaling": 1.21,
       "costModel": "powerExponentialWithPolicyDiscount",
@@ -702,6 +1096,7 @@
     },
     "cloudCompute": {
       "name": "Cloud Infrastructure",
+      "description": "Late modern infrastructure that buys huge elastic compute capacity once local expansion gets expensive.",
       "baseCost": 6500000,
       "costScaling": 1.24,
       "costModel": "powerExponentialWithPolicyDiscount",
@@ -714,105 +1109,797 @@
       "name": "Mean Reversion",
       "description": "Steadier reversion logic that performs best in Finance and remains safe elsewhere.",
       "unlockResearchTechId": "meanReversionModels",
-      "targetMultipliers": { "finance": 1.12, "technology": 1.02, "energy": 1.02, "none": 1.02 }
+      "targetMultipliers": {
+        "finance": 1.12,
+        "technology": 1.02,
+        "energy": 1.02,
+        "none": 1.02
+      }
     },
     "momentum": {
       "name": "Momentum",
       "description": "Trend-following logic that leans into higher-growth markets, especially Technology.",
       "unlockResearchTechId": "momentumModels",
-      "targetMultipliers": { "finance": 0.98, "technology": 1.16, "energy": 1.05, "none": 0.98 }
+      "targetMultipliers": {
+        "finance": 0.98,
+        "technology": 1.16,
+        "energy": 1.05,
+        "none": 0.98
+      }
     },
     "arbitrage": {
       "name": "Arbitrage",
       "description": "Cross-market spread capture with balanced performance and mild upside in Finance.",
       "unlockResearchTechId": "arbitrageEngine",
-      "targetMultipliers": { "finance": 1.08, "technology": 1.03, "energy": 1.03, "none": 1.03 }
+      "targetMultipliers": {
+        "finance": 1.08,
+        "technology": 1.03,
+        "energy": 1.03,
+        "none": 1.03
+      }
     },
     "marketMaking": {
       "name": "Market Making",
       "description": "Liquidity-focused execution with stable baseline output and modest Finance synergy.",
       "unlockResearchTechId": "marketMakingEngine",
-      "targetMultipliers": { "finance": 1.1, "technology": 1.01, "energy": 1.01, "none": 1.01 }
+      "targetMultipliers": {
+        "finance": 1.1,
+        "technology": 1.01,
+        "energy": 1.01,
+        "none": 1.01
+      }
     },
     "scalping": {
       "name": "Scalping",
       "description": "Fast opportunistic execution that gains more from shorter-cycle market environments.",
       "unlockResearchTechId": "scalpingFramework",
-      "targetMultipliers": { "finance": 1.04, "technology": 1.1, "energy": 1.06, "none": 1.06 }
+      "targetMultipliers": {
+        "finance": 1.04,
+        "technology": 1.1,
+        "energy": 1.06,
+        "none": 1.06
+      }
     }
   },
   "upgrades": {
-    "betterTerminal": { "name": "Better Terminal", "group": "tradingDesk", "category": "trading", "cost": 20, "visibleWhen": null },
-    "tradeShortcuts": { "name": "Trade Shortcuts", "group": "tradingDesk", "category": "trading", "cost": 60, "visibleWhen": { "internCountAtLeast": 1 } },
-    "premiumDataFeed": { "name": "Premium Data Feed", "group": "tradingDesk", "category": "trading", "cost": 350, "visibleWhen": { "juniorTraderCountAtLeast": 1 } },
-    "deskAnalytics": { "name": "Desk Analytics", "group": "tradingDesk", "category": "operations", "cost": 900, "visibleWhen": { "juniorTraderCountAtLeast": 1 } },
-    "crossDeskCoordination": { "name": "Cross-Desk Coordination", "group": "tradingDesk", "category": "operations", "cost": 18000, "visibleWhen": { "seniorTraderCountAtLeast": 1 } },
-    "structuredOnboarding": { "name": "Structured Onboarding", "group": "tradingDesk", "category": "operations", "cost": 6000, "visibleWhen": { "internCountAtLeast": 5, "juniorTraderCountAtLeast": 2 } },
-    "labAutomation": { "name": "Lab Automation", "group": "research", "category": "operations", "cost": 12000, "visibleWhen": { "juniorResearchScientistCountAtLeast": 1 } },
-    "researchGrants": { "name": "Research Grants", "group": "research", "category": "operations", "cost": 40000, "visibleWhen": { "seniorResearchScientistCountAtLeast": 1 } },
-    "sharedResearchLibrary": { "name": "Shared Research Library", "group": "research", "category": "operations", "cost": 110000, "visibleWhen": { "juniorResearchScientistCountAtLeast": 2, "seniorResearchScientistCountAtLeast": 1 } },
-    "backtestingSuite": { "name": "Backtesting Suite", "group": "research", "category": "operations", "cost": 250000, "visibleWhen": { "scientistCountAtLeast": 1, "researchTechPurchased": ["juniorScientists"] } },
-    "institutionalResearchNetwork": { "name": "Institutional Research Network", "group": "research", "category": "operations", "cost": 900000, "visibleWhen": { "scientistCountAtLeast": 4 } },
-    "crossDisciplinaryModels": { "name": "Cross-Disciplinary Models", "group": "research", "category": "operations", "cost": 2000000, "visibleWhen": { "scientistCountAtLeast": 6 } },
-    "propDeskOperatingModel": { "name": "Prop Desk Operating Model", "group": "institutions", "category": "operations", "cost": 140000, "visibleWhen": { "propDeskCountAtLeast": 1 } },
-    "institutionalClientBook": { "name": "Institutional Client Book", "group": "institutions", "category": "operations", "cost": 650000, "visibleWhen": { "institutionalDeskCountAtLeast": 1 } },
-    "fundStrategyCommittee": { "name": "Fund Strategy Committee", "group": "institutions", "category": "operations", "cost": 3500000, "visibleWhen": { "hedgeFundCountAtLeast": 1 } },
-    "globalDistributionNetwork": { "name": "Global Distribution Network", "group": "institutions", "category": "operations", "cost": 18000000, "visibleWhen": { "investmentFirmCountAtLeast": 1 } },
-    "institutionalOperatingStandards": { "name": "Institutional Operating Standards", "group": "institutions", "category": "operations", "cost": 8000000, "visibleWhen": { "propDeskCountAtLeast": 1, "institutionalDeskCountAtLeast": 1 } },
-    "mandateAlignmentFramework": { "name": "Mandate Alignment Framework", "group": "institutions", "category": "operations", "cost": 12000000, "visibleWhen": { "totalMandatesAtLeast": 2 }, "quirk": "no runtime effect currently wired" },
-    "systematicExecution": { "name": "Systematic Execution", "group": "automation", "category": "operations", "cost": 100000, "visibleWhen": { "automationCountAtLeast": 1, "automationKindsAny": ["quantTrader", "ruleBasedBot"] } },
-    "botTelemetry": { "name": "Bot Telemetry", "group": "automation", "category": "operations", "cost": 130000, "visibleWhen": { "ruleBasedBotCountAtLeast": 1 } },
-    "executionRoutingStack": { "name": "Execution Routing Stack", "group": "automation", "category": "operations", "cost": 220000, "visibleWhen": { "ruleBasedBotCountAtLeast": 2 } },
-    "modelServingCluster": { "name": "Model Serving Cluster", "group": "automation", "category": "operations", "cost": 700000, "visibleWhen": { "mlTradingBotCountAtLeast": 1 } },
-    "inferenceBatching": { "name": "Inference Batching", "group": "automation", "category": "operations", "cost": 1200000, "visibleWhen": { "mlTradingBotCountAtLeast": 2 } },
-    "aiRiskStack": { "name": "AI Risk Stack", "group": "automation", "category": "operations", "cost": 4500000, "visibleWhen": { "aiTradingBotCountAtLeast": 1 } },
-    "rackStacking": { "name": "Rack Stacking", "group": "infrastructure", "category": "operations", "cost": 8000, "visibleWhen": { "serverRackCountAtLeast": 1 } },
-    "coolingSystems": { "name": "Cooling Systems", "group": "infrastructure", "category": "operations", "cost": 250000, "visibleWhen": { "automationPowerUsersAtLeast": 1, "anyPowerInfrastructureAtLeast": 1 } },
-    "roomScaleout": { "name": "Room Scaleout", "group": "infrastructure", "category": "operations", "cost": 120000, "visibleWhen": { "serverRoomCountAtLeast": 1 } },
-    "powerDistribution": { "name": "Power Distribution", "group": "infrastructure", "category": "operations", "cost": 600000, "visibleWhen": { "serverRackCountAtLeast": 1, "automationPowerUsersAtLeast": 1 } },
-    "dataCenterFabric": { "name": "Data Centre Fabric", "group": "infrastructure", "category": "operations", "cost": 2200000, "visibleWhen": { "dataCenterCountAtLeast": 1 } },
-    "cloudBurstContracts": { "name": "Cloud Burst Contracts", "group": "infrastructure", "category": "operations", "cost": 10000000, "visibleWhen": { "cloudComputeCountAtLeast": 1 } },
-    "policyAnalysisDesk": { "name": "Policy Analysis Desk", "group": "complianceLobbying", "category": "operations", "cost": 90000, "visibleWhen": { "juniorPoliticianCountAtLeast": 1 } },
-    "regulatoryCounsel": { "name": "Regulatory Counsel", "group": "complianceLobbying", "category": "operations", "cost": 180000, "visibleWhen": { "complianceVisible": true } },
-    "donorNetwork": { "name": "Donor Network", "group": "complianceLobbying", "category": "operations", "cost": 250000, "visibleWhen": { "juniorPoliticianCountAtLeast": 1, "purchasedPoliciesAtLeast": 1 } },
-    "complianceSoftwareSuite": { "name": "Compliance Software Suite", "group": "complianceLobbying", "category": "operations", "cost": 750000, "visibleWhen": { "complianceVisible": true, "institutionCountAtLeast": 1 } },
-    "governmentRelationsOffice": { "name": "Government Relations Office", "group": "complianceLobbying", "category": "operations", "cost": 2500000, "visibleWhen": { "juniorPoliticianCountAtLeast": 1, "purchasedPoliciesAtLeast": 3 } },
-    "filingAutomation": { "name": "Filing Automation", "group": "complianceLobbying", "category": "operations", "cost": 4000000, "visibleWhen": { "complianceVisible": true, "automationPowerUsersAtLeast": 1 } }
+    "betterTerminal": {
+      "name": "Better Terminal",
+      "group": "tradingDesk",
+      "category": "trading",
+      "cost": 20,
+      "description": "Manual trade value increases from $1 to $2 per click.",
+      "visibleWhen": null
+    },
+    "tradeShortcuts": {
+      "name": "Trade Shortcuts",
+      "group": "tradingDesk",
+      "category": "trading",
+      "cost": 60,
+      "description": "Manual trades gain +1 flat cash per click.",
+      "visibleWhen": {
+        "internCountAtLeast": 1
+      }
+    },
+    "premiumDataFeed": {
+      "name": "Premium Data Feed",
+      "group": "tradingDesk",
+      "category": "trading",
+      "cost": 350,
+      "description": "Manual trade income +25%. Intern, Junior Trader, and Senior Trader output +10%.",
+      "visibleWhen": {
+        "juniorTraderCountAtLeast": 1
+      }
+    },
+    "deskAnalytics": {
+      "name": "Desk Analytics",
+      "group": "tradingDesk",
+      "category": "operations",
+      "cost": 900,
+      "description": "Intern, Junior Trader, and Senior Trader output +12%.",
+      "visibleWhen": {
+        "juniorTraderCountAtLeast": 1
+      }
+    },
+    "crossDeskCoordination": {
+      "name": "Cross-Desk Coordination",
+      "group": "tradingDesk",
+      "category": "operations",
+      "cost": 18000,
+      "description": "All human output +15%.",
+      "visibleWhen": {
+        "seniorTraderCountAtLeast": 1
+      }
+    },
+    "structuredOnboarding": {
+      "name": "Structured Onboarding",
+      "group": "tradingDesk",
+      "category": "operations",
+      "cost": 6000,
+      "description": "Intern and Junior Trader output +20%.",
+      "visibleWhen": {
+        "internCountAtLeast": 5,
+        "juniorTraderCountAtLeast": 2
+      }
+    },
+    "labAutomation": {
+      "name": "Lab Automation",
+      "group": "research",
+      "category": "operations",
+      "cost": 12000,
+      "description": "Junior Scientist Research output +20%.",
+      "visibleWhen": {
+        "juniorResearchScientistCountAtLeast": 1
+      }
+    },
+    "researchGrants": {
+      "name": "Research Grants",
+      "group": "research",
+      "category": "operations",
+      "cost": 40000,
+      "description": "Senior Scientist Research output +25%.",
+      "visibleWhen": {
+        "seniorResearchScientistCountAtLeast": 1
+      }
+    },
+    "sharedResearchLibrary": {
+      "name": "Shared Research Library",
+      "group": "research",
+      "category": "operations",
+      "cost": 110000,
+      "description": "All scientist Research output +12%.",
+      "visibleWhen": {
+        "juniorResearchScientistCountAtLeast": 2,
+        "seniorResearchScientistCountAtLeast": 1
+      }
+    },
+    "backtestingSuite": {
+      "name": "Backtesting Suite",
+      "group": "research",
+      "category": "operations",
+      "cost": 250000,
+      "description": "Total Research Point generation +15%.",
+      "visibleWhen": {
+        "scientistCountAtLeast": 1,
+        "researchTechPurchased": [
+          "juniorScientists"
+        ]
+      }
+    },
+    "institutionalResearchNetwork": {
+      "name": "Institutional Research Network",
+      "group": "research",
+      "category": "operations",
+      "cost": 900000,
+      "description": "All scientist Research output +20%.",
+      "visibleWhen": {
+        "scientistCountAtLeast": 4
+      }
+    },
+    "crossDisciplinaryModels": {
+      "name": "Cross-Disciplinary Models",
+      "group": "research",
+      "category": "operations",
+      "cost": 2000000,
+      "description": "Research generation +10% and training systems work 10% more efficiently.",
+      "visibleWhen": {
+        "scientistCountAtLeast": 6
+      }
+    },
+    "propDeskOperatingModel": {
+      "name": "Prop Desk Operating Model",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 140000,
+      "description": "Prop Desk output +20%.",
+      "visibleWhen": {
+        "propDeskCountAtLeast": 1
+      }
+    },
+    "institutionalClientBook": {
+      "name": "Institutional Client Book",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 650000,
+      "description": "Institutional Desk output +20%.",
+      "visibleWhen": {
+        "institutionalDeskCountAtLeast": 1
+      }
+    },
+    "fundStrategyCommittee": {
+      "name": "Fund Strategy Committee",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 3500000,
+      "description": "Hedge Fund output +20%.",
+      "visibleWhen": {
+        "hedgeFundCountAtLeast": 1
+      }
+    },
+    "globalDistributionNetwork": {
+      "name": "Global Distribution Network",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 18000000,
+      "description": "Investment Firm output +20%.",
+      "visibleWhen": {
+        "investmentFirmCountAtLeast": 1
+      }
+    },
+    "institutionalOperatingStandards": {
+      "name": "Institutional Operating Standards",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 8000000,
+      "description": "All institution-tier output +12%.",
+      "visibleWhen": {
+        "propDeskCountAtLeast": 1,
+        "institutionalDeskCountAtLeast": 1
+      }
+    },
+    "mandateAlignmentFramework": {
+      "name": "Mandate Alignment Framework",
+      "group": "institutions",
+      "category": "operations",
+      "cost": 12000000,
+      "description": "Mandated institution units gain +10% additional matching-sector bonus.",
+      "visibleWhen": {
+        "totalMandatesAtLeast": 2
+      },
+      "quirk": "no runtime effect currently wired"
+    },
+    "systematicExecution": {
+      "name": "Systematic Execution",
+      "group": "automation",
+      "category": "operations",
+      "cost": 100000,
+      "description": "Quant Trader and Rule-Based Bot cycle payout +15%.",
+      "visibleWhen": {
+        "automationCountAtLeast": 1,
+        "automationKindsAny": [
+          "quantTrader",
+          "ruleBasedBot"
+        ]
+      }
+    },
+    "botTelemetry": {
+      "name": "Bot Telemetry",
+      "group": "automation",
+      "category": "operations",
+      "cost": 130000,
+      "description": "Rule-Based Bot cycle payout +15%.",
+      "visibleWhen": {
+        "ruleBasedBotCountAtLeast": 1
+      }
+    },
+    "executionRoutingStack": {
+      "name": "Execution Routing Stack",
+      "group": "automation",
+      "category": "operations",
+      "cost": 220000,
+      "description": "Rule-Based Bot cycle duration -10%.",
+      "visibleWhen": {
+        "ruleBasedBotCountAtLeast": 2
+      }
+    },
+    "modelServingCluster": {
+      "name": "Model Serving Cluster",
+      "group": "automation",
+      "category": "operations",
+      "cost": 700000,
+      "description": "ML Bot cycle payout +20%.",
+      "visibleWhen": {
+        "mlTradingBotCountAtLeast": 1
+      }
+    },
+    "inferenceBatching": {
+      "name": "Inference Batching",
+      "group": "automation",
+      "category": "operations",
+      "cost": 1200000,
+      "description": "ML Bot cycle duration -10%.",
+      "visibleWhen": {
+        "mlTradingBotCountAtLeast": 2
+      }
+    },
+    "aiRiskStack": {
+      "name": "AI Risk Stack",
+      "group": "automation",
+      "category": "operations",
+      "cost": 4500000,
+      "description": "AI Bot cycle payout +20%.",
+      "visibleWhen": {
+        "aiTradingBotCountAtLeast": 1
+      }
+    },
+    "rackStacking": {
+      "name": "Rack Stacking",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 8000,
+      "description": "Server Rack capacity +20%.",
+      "visibleWhen": {
+        "serverRackCountAtLeast": 1
+      }
+    },
+    "coolingSystems": {
+      "name": "Cooling Systems",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 250000,
+      "description": "Machine power usage -10%.",
+      "visibleWhen": {
+        "automationPowerUsersAtLeast": 1,
+        "anyPowerInfrastructureAtLeast": 1
+      }
+    },
+    "roomScaleout": {
+      "name": "Room Scaleout",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 120000,
+      "description": "Server Room capacity +20%.",
+      "visibleWhen": {
+        "serverRoomCountAtLeast": 1
+      }
+    },
+    "powerDistribution": {
+      "name": "Power Distribution",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 600000,
+      "description": "Total infrastructure capacity +15%.",
+      "visibleWhen": {
+        "serverRackCountAtLeast": 1,
+        "automationPowerUsersAtLeast": 1
+      }
+    },
+    "dataCenterFabric": {
+      "name": "Data Centre Fabric",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 2200000,
+      "description": "Data Centre capacity +25%.",
+      "visibleWhen": {
+        "dataCenterCountAtLeast": 1
+      }
+    },
+    "cloudBurstContracts": {
+      "name": "Cloud Burst Contracts",
+      "group": "infrastructure",
+      "category": "operations",
+      "cost": 10000000,
+      "description": "Cloud Infrastructure capacity +25%.",
+      "visibleWhen": {
+        "cloudComputeCountAtLeast": 1
+      }
+    },
+    "policyAnalysisDesk": {
+      "name": "Policy Analysis Desk",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 90000,
+      "description": "Influence generation +25%.",
+      "visibleWhen": {
+        "juniorPoliticianCountAtLeast": 1
+      }
+    },
+    "regulatoryCounsel": {
+      "name": "Regulatory Counsel",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 180000,
+      "description": "Compliance burden contribution -8%.",
+      "visibleWhen": {
+        "complianceVisible": true
+      }
+    },
+    "donorNetwork": {
+      "name": "Donor Network",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 250000,
+      "description": "Influence generation +20%.",
+      "visibleWhen": {
+        "juniorPoliticianCountAtLeast": 1,
+        "purchasedPoliciesAtLeast": 1
+      }
+    },
+    "complianceSoftwareSuite": {
+      "name": "Compliance Software Suite",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 750000,
+      "description": "Staff and Institutional Compliance costs -10%.",
+      "visibleWhen": {
+        "complianceVisible": true,
+        "institutionCountAtLeast": 1
+      }
+    },
+    "governmentRelationsOffice": {
+      "name": "Government Relations Office",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 2500000,
+      "description": "All Influence gain +15%.",
+      "visibleWhen": {
+        "juniorPoliticianCountAtLeast": 1,
+        "purchasedPoliciesAtLeast": 3
+      }
+    },
+    "filingAutomation": {
+      "name": "Filing Automation",
+      "group": "complianceLobbying",
+      "category": "operations",
+      "cost": 4000000,
+      "description": "Automation and Institutional Compliance costs -10%.",
+      "visibleWhen": {
+        "complianceVisible": true,
+        "automationPowerUsersAtLeast": 1
+      }
+    }
   },
   "repeatableUpgrades": {
-    "manualExecutionRefinement": { "name": "Manual Execution Refinement", "family": "desk", "currency": "cash", "baseCost": 5000, "costScaling": 1.11, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "prestigeCountAtLeast": 1 } },
-    "humanDeskTuning": { "name": "Human Desk Tuning", "family": "desk", "currency": "cash", "baseCost": 15000, "costScaling": 1.11, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "humanCountAtLeast": 1 } },
-    "institutionalProcessRefinement": { "name": "Institutional Process Refinement", "family": "desk", "currency": "cash", "baseCost": 100000, "costScaling": 1.12, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.0075, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "institutionCountAtLeast": 1 } },
-    "sectorAllocationEfficiency": { "name": "Sector Allocation Efficiency", "family": "desk", "currency": "cash", "baseCost": 50000, "costScaling": 1.11, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "anySectorUnlocked": true } },
-    "researchThroughput": { "name": "Research Throughput", "family": "research", "currency": "researchPoints", "baseCost": 250, "costScaling": 1.1, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.0075, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "scientistCountAtLeast": 1 } },
-    "trainingMethodology": { "name": "Training Methodology", "family": "research", "currency": "researchPoints", "baseCost": 400, "costScaling": 1.1, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "specialistsOrMandatesAtLeast": 1 } },
-    "analyticalModeling": { "name": "Analytical Modeling", "family": "research", "currency": "researchPoints", "baseCost": 500, "costScaling": 1.1, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "automationStrategiesUnlockedAtLeast": 1 }, "quirk": "currently unused by runtime formulas" },
-    "executionStackTuning": { "name": "Execution Stack Tuning", "family": "automation", "currency": "cash", "baseCost": 80000, "costScaling": 1.12, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.0075, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "automationCountAtLeast": 1 } },
-    "modelEfficiency": { "name": "Model Efficiency", "family": "automation", "currency": "researchPoints", "baseCost": 600, "costScaling": 1.11, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.003, "effectModel": "reductionMultiplier", "floor": 0.5, "visibleAfterPrestigeCount": 1, "unlockRequires": { "automationCountAtLeast": 1 } },
-    "computeOptimization": { "name": "Compute Optimization", "family": "automation", "currency": "researchPoints", "baseCost": 800, "costScaling": 1.11, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.004, "effectModel": "reductionMultiplier", "floor": 0.5, "visibleAfterPrestigeCount": 1, "unlockRequires": { "automationPowerUsersAtLeast": 1 } },
-    "signalQualityControl": { "name": "Signal Quality Control", "family": "automation", "currency": "researchPoints", "baseCost": 700, "costScaling": 1.1, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "automationStrategiesUnlockedAtLeast": 1 } },
-    "complianceSystems": { "name": "Compliance Systems", "family": "governance", "currency": "influence", "baseCost": 8, "costScaling": 1.12, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "reductionMultiplier", "floor": 0.5, "visibleAfterPrestigeCount": 1, "unlockRequires": { "complianceVisible": true } },
-    "filingEfficiency": { "name": "Filing Efficiency", "family": "governance", "currency": "influence", "baseCost": 10, "costScaling": 1.12, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.0075, "effectModel": "reductionMultiplier", "floor": 0.25, "visibleAfterPrestigeCount": 1, "unlockRequires": { "complianceVisible": true } },
-    "policyReach": { "name": "Policy Reach", "family": "governance", "currency": "influence", "baseCost": 12, "costScaling": 1.13, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "linearMultiplier", "visibleAfterPrestigeCount": 1, "unlockRequires": { "lobbyingActive": true } },
-    "institutionalAccess": { "name": "Institutional Access", "family": "governance", "currency": "influence", "baseCost": 14, "costScaling": 1.13, "costModel": "repeatableExponential", "maxRank": 100, "effectPerRank": 0.005, "effectModel": "reductionMultiplier", "floor": 0.5, "visibleAfterPrestigeCount": 1, "unlockRequires": { "institutionCountAtLeast": 1 } }
+    "manualExecutionRefinement": {
+      "name": "Manual Execution Refinement",
+      "family": "desk",
+      "currency": "cash",
+      "baseCost": 5000,
+      "costScaling": 1.11,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "prestigeCountAtLeast": 1
+      },
+      "description": "Long-tail manual trade improvement after the first prestige.",
+      "perRankDescription": "Manual trade value +0.5% per rank",
+      "unlockConditionDescription": "Unlocked after Prestige 1"
+    },
+    "humanDeskTuning": {
+      "name": "Human Desk Tuning",
+      "family": "desk",
+      "currency": "cash",
+      "baseCost": 15000,
+      "costScaling": 1.11,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "humanCountAtLeast": 1
+      },
+      "description": "Broad human desk output scaling.",
+      "perRankDescription": "Human output +0.5% per rank",
+      "unlockConditionDescription": "Requires human desk units active"
+    },
+    "institutionalProcessRefinement": {
+      "name": "Institutional Process Refinement",
+      "family": "desk",
+      "currency": "cash",
+      "baseCost": 100000,
+      "costScaling": 1.12,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.0075,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "institutionCountAtLeast": 1
+      },
+      "description": "Broad institution output scaling.",
+      "perRankDescription": "Institution output +0.75% per rank",
+      "unlockConditionDescription": "Requires institution systems active"
+    },
+    "sectorAllocationEfficiency": {
+      "name": "Sector Allocation Efficiency",
+      "family": "desk",
+      "currency": "cash",
+      "baseCost": 50000,
+      "costScaling": 1.11,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "anySectorUnlocked": true
+      },
+      "description": "Rewards sector-based deployment.",
+      "perRankDescription": "Sector-assigned output +0.5% per rank",
+      "unlockConditionDescription": "Requires sectors active"
+    },
+    "researchThroughput": {
+      "name": "Research Throughput",
+      "family": "research",
+      "currency": "researchPoints",
+      "baseCost": 250,
+      "costScaling": 1.1,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.0075,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "scientistCountAtLeast": 1
+      },
+      "description": "Broad RP scaling.",
+      "perRankDescription": "Research Point generation +0.75% per rank",
+      "unlockConditionDescription": "Requires research active"
+    },
+    "trainingMethodology": {
+      "name": "Training Methodology",
+      "family": "research",
+      "currency": "researchPoints",
+      "baseCost": 400,
+      "costScaling": 1.1,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "specialistsOrMandatesAtLeast": 1
+      },
+      "description": "Supports people and institution strategy systems.",
+      "perRankDescription": "Specialist and mandate effectiveness +0.5% per rank",
+      "unlockConditionDescription": "Requires specializations or mandates active"
+    },
+    "analyticalModeling": {
+      "name": "Analytical Modeling",
+      "family": "research",
+      "currency": "researchPoints",
+      "baseCost": 500,
+      "costScaling": 1.1,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "automationStrategiesUnlockedAtLeast": 1
+      },
+      "description": "Improves machine-side strategic fit.",
+      "perRankDescription": "Market target and strategy effectiveness +0.5% per rank",
+      "unlockConditionDescription": "Requires automation strategy systems active",
+      "quirk": "currently unused by runtime formulas"
+    },
+    "executionStackTuning": {
+      "name": "Execution Stack Tuning",
+      "family": "automation",
+      "currency": "cash",
+      "baseCost": 80000,
+      "costScaling": 1.12,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.0075,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "automationCountAtLeast": 1
+      },
+      "description": "Broad machine-side scaling.",
+      "perRankDescription": "Automation cycle payout +0.75% per rank",
+      "unlockConditionDescription": "Requires automation active"
+    },
+    "modelEfficiency": {
+      "name": "Model Efficiency",
+      "family": "automation",
+      "currency": "researchPoints",
+      "baseCost": 600,
+      "costScaling": 1.11,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.003,
+      "effectModel": "reductionMultiplier",
+      "floor": 0.5,
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "automationCountAtLeast": 1
+      },
+      "description": "Smooth cycle-speed improvement.",
+      "perRankDescription": "Automation cycle duration -0.3% per rank",
+      "unlockConditionDescription": "Requires automation active"
+    },
+    "computeOptimization": {
+      "name": "Compute Optimization",
+      "family": "automation",
+      "currency": "researchPoints",
+      "baseCost": 800,
+      "costScaling": 1.11,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.004,
+      "effectModel": "reductionMultiplier",
+      "floor": 0.5,
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "automationPowerUsersAtLeast": 1
+      },
+      "description": "Improves automation sustainability.",
+      "perRankDescription": "Machine power usage -0.4% per rank",
+      "unlockConditionDescription": "Requires machine systems active"
+    },
+    "signalQualityControl": {
+      "name": "Signal Quality Control",
+      "family": "automation",
+      "currency": "researchPoints",
+      "baseCost": 700,
+      "costScaling": 1.1,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "automationStrategiesUnlockedAtLeast": 1
+      },
+      "description": "Refines automation strategy performance.",
+      "perRankDescription": "Strategy effectiveness +0.5% per rank",
+      "unlockConditionDescription": "Requires automation strategies unlocked"
+    },
+    "complianceSystems": {
+      "name": "Compliance Systems",
+      "family": "governance",
+      "currency": "influence",
+      "baseCost": 8,
+      "costScaling": 1.12,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "reductionMultiplier",
+      "floor": 0.5,
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "complianceVisible": true
+      },
+      "description": "Broad compliance pressure relief.",
+      "perRankDescription": "Compliance burden contribution -0.5% per rank",
+      "unlockConditionDescription": "Requires compliance visible"
+    },
+    "filingEfficiency": {
+      "name": "Filing Efficiency",
+      "family": "governance",
+      "currency": "influence",
+      "baseCost": 10,
+      "costScaling": 1.12,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.0075,
+      "effectModel": "reductionMultiplier",
+      "floor": 0.25,
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "complianceVisible": true
+      },
+      "description": "Reduces timed compliance payments.",
+      "perRankDescription": "Compliance review costs -0.75% per rank",
+      "unlockConditionDescription": "Requires compliance visible"
+    },
+    "policyReach": {
+      "name": "Policy Reach",
+      "family": "governance",
+      "currency": "influence",
+      "baseCost": 12,
+      "costScaling": 1.13,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "linearMultiplier",
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "any": [
+          {
+            "discoveredLobbying": true
+          },
+          {
+            "researchTechPurchased": [
+              "regulatoryAffairs"
+            ]
+          },
+          {
+            "juniorPoliticianCountAtLeast": 1
+          }
+        ]
+      },
+      "description": "Improves governance-side progression.",
+      "perRankDescription": "Influence gain +0.5% per rank",
+      "unlockConditionDescription": "Requires lobbying active"
+    },
+    "institutionalAccess": {
+      "name": "Institutional Access",
+      "family": "governance",
+      "currency": "influence",
+      "baseCost": 14,
+      "costScaling": 1.13,
+      "costModel": "repeatableExponential",
+      "maxRank": 100,
+      "effectPerRank": 0.005,
+      "effectModel": "reductionMultiplier",
+      "floor": 0.5,
+      "visibleAfterPrestigeCount": 1,
+      "unlockRequires": {
+        "institutionCountAtLeast": 1
+      },
+      "description": "Supports institution-heavy builds.",
+      "perRankDescription": "Institutional compliance costs and friction -0.5% per rank",
+      "unlockConditionDescription": "Requires institution systems active"
+    }
   },
   "lobbyingPolicies": {
-    "hiringIncentives": { "name": "Payroll Reporting Reform", "track": "labor", "cost": 12 },
-    "deskExpansionCredits": { "name": "Workforce Filing Simplification", "track": "labor", "cost": 20 },
-    "executiveCompensationReform": { "name": "Training Accreditation Relief", "track": "labor", "cost": 32 },
-    "industrialPowerSubsidies": { "name": "Industrial Energy Relief", "track": "energy", "cost": 16 },
-    "priorityGridAccess": { "name": "Grid Stabilization Subsidies", "track": "energy", "cost": 24 },
-    "dataCenterEnergyCredits": { "name": "Data Center Utility Credits", "track": "energy", "cost": 36 },
-    "capitalGainsRelief": { "name": "Institutional Reporting Relief", "track": "market", "cost": 18 },
-    "extendedTradingWindow": { "name": "Market Access Streamlining", "track": "market", "cost": 28 },
-    "marketDeregulation": { "name": "Capital Requirements Easing", "track": "market", "cost": 42 },
-    "automationTaxCredit": { "name": "Algorithmic Exemptions", "track": "technology", "cost": 20 },
-    "fastTrackServerPermits": { "name": "Model Registration Reform", "track": "technology", "cost": 32 },
-    "aiInfrastructureIncentives": { "name": "AI Oversight Streamlining", "track": "technology", "cost": 48 }
+    "hiringIncentives": {
+      "name": "Payroll Reporting Reform",
+      "track": "labor",
+      "cost": 12
+    },
+    "deskExpansionCredits": {
+      "name": "Workforce Filing Simplification",
+      "track": "labor",
+      "cost": 20
+    },
+    "executiveCompensationReform": {
+      "name": "Training Accreditation Relief",
+      "track": "labor",
+      "cost": 32
+    },
+    "industrialPowerSubsidies": {
+      "name": "Industrial Energy Relief",
+      "track": "energy",
+      "cost": 16
+    },
+    "priorityGridAccess": {
+      "name": "Grid Stabilization Subsidies",
+      "track": "energy",
+      "cost": 24
+    },
+    "dataCenterEnergyCredits": {
+      "name": "Data Center Utility Credits",
+      "track": "energy",
+      "cost": 36
+    },
+    "capitalGainsRelief": {
+      "name": "Institutional Reporting Relief",
+      "track": "market",
+      "cost": 18
+    },
+    "extendedTradingWindow": {
+      "name": "Market Access Streamlining",
+      "track": "market",
+      "cost": 28
+    },
+    "marketDeregulation": {
+      "name": "Capital Requirements Easing",
+      "track": "market",
+      "cost": 42
+    },
+    "automationTaxCredit": {
+      "name": "Algorithmic Exemptions",
+      "track": "technology",
+      "cost": 20
+    },
+    "fastTrackServerPermits": {
+      "name": "Model Registration Reform",
+      "track": "technology",
+      "cost": 32
+    },
+    "aiInfrastructureIncentives": {
+      "name": "AI Oversight Streamlining",
+      "track": "technology",
+      "cost": 48
+    }
   },
   "research": {
     "branches": {
-      "order": ["humanCapital", "infrastructure", "markets", "automation", "boosts", "regulation"],
+      "order": [
+        "humanCapital",
+        "infrastructure",
+        "markets",
+        "automation",
+        "boosts",
+        "regulation"
+      ],
       "labels": {
         "markets": "Markets / Sectors",
         "humanCapital": "Human Capital",
@@ -820,52 +1907,741 @@
         "automation": "Automation",
         "boosts": "Boosts",
         "regulation": "Regulation / Institutions"
+      },
+      "descriptions": {
+        "markets": "Unlock where the firm can trade and expand sector specialization.",
+        "humanCapital": "Expand staffing tiers, training, research talent, and institutional desk capabilities.",
+        "infrastructure": "Expand office capacity for people and energy systems for machine scaling.",
+        "automation": "Unlock systematic units, strategy families, and machine-side trading logic.",
+        "boosts": "Unlock timed tactical abilities and later boost automation controls.",
+        "regulation": "Open lobbying and policy-facing institutional systems."
       }
     },
     "tech": {
-      "technologyMarkets": { "name": "Technology Markets", "branch": "markets", "currency": "researchPoints", "cost": 220, "prerequisites": ["foundationsOfFinanceTraining"], "visibility": { "any": [{ "internResearchScientistCountAtLeast": 2 }, { "researchPointsAtLeast": 40 }] }, "unlockRequirement": { "any": [{ "internResearchScientistCountAtLeast": 2 }, { "researchPointsAtLeast": 40 }] } },
-      "energyMarkets": { "name": "Energy Markets", "branch": "markets", "currency": "researchPoints", "cost": 380, "prerequisites": ["technologyMarkets"] },
-      "foundationsOfFinanceTraining": { "name": "Foundations of Finance Training", "branch": "humanCapital", "currency": "cash", "cost": 50, "prerequisites": [] },
-      "juniorTraderProgram": { "name": "Junior Trader Program", "branch": "humanCapital", "currency": "cash", "cost": 400, "prerequisites": ["foundationsOfFinanceTraining"], "visibility": { "internCountAtLeast": 5 }, "unlockRequirement": { "internCountAtLeast": 5 } },
-      "financeSpecialistTraining": { "name": "Finance Specialist Training", "branch": "humanCapital", "currency": "researchPoints", "cost": 180, "prerequisites": ["seniorRecruitment"], "visibility": { "researchTechPurchased": ["seniorRecruitment"] } },
-      "technologySpecialistTraining": { "name": "Technology Specialist Training", "branch": "humanCapital", "currency": "researchPoints", "cost": 260, "prerequisites": ["seniorRecruitment", "technologyMarkets"], "visibility": { "researchTechPurchased": ["seniorRecruitment", "technologyMarkets"] } },
-      "energySpecialistTraining": { "name": "Energy Specialist Training", "branch": "humanCapital", "currency": "researchPoints", "cost": 340, "prerequisites": ["seniorRecruitment", "energyMarkets"], "visibility": { "researchTechPurchased": ["seniorRecruitment", "energyMarkets"] } },
-      "seniorRecruitment": { "name": "Senior Recruitment", "branch": "humanCapital", "currency": "cash", "cost": 3000, "prerequisites": ["juniorTraderProgram"], "visibility": { "juniorTraderCountAtLeast": 5 }, "unlockRequirement": { "juniorTraderCountAtLeast": 5 } },
-      "juniorScientists": { "name": "Junior Scientists", "branch": "humanCapital", "currency": "researchPoints", "cost": 100, "prerequisites": ["foundationsOfFinanceTraining"], "visibility": { "any": [{ "internResearchScientistCountAtLeast": 5 }, { "researchPointsAtLeast": 40 }] }, "unlockRequirement": { "any": [{ "internResearchScientistCountAtLeast": 5 }, { "researchPointsAtLeast": 40 }] } },
-      "seniorScientists": { "name": "Senior Scientists", "branch": "humanCapital", "currency": "researchPoints", "cost": 1000, "prerequisites": ["juniorScientists"], "visibility": { "all": [{ "researchTechPurchased": ["juniorScientists"] }, { "any": [{ "juniorResearchScientistCountAtLeast": 5 }, { "researchPointsAtLeast": 160 }] }] }, "unlockRequirement": { "any": [{ "juniorResearchScientistCountAtLeast": 5 }, { "researchPointsAtLeast": 160 }] } },
-      "propDeskOperations": { "name": "Prop Desk Operations", "branch": "humanCapital", "currency": "researchPoints", "cost": 100, "prerequisites": ["seniorRecruitment"], "visibility": { "seniorTraderCountAtLeast": 5 }, "unlockRequirement": { "seniorTraderCountAtLeast": 5 } },
-      "institutionalDesks": { "name": "Institutional Desks", "branch": "humanCapital", "currency": "researchPoints", "cost": 1500, "prerequisites": ["propDeskOperations"], "visibility": { "all": [{ "researchTechPurchased": ["propDeskOperations"] }, { "propDeskCountAtLeast": 3 }] }, "unlockRequirement": { "propDeskCountAtLeast": 3 } },
-      "hedgeFundStrategies": { "name": "Hedge Fund Strategies", "branch": "humanCapital", "currency": "researchPoints", "cost": 7500, "prerequisites": ["institutionalDesks"], "visibility": { "all": [{ "researchTechPurchased": ["institutionalDesks"] }, { "institutionalDeskCountAtLeast": 2 }] }, "unlockRequirement": { "institutionalDeskCountAtLeast": 2 } },
-      "investmentFirms": { "name": "Investment Firms", "branch": "humanCapital", "currency": "researchPoints", "cost": 20000, "prerequisites": ["hedgeFundStrategies"], "visibility": { "all": [{ "researchTechPurchased": ["hedgeFundStrategies"] }, { "hedgeFundCountAtLeast": 1 }] }, "unlockRequirement": { "hedgeFundCountAtLeast": 1 } },
-      "floorSpacePlanning": { "name": "Floor Space Planning", "branch": "infrastructure", "currency": "researchPoints", "cost": 140, "prerequisites": [], "visibility": { "any": [{ "activeTraderSeatsAtLeast": 4 }, { "researchPointsAtLeast": 40 }] }, "unlockRequirement": { "activeTraderSeatsAtLeast": 8 } },
-      "officeExpansionPlanning": { "name": "Office Expansion Planning", "branch": "infrastructure", "currency": "researchPoints", "cost": 480, "prerequisites": ["floorSpacePlanning"], "visibility": { "researchTechPurchased": ["floorSpacePlanning"] }, "unlockRequirement": { "activeTraderSeatsAtLeast": 25 } },
-      "algorithmicTrading": { "name": "Algorithmic Foundations", "branch": "automation", "currency": "researchPoints", "cost": 150, "prerequisites": ["seniorRecruitment"], "visibility": { "seniorTraderCountAtLeast": 5 }, "unlockRequirement": { "seniorTraderCountAtLeast": 5 } },
-      "meanReversionModels": { "name": "Mean Reversion Models", "branch": "automation", "currency": "researchPoints", "cost": 60, "prerequisites": ["algorithmicTrading"], "visibility": { "researchTechPurchased": ["algorithmicTrading"] } },
-      "momentumModels": { "name": "Momentum Models", "branch": "automation", "currency": "researchPoints", "cost": 80, "prerequisites": ["meanReversionModels"], "visibility": { "researchTechPurchased": ["meanReversionModels"] } },
-      "arbitrageEngine": { "name": "Arbitrage Engine", "branch": "automation", "currency": "researchPoints", "cost": 140, "prerequisites": ["momentumModels"], "visibility": { "researchTechPurchased": ["momentumModels"] } },
-      "marketMakingEngine": { "name": "Market Making Engine", "branch": "automation", "currency": "researchPoints", "cost": 120, "prerequisites": ["arbitrageEngine"], "visibility": { "researchTechPurchased": ["arbitrageEngine"] } },
-      "scalpingFramework": { "name": "Scalping Framework", "branch": "automation", "currency": "researchPoints", "cost": 180, "prerequisites": ["marketMakingEngine"], "visibility": { "researchTechPurchased": ["marketMakingEngine"] } },
-      "ruleBasedAutomation": { "name": "Rule-Based Automation", "branch": "automation", "currency": "researchPoints", "cost": 700, "prerequisites": ["algorithmicTrading"], "visibility": { "researchTechPurchased": ["algorithmicTrading"] } },
-      "machineLearningTrading": { "name": "Machine Learning Trading", "branch": "automation", "currency": "researchPoints", "cost": 1000, "prerequisites": ["ruleBasedAutomation", "dataCenterSystems"], "visibility": { "all": [{ "researchTechPurchased": ["ruleBasedAutomation", "dataCenterSystems"] }] }, "unlockRequirement": { "ruleBasedBotCountAtLeast": 5 } },
-      "powerSystemsEngineering": { "name": "Server Rack", "branch": "infrastructure", "currency": "researchPoints", "cost": 100, "prerequisites": [] },
-      "serverRoomSystems": { "name": "Server Room Systems", "branch": "infrastructure", "currency": "researchPoints", "cost": 500, "prerequisites": ["powerSystemsEngineering"] },
-      "dataCenterSystems": { "name": "Data Centre Systems", "branch": "infrastructure", "currency": "researchPoints", "cost": 9000, "prerequisites": ["serverRoomSystems"], "visibility": { "all": [{ "researchTechPurchased": ["serverRoomSystems"] }, { "ruleBasedBotCountAtLeast": 5 }] }, "unlockRequirement": { "ruleBasedBotCountAtLeast": 5 } },
-      "cloudInfrastructure": { "name": "Cloud Infrastructure", "branch": "infrastructure", "currency": "researchPoints", "cost": 22000, "prerequisites": ["dataCenterSystems", "aiTradingSystems"], "visibility": { "all": [{ "researchTechPurchased": ["dataCenterSystems", "aiTradingSystems"] }] } },
-      "aiTradingSystems": { "name": "AI Trading Systems", "branch": "automation", "currency": "researchPoints", "cost": 1500, "prerequisites": ["machineLearningTrading", "dataCenterSystems"], "visibility": { "all": [{ "researchTechPurchased": ["machineLearningTrading"] }, { "mlTradingBotCountAtLeast": 3 }] }, "unlockRequirement": { "mlTradingBotCountAtLeast": 3 } },
-      "aggressiveTradingWindowProtocols": { "name": "Aggressive Trading Window Protocols", "branch": "boosts", "currency": "researchPoints", "cost": 2000, "prerequisites": ["seniorRecruitment"], "visibility": { "researchTechPurchased": ["seniorRecruitment"] } },
-      "deployReserveCapitalProtocols": { "name": "Reserve Capital Deployment", "branch": "boosts", "currency": "researchPoints", "cost": 4000, "prerequisites": ["regulatoryAffairs"], "visibility": { "researchTechPurchased": ["regulatoryAffairs"] } },
-      "overclockServersProtocols": { "name": "Overclock Server Protocols", "branch": "boosts", "currency": "researchPoints", "cost": 6500, "prerequisites": ["machineLearningTrading"], "visibility": { "researchTechPurchased": ["machineLearningTrading"] } },
-      "researchSprintProtocols": { "name": "Research Sprint Protocols", "branch": "boosts", "currency": "researchPoints", "cost": 1500, "prerequisites": ["juniorScientists"], "visibility": { "researchTechPurchased": ["juniorScientists"] } },
-      "complianceFreezeProtocols": { "name": "Compliance Freeze Protocols", "branch": "boosts", "currency": "researchPoints", "cost": 9000, "prerequisites": ["regulatoryAffairs"], "visibility": { "researchTechPurchased": ["regulatoryAffairs"] } },
-      "regulatoryAffairs": { "name": "Regulatory Affairs", "branch": "regulation", "currency": "researchPoints", "cost": 6000, "prerequisites": ["powerSystemsEngineering"] },
-      "boostAutomationProtocols": { "name": "Boost Automation Protocols", "branch": "boosts", "currency": "researchPoints", "cost": 18000, "prerequisites": ["aiTradingSystems", "regulatoryAffairs"], "visibility": { "researchTechPurchased": ["aiTradingSystems", "regulatoryAffairs"] } },
-      "financeMandateFramework": { "name": "Finance Mandate Framework", "branch": "regulation", "currency": "researchPoints", "cost": 1400, "prerequisites": ["regulatoryAffairs", "propDeskOperations"], "visibility": { "researchTechPurchased": ["regulatoryAffairs"] }, "unlockRequirement": { "propDeskCountAtLeast": 1 } },
-      "techGrowthMandateFramework": { "name": "Tech Growth Mandate Framework", "branch": "regulation", "currency": "researchPoints", "cost": 2100, "prerequisites": ["financeMandateFramework", "technologyMarkets"], "visibility": { "researchTechPurchased": ["financeMandateFramework", "technologyMarkets"] }, "unlockRequirement": { "propDeskCountAtLeast": 1 } },
-      "energyExposureFramework": { "name": "Energy Exposure Framework", "branch": "regulation", "currency": "researchPoints", "cost": 2800, "prerequisites": ["techGrowthMandateFramework", "energyMarkets"], "visibility": { "researchTechPurchased": ["techGrowthMandateFramework", "energyMarkets"] }, "unlockRequirement": { "propDeskCountAtLeast": 1 } }
+      "technologyMarkets": {
+        "name": "Technology Markets",
+        "branch": "markets",
+        "currency": "researchPoints",
+        "cost": 220,
+        "prerequisites": [
+          "foundationsOfFinanceTraining"
+        ],
+        "visibility": {
+          "any": [
+            {
+              "internResearchScientistCountAtLeast": 2
+            },
+            {
+              "researchPointsAtLeast": 40
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "any": [
+            {
+              "internResearchScientistCountAtLeast": 2
+            },
+            {
+              "researchPointsAtLeast": 40
+            }
+          ]
+        },
+        "description": "Unlocks Technology as a tradeable sector and opens higher-growth market specialization."
+      },
+      "energyMarkets": {
+        "name": "Energy Markets",
+        "branch": "markets",
+        "currency": "researchPoints",
+        "cost": 380,
+        "prerequisites": [
+          "technologyMarkets"
+        ],
+        "description": "Unlocks Energy as a tradeable sector and expands sector diversification options."
+      },
+      "foundationsOfFinanceTraining": {
+        "name": "Foundations of Finance Training",
+        "branch": "humanCapital",
+        "currency": "cash",
+        "cost": 50,
+        "prerequisites": [],
+        "description": "Establishes the first formal finance training pipeline and unlocks early research staffing."
+      },
+      "juniorTraderProgram": {
+        "name": "Junior Trader Program",
+        "branch": "humanCapital",
+        "currency": "cash",
+        "cost": 400,
+        "prerequisites": [
+          "foundationsOfFinanceTraining"
+        ],
+        "visibility": {
+          "internCountAtLeast": 5
+        },
+        "unlockRequirement": {
+          "internCountAtLeast": 5
+        },
+        "description": "Opens the Junior Trader tier for stronger early desk scaling."
+      },
+      "financeSpecialistTraining": {
+        "name": "Finance Specialist Training",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 180,
+        "prerequisites": [
+          "seniorRecruitment"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "seniorRecruitment"
+          ]
+        },
+        "description": "Allows Senior Traders to specialize into Finance-focused roles for matching-sector bonuses."
+      },
+      "technologySpecialistTraining": {
+        "name": "Technology Specialist Training",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 260,
+        "prerequisites": [
+          "seniorRecruitment",
+          "technologyMarkets"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "seniorRecruitment",
+            "technologyMarkets"
+          ]
+        },
+        "description": "Allows Senior Traders to specialize into Technology-focused roles for matching-sector bonuses."
+      },
+      "energySpecialistTraining": {
+        "name": "Energy Specialist Training",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 340,
+        "prerequisites": [
+          "seniorRecruitment",
+          "energyMarkets"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "seniorRecruitment",
+            "energyMarkets"
+          ]
+        },
+        "description": "Allows Senior Traders to specialize into Energy-focused roles for matching-sector bonuses."
+      },
+      "seniorRecruitment": {
+        "name": "Senior Recruitment",
+        "branch": "humanCapital",
+        "currency": "cash",
+        "cost": 3000,
+        "prerequisites": [
+          "juniorTraderProgram"
+        ],
+        "visibility": {
+          "juniorTraderCountAtLeast": 5
+        },
+        "unlockRequirement": {
+          "juniorTraderCountAtLeast": 5
+        },
+        "description": "Unlocks Senior Traders and the next layer of advanced desk progression."
+      },
+      "juniorScientists": {
+        "name": "Junior Scientists",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 100,
+        "prerequisites": [
+          "foundationsOfFinanceTraining"
+        ],
+        "visibility": {
+          "any": [
+            {
+              "internResearchScientistCountAtLeast": 5
+            },
+            {
+              "researchPointsAtLeast": 40
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "any": [
+            {
+              "internResearchScientistCountAtLeast": 5
+            },
+            {
+              "researchPointsAtLeast": 40
+            }
+          ]
+        },
+        "description": "Formalizes the research team and unlocks Junior Scientists for steady RP generation."
+      },
+      "seniorScientists": {
+        "name": "Senior Scientists",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 1000,
+        "prerequisites": [
+          "juniorScientists"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "juniorScientists"
+              ]
+            },
+            {
+              "any": [
+                {
+                  "juniorResearchScientistCountAtLeast": 5
+                },
+                {
+                  "researchPointsAtLeast": 160
+                }
+              ]
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "any": [
+            {
+              "juniorResearchScientistCountAtLeast": 5
+            },
+            {
+              "researchPointsAtLeast": 160
+            }
+          ]
+        },
+        "description": "Unlocks Senior Scientists to accelerate research throughput in later stages."
+      },
+      "propDeskOperations": {
+        "name": "Prop Desk Operations",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 100,
+        "prerequisites": [
+          "seniorRecruitment"
+        ],
+        "visibility": {
+          "seniorTraderCountAtLeast": 5
+        },
+        "unlockRequirement": {
+          "seniorTraderCountAtLeast": 5
+        },
+        "description": "Opens the first institution-tier trading unit through Prop Desk operations."
+      },
+      "institutionalDesks": {
+        "name": "Institutional Desks",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 1500,
+        "prerequisites": [
+          "propDeskOperations"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "propDeskOperations"
+              ]
+            },
+            {
+              "propDeskCountAtLeast": 3
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "propDeskCountAtLeast": 3
+        },
+        "description": "Unlocks Institutional Desks for higher-output managed capital operations."
+      },
+      "hedgeFundStrategies": {
+        "name": "Hedge Fund Strategies",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 7500,
+        "prerequisites": [
+          "institutionalDesks"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "institutionalDesks"
+              ]
+            },
+            {
+              "institutionalDeskCountAtLeast": 2
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "institutionalDeskCountAtLeast": 2
+        },
+        "description": "Unlocks Hedge Funds as a larger institutional vehicle with stronger scaling."
+      },
+      "investmentFirms": {
+        "name": "Investment Firms",
+        "branch": "humanCapital",
+        "currency": "researchPoints",
+        "cost": 20000,
+        "prerequisites": [
+          "hedgeFundStrategies"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "hedgeFundStrategies"
+              ]
+            },
+            {
+              "hedgeFundCountAtLeast": 1
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "hedgeFundCountAtLeast": 1
+        },
+        "description": "Unlocks Investment Firms as the top institution-tier expansion path."
+      },
+      "floorSpacePlanning": {
+        "name": "Floor Space Planning",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 140,
+        "prerequisites": [],
+        "visibility": {
+          "any": [
+            {
+              "activeTraderSeatsAtLeast": 4
+            },
+            {
+              "researchPointsAtLeast": 40
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "activeTraderSeatsAtLeast": 8
+        },
+        "description": "Plans larger office expansion and reveals the first major desk-capacity upgrade."
+      },
+      "officeExpansionPlanning": {
+        "name": "Office Expansion Planning",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 480,
+        "prerequisites": [
+          "floorSpacePlanning"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "floorSpacePlanning"
+          ]
+        },
+        "unlockRequirement": {
+          "activeTraderSeatsAtLeast": 25
+        },
+        "description": "Unlocks full office acquisitions for large-scale human expansion."
+      },
+      "algorithmicTrading": {
+        "name": "Algorithmic Foundations",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 150,
+        "prerequisites": [
+          "seniorRecruitment"
+        ],
+        "visibility": {
+          "seniorTraderCountAtLeast": 5
+        },
+        "unlockRequirement": {
+          "seniorTraderCountAtLeast": 5
+        },
+        "description": "Unlocks Quant Traders and opens the automation branch of the firm."
+      },
+      "meanReversionModels": {
+        "name": "Mean Reversion Models",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 60,
+        "prerequisites": [
+          "algorithmicTrading"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "algorithmicTrading"
+          ]
+        },
+        "description": "Unlocks the Mean Reversion automation strategy."
+      },
+      "momentumModels": {
+        "name": "Momentum Models",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 80,
+        "prerequisites": [
+          "meanReversionModels"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "meanReversionModels"
+          ]
+        },
+        "description": "Unlocks the Momentum automation strategy."
+      },
+      "arbitrageEngine": {
+        "name": "Arbitrage Engine",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 140,
+        "prerequisites": [
+          "momentumModels"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "momentumModels"
+          ]
+        },
+        "description": "Unlocks the Arbitrage automation strategy."
+      },
+      "marketMakingEngine": {
+        "name": "Market Making Engine",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 120,
+        "prerequisites": [
+          "arbitrageEngine"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "arbitrageEngine"
+          ]
+        },
+        "description": "Unlocks the Market Making automation strategy."
+      },
+      "scalpingFramework": {
+        "name": "Scalping Framework",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 180,
+        "prerequisites": [
+          "marketMakingEngine"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "marketMakingEngine"
+          ]
+        },
+        "description": "Unlocks the Scalping automation strategy."
+      },
+      "ruleBasedAutomation": {
+        "name": "Rule-Based Automation",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 700,
+        "prerequisites": [
+          "algorithmicTrading"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "algorithmicTrading"
+          ]
+        },
+        "description": "Unlocks Rule-Based Bots as the first dedicated machine trading unit."
+      },
+      "machineLearningTrading": {
+        "name": "Machine Learning Trading",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 1000,
+        "prerequisites": [
+          "ruleBasedAutomation",
+          "dataCenterSystems"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "ruleBasedAutomation",
+                "dataCenterSystems"
+              ]
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "ruleBasedBotCountAtLeast": 5
+        },
+        "description": "Unlocks ML Bots and the transition into compute-heavier automated systems."
+      },
+      "powerSystemsEngineering": {
+        "name": "Server Rack",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 100,
+        "prerequisites": [],
+        "description": "Unlocks Server Racks and starts the machine power infrastructure ladder."
+      },
+      "serverRoomSystems": {
+        "name": "Server Room Systems",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 500,
+        "prerequisites": [
+          "powerSystemsEngineering"
+        ],
+        "description": "Unlocks Server Rooms for sustained mid-game machine expansion."
+      },
+      "dataCenterSystems": {
+        "name": "Data Centre Systems",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 9000,
+        "prerequisites": [
+          "serverRoomSystems"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "serverRoomSystems"
+              ]
+            },
+            {
+              "ruleBasedBotCountAtLeast": 5
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "ruleBasedBotCountAtLeast": 5
+        },
+        "description": "Unlocks Data Centres for heavy compute growth needed by ML and AI systems."
+      },
+      "cloudInfrastructure": {
+        "name": "Cloud Infrastructure",
+        "branch": "infrastructure",
+        "currency": "researchPoints",
+        "cost": 22000,
+        "prerequisites": [
+          "dataCenterSystems",
+          "aiTradingSystems"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "dataCenterSystems",
+                "aiTradingSystems"
+              ]
+            }
+          ]
+        },
+        "description": "Unlocks Cloud Infrastructure as the late-game elastic compute option."
+      },
+      "aiTradingSystems": {
+        "name": "AI Trading Systems",
+        "branch": "automation",
+        "currency": "researchPoints",
+        "cost": 1500,
+        "prerequisites": [
+          "machineLearningTrading",
+          "dataCenterSystems"
+        ],
+        "visibility": {
+          "all": [
+            {
+              "researchTechPurchased": [
+                "machineLearningTrading"
+              ]
+            },
+            {
+              "mlTradingBotCountAtLeast": 3
+            }
+          ]
+        },
+        "unlockRequirement": {
+          "mlTradingBotCountAtLeast": 3
+        },
+        "description": "Unlocks AI Bots and the highest automation unit tier."
+      },
+      "aggressiveTradingWindowProtocols": {
+        "name": "Aggressive Trading Window Protocols",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 2000,
+        "prerequisites": [
+          "seniorRecruitment"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "seniorRecruitment"
+          ]
+        },
+        "description": "Unlocks a timed boost that temporarily amplifies trading output."
+      },
+      "deployReserveCapitalProtocols": {
+        "name": "Reserve Capital Deployment",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 4000,
+        "prerequisites": [
+          "regulatoryAffairs"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "regulatoryAffairs"
+          ]
+        },
+        "description": "Unlocks a timed boost that deploys reserve capital for profit spikes."
+      },
+      "overclockServersProtocols": {
+        "name": "Overclock Server Protocols",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 6500,
+        "prerequisites": [
+          "machineLearningTrading"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "machineLearningTrading"
+          ]
+        },
+        "description": "Unlocks a timed boost that pushes machine systems harder for short bursts."
+      },
+      "researchSprintProtocols": {
+        "name": "Research Sprint Protocols",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 1500,
+        "prerequisites": [
+          "juniorScientists"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "juniorScientists"
+          ]
+        },
+        "description": "Unlocks a timed boost that accelerates research production."
+      },
+      "complianceFreezeProtocols": {
+        "name": "Compliance Freeze Protocols",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 9000,
+        "prerequisites": [
+          "regulatoryAffairs"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "regulatoryAffairs"
+          ]
+        },
+        "description": "Unlocks a timed boost that suppresses compliance pressure for a short window."
+      },
+      "regulatoryAffairs": {
+        "name": "Regulatory Affairs",
+        "branch": "regulation",
+        "currency": "researchPoints",
+        "cost": 6000,
+        "prerequisites": [
+          "powerSystemsEngineering"
+        ],
+        "description": "Unlocks lobbying, politicians, and the regulation-side progression layer."
+      },
+      "boostAutomationProtocols": {
+        "name": "Boost Automation Protocols",
+        "branch": "boosts",
+        "currency": "researchPoints",
+        "cost": 18000,
+        "prerequisites": [
+          "aiTradingSystems",
+          "regulatoryAffairs"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "aiTradingSystems",
+            "regulatoryAffairs"
+          ]
+        },
+        "description": "Unlocks automation controls for timed boosts in the late game."
+      },
+      "financeMandateFramework": {
+        "name": "Finance Mandate Framework",
+        "branch": "regulation",
+        "currency": "researchPoints",
+        "cost": 1400,
+        "prerequisites": [
+          "regulatoryAffairs",
+          "propDeskOperations"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "regulatoryAffairs"
+          ]
+        },
+        "unlockRequirement": {
+          "propDeskCountAtLeast": 1
+        },
+        "description": "Unlocks Finance mandates for institution units assigned to their matching sector."
+      },
+      "techGrowthMandateFramework": {
+        "name": "Tech Growth Mandate Framework",
+        "branch": "regulation",
+        "currency": "researchPoints",
+        "cost": 2100,
+        "prerequisites": [
+          "financeMandateFramework",
+          "technologyMarkets"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "financeMandateFramework",
+            "technologyMarkets"
+          ]
+        },
+        "unlockRequirement": {
+          "propDeskCountAtLeast": 1
+        },
+        "description": "Unlocks Technology mandates for institution units assigned to their matching sector."
+      },
+      "energyExposureFramework": {
+        "name": "Energy Exposure Framework",
+        "branch": "regulation",
+        "currency": "researchPoints",
+        "cost": 2800,
+        "prerequisites": [
+          "techGrowthMandateFramework",
+          "energyMarkets"
+        ],
+        "visibility": {
+          "researchTechPurchased": [
+            "techGrowthMandateFramework",
+            "energyMarkets"
+          ]
+        },
+        "unlockRequirement": {
+          "propDeskCountAtLeast": 1
+        },
+        "description": "Unlocks Energy mandates for institution units assigned to their matching sector."
+      }
     }
   },
   "prestige": {
-    "tiers": ["iron", "bronze", "silver", "gold", "platinum", "titanium", "sapphire", "ruby", "diamond", "onyx"],
+    "tiers": [
+      "iron",
+      "bronze",
+      "silver",
+      "gold",
+      "platinum",
+      "titanium",
+      "sapphire",
+      "ruby",
+      "diamond",
+      "onyx"
+    ],
     "tierLabels": {
       "iron": "Iron",
       "bronze": "Bronze",
@@ -878,29 +2654,124 @@
       "diamond": "Diamond",
       "onyx": "Onyx"
     },
-    "gainCurve": [4, 6, 9, 13, 17, 21, 26, 31, 37, 66],
+    "gainCurve": [
+      4,
+      6,
+      9,
+      13,
+      17,
+      21,
+      26,
+      31,
+      37,
+      66
+    ],
     "unlockRequirements": {
       "lifetimeCashAtLeast": 4000000,
       "prestigeCountBelow": 10,
-      "requiresAnyUnits": ["quantTrader", "ruleBasedBot"]
+      "requiresAnyUnits": [
+        "quantTrader",
+        "ruleBasedBot"
+      ]
     },
-    "resetKeeps": ["reputation", "reputationSpent", "prestigeCount", "purchasedPrestigeUpgrades", "globalBoostsOwned", "discoveredLobbying"],
+    "resetKeeps": [
+      "reputation",
+      "reputationSpent",
+      "prestigeCount",
+      "purchasedPrestigeUpgrades",
+      "globalBoostsOwned",
+      "discoveredLobbying"
+    ],
     "upgrades": {
-      "globalRecognition": { "name": "Global Recognition", "maxRank": 10, "effectPerRank": 0.05, "effectKind": "profitMultiplier", "costModel": "prestigeBanding" },
-      "seedCapital": { "name": "Seed Capital", "maxRank": 10, "effectPerRank": 250, "effectKind": "flatStartingCash", "costModel": "prestigeBanding" },
-      "betterHiringPipeline": { "name": "Better Hiring Pipeline", "maxRank": 10, "effectPerRank": 0.05, "effectKind": "humanCostDiscount", "floor": 0.2, "costModel": "prestigeBanding" },
-      "institutionalKnowledge": { "name": "Institutional Knowledge", "maxRank": 10, "effectPerRank": 0.1, "effectKind": "researchMultiplier", "costModel": "prestigeBanding" },
-      "gridOrchestration": { "name": "Grid Orchestration", "maxRank": 10, "effectPerRank": 0.05, "effectKind": "machineAndPowerMultiplier", "costModel": "prestigeBanding" },
-      "complianceFrameworks": { "name": "Compliance Frameworks", "maxRank": 10, "effectPerRank": 0.05, "effectKind": "complianceRelief", "costModel": "prestigeBanding" },
-      "policyCapital": { "name": "Policy Capital", "maxRank": 10, "effectPerRank": 0.05, "effectKind": "influenceMultiplier", "costModel": "prestigeBanding" },
-      "marketReputation": { "name": "Market Reputation", "maxRank": 10, "effectPerRank": 0.03, "effectKind": "sectorMultiplier", "costModel": "prestigeBanding" },
-      "deskEfficiency": { "name": "Desk Efficiency", "maxRank": 10, "effectPerRank": 0.04, "effectKind": "humanMultiplier", "costModel": "prestigeBanding" },
-      "strategicReserves": { "name": "Strategic Reserves", "maxRank": 10, "effectPerRank": 0.03, "effectKind": "timedBoostCooldownReduction", "floor": 0.5, "costModel": "prestigeBanding" }
+      "globalRecognition": {
+        "name": "Global Recognition",
+        "maxRank": 10,
+        "effectPerRank": 0.05,
+        "effectKind": "profitMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Increase all profit scaling across each future run."
+      },
+      "seedCapital": {
+        "name": "Seed Capital",
+        "maxRank": 10,
+        "effectPerRank": 250,
+        "effectKind": "flatStartingCash",
+        "costModel": "prestigeBanding",
+        "description": "Start each prestige reset with more opening cash."
+      },
+      "betterHiringPipeline": {
+        "name": "Better Hiring Pipeline",
+        "maxRank": 10,
+        "effectPerRank": 0.05,
+        "effectKind": "humanCostDiscount",
+        "floor": 0.2,
+        "costModel": "prestigeBanding",
+        "description": "Reduce hiring costs for human staff across the whole run."
+      },
+      "institutionalKnowledge": {
+        "name": "Institutional Knowledge",
+        "maxRank": 10,
+        "effectPerRank": 0.1,
+        "effectKind": "researchMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Increase Research Point generation in every future run."
+      },
+      "gridOrchestration": {
+        "name": "Grid Orchestration",
+        "maxRank": 10,
+        "effectPerRank": 0.05,
+        "effectKind": "machineAndPowerMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Improve machine output and overall power capacity together."
+      },
+      "complianceFrameworks": {
+        "name": "Compliance Frameworks",
+        "maxRank": 10,
+        "effectPerRank": 0.05,
+        "effectKind": "complianceRelief",
+        "costModel": "prestigeBanding",
+        "description": "Reduce long-run compliance drag and burden pressure."
+      },
+      "policyCapital": {
+        "name": "Policy Capital",
+        "maxRank": 10,
+        "effectPerRank": 0.05,
+        "effectKind": "influenceMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Increase influence generation for lobbying-heavy progress."
+      },
+      "marketReputation": {
+        "name": "Market Reputation",
+        "maxRank": 10,
+        "effectPerRank": 0.03,
+        "effectKind": "sectorMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Boost profit scaling from sector-based operations."
+      },
+      "deskEfficiency": {
+        "name": "Desk Efficiency",
+        "maxRank": 10,
+        "effectPerRank": 0.04,
+        "effectKind": "humanMultiplier",
+        "costModel": "prestigeBanding",
+        "description": "Increase human desk performance across traders and scientists."
+      },
+      "strategicReserves": {
+        "name": "Strategic Reserves",
+        "maxRank": 10,
+        "effectPerRank": 0.03,
+        "effectKind": "timedBoostCooldownReduction",
+        "floor": 0.5,
+        "costModel": "prestigeBanding",
+        "description": "Shorten timed boost cooldowns for more frequent activation windows."
+      }
     }
   },
   "specialization": {
     "traderTrainingCostCash": 2000,
-    "eligibleUnits": ["seniorTrader"],
+    "eligibleUnits": [
+      "seniorTrader"
+    ],
     "matchingSectorBaseBonus": 1.2,
     "researchUnlocks": {
       "finance": "financeSpecialistTraining",
@@ -909,7 +2780,12 @@
     }
   },
   "mandates": {
-    "eligibleUnits": ["propDesk", "institutionalDesk", "hedgeFund", "investmentFirm"],
+    "eligibleUnits": [
+      "propDesk",
+      "institutionalDesk",
+      "hedgeFund",
+      "investmentFirm"
+    ],
     "applicationCostCash": {
       "propDesk": 5000,
       "institutionalDesk": 12000,
@@ -929,7 +2805,20 @@
     }
   },
   "milestones": {
-    "categoryOrder": ["gettingStarted", "tradingDesk", "research", "marketsSectors", "specialization", "institutions", "automation", "infrastructure", "complianceLobbying", "boosts", "prestige", "optimisations"],
+    "categoryOrder": [
+      "gettingStarted",
+      "tradingDesk",
+      "research",
+      "marketsSectors",
+      "specialization",
+      "institutions",
+      "automation",
+      "infrastructure",
+      "complianceLobbying",
+      "boosts",
+      "prestige",
+      "optimisations"
+    ],
     "categoryLabels": {
       "gettingStarted": "Getting Started",
       "tradingDesk": "Trading Desk",
@@ -945,95 +2834,1043 @@
       "optimisations": "Optimisations"
     },
     "items": {
-      "firstTrade": { "category": "gettingStarted", "displayOrder": 1, "reward": { "cash": 10 }, "conditionModel": "manualTradesAtLeast", "conditionValue": 1 },
-      "firstUpgrade": { "category": "gettingStarted", "displayOrder": 2, "reward": { "cash": 25 }, "conditionModel": "oneTimeUpgradesPurchasedAtLeast", "conditionValue": 1 },
-      "activeDesk": { "category": "gettingStarted", "displayOrder": 3, "reward": { "cash": 25 }, "conditionModel": "manualTradesAtLeast", "conditionValue": 25 },
-      "firstIntern": { "category": "gettingStarted", "displayOrder": 4, "reward": { "cash": 30 }, "conditionModel": "unitCountAtLeast", "targetId": "intern", "conditionValue": 1 },
-      "smallTeam": { "category": "gettingStarted", "displayOrder": 5, "reward": { "deskSlots": 10 }, "conditionModel": "unitCountAtLeast", "targetId": "intern", "conditionValue": 5 },
-      "firstJuniorTrader": { "category": "gettingStarted", "displayOrder": 6, "reward": { "cash": 50 }, "conditionModel": "unitCountAtLeast", "targetId": "juniorTrader", "conditionValue": 1 },
-      "firstDeskSpace": { "category": "gettingStarted", "displayOrder": 7, "reward": { "cash": 75 }, "conditionModel": "infrastructureCountAtLeast", "targetId": "deskSpace", "conditionValue": 1 },
-      "fourUpgrades": { "category": "gettingStarted", "displayOrder": 8, "reward": { "cash": 150 }, "conditionModel": "oneTimeUpgradesPurchasedAtLeast", "conditionValue": 4 },
-      "juniorDesk": { "category": "gettingStarted", "displayOrder": 9, "reward": { "cash": 75 }, "conditionModel": "unitCountAtLeast", "targetId": "juniorTrader", "conditionValue": 5 },
-      "tenInterns": { "category": "tradingDesk", "displayOrder": 10, "reward": { "cash": 500 }, "conditionModel": "unitCountAtLeast", "targetId": "intern", "conditionValue": 10 },
-      "firstSeniorTrader": { "category": "gettingStarted", "displayOrder": 11, "reward": { "cash": 500 }, "conditionModel": "unitCountAtLeast", "targetId": "seniorTrader", "conditionValue": 1 },
-      "builtTheDesk": { "category": "gettingStarted", "displayOrder": 12, "reward": { "cash": 700 }, "conditionModel": "mixedUnitThresholds", "thresholds": { "intern": 3, "juniorTrader": 3, "seniorTrader": 1 } },
-      "firstCompliancePayment": { "category": "complianceLobbying", "displayOrder": 13, "reward": { "influence": 1 }, "conditionModel": "firstCompliancePayment" },
-      "deskMomentum": { "category": "gettingStarted", "displayOrder": 14, "reward": { "cash": 500 }, "conditionModel": "generalDeskIncomeAtLeast", "conditionValue": 100 },
-      "tenJuniors": { "category": "tradingDesk", "displayOrder": 15, "reward": { "cash": 2500 }, "conditionModel": "unitCountAtLeast", "targetId": "juniorTrader", "conditionValue": 10 },
-      "threeSeniors": { "category": "tradingDesk", "displayOrder": 16, "reward": { "cash": 4000 }, "conditionModel": "unitCountAtLeast", "targetId": "seniorTrader", "conditionValue": 3 },
-      "humanDeskScaled": { "category": "tradingDesk", "displayOrder": 17, "reward": { "cash": 7500 }, "conditionModel": "humanCountAtLeast", "conditionValue": 25 },
-      "unlockResearch": { "category": "research", "displayOrder": 18, "reward": { "researchPoints": 25 }, "conditionModel": "researchUnlocked" },
-      "firstInternScientist": { "category": "research", "displayOrder": 19, "reward": { "researchPoints": 40 }, "conditionModel": "unitCountAtLeast", "targetId": "internResearchScientist", "conditionValue": 1 },
-      "firstResearchNode": { "category": "research", "displayOrder": 20, "reward": { "researchPoints": 20 }, "conditionModel": "researchNodesPurchasedAtLeast", "conditionValue": 1 },
-      "firstServerRack": { "category": "infrastructure", "displayOrder": 21, "reward": { "cash": 2000 }, "conditionModel": "effectiveServerRackCountAtLeast", "conditionValue": 1 },
-      "fiveInternScientists": { "category": "research", "displayOrder": 22, "reward": { "researchPoints": 60 }, "conditionModel": "unitCountAtLeast", "targetId": "internResearchScientist", "conditionValue": 5 },
-      "hundredRP": { "category": "research", "displayOrder": 23, "reward": { "researchPoints": 75 }, "conditionModel": "lifetimeResearchAtLeast", "conditionValue": 100 },
-      "firstFloorSpace": { "category": "research", "displayOrder": 24, "reward": { "cash": 500 }, "conditionModel": "infrastructureCountAtLeast", "targetId": "floorSpace", "conditionValue": 1 },
-      "firstComplianceReview": { "category": "complianceLobbying", "displayOrder": 25, "reward": { "influence": 2 }, "conditionModel": "complianceReviewsAtLeast", "conditionValue": 1 },
-      "fiveResearchNodes": { "category": "research", "displayOrder": 26, "reward": { "researchPoints": 125 }, "conditionModel": "researchNodesPurchasedAtLeast", "conditionValue": 5 },
-      "fiveUpgrades": { "category": "gettingStarted", "displayOrder": 27, "reward": { "cash": 1000 }, "conditionModel": "oneTimeUpgradesPurchasedAtLeast", "conditionValue": 5 },
-      "firstPropDesk": { "category": "institutions", "displayOrder": 28, "reward": { "cash": 5000 }, "conditionModel": "unitCountAtLeast", "targetId": "propDesk", "conditionValue": 1 },
-      "firstSectorAssignment": { "category": "marketsSectors", "displayOrder": 29, "reward": { "cash": 2000 }, "conditionModel": "assignedUnitsAtLeast", "conditionValue": 1 },
-      "sectorFloorBuilt": { "category": "marketsSectors", "displayOrder": 30, "reward": { "cash": 6000 }, "conditionModel": "assignedUnitsAtLeast", "conditionValue": 10 },
-      "firstSpecialistTrainingResearch": { "category": "specialization", "displayOrder": 31, "reward": { "researchPoints": 80 }, "conditionModel": "specialistResearchUnlockedAtLeast", "conditionValue": 1 },
-      "firstSpecialist": { "category": "specialization", "displayOrder": 32, "reward": { "researchPoints": 80 }, "conditionModel": "specialistsAtLeast", "conditionValue": 1 },
-      "correctPlacement": { "category": "specialization", "displayOrder": 33, "reward": { "cash": 5000 }, "conditionModel": "correctSpecialistAssignmentsAtLeast", "conditionValue": 1 },
-      "specialistDesk": { "category": "specialization", "displayOrder": 34, "reward": { "researchPoints": 120 }, "conditionModel": "specialistsAtLeast", "conditionValue": 5 },
-      "unlockAutomation": { "category": "automation", "displayOrder": 35, "reward": { "researchPoints": 100 }, "conditionModel": "researchTechPurchased", "targetId": "algorithmicTrading" },
-      "firstQuantTrader": { "category": "automation", "displayOrder": 36, "reward": { "cash": 15000 }, "conditionModel": "unitCountAtLeast", "targetId": "quantTrader", "conditionValue": 1 },
-      "firstStrategyUnlocked": { "category": "automation", "displayOrder": 37, "reward": { "researchPoints": 100 }, "conditionModel": "automationStrategiesUnlockedAtLeast", "conditionValue": 1 },
-      "firstAutomationConfigured": { "category": "automation", "displayOrder": 38, "reward": { "cash": 25000 }, "conditionModel": "configuredAutomationClassesAtLeast", "conditionValue": 1 },
-      "unlockRuleBot": { "category": "automation", "displayOrder": 39, "reward": { "researchPoints": 120 }, "conditionModel": "researchTechPurchased", "targetId": "ruleBasedAutomation" },
-      "firstInfrastructureUpgrade": { "category": "infrastructure", "displayOrder": 40, "reward": { "cash": 60000 }, "conditionModel": "upgradesPurchasedInGroupAtLeast", "targetId": "infrastructure", "conditionValue": 1 },
-      "institutionUpgrade": { "category": "institutions", "displayOrder": 41, "reward": { "cash": 50000 }, "conditionModel": "upgradesPurchasedInGroupAtLeast", "targetId": "institutions", "conditionValue": 1 },
-      "firstInstitutionalDesk": { "category": "institutions", "displayOrder": 42, "reward": { "cash": 60000 }, "conditionModel": "unitCountAtLeast", "targetId": "institutionalDesk", "conditionValue": 1 },
-      "firstServerRoom": { "category": "infrastructure", "displayOrder": 43, "reward": { "cash": 80000 }, "conditionModel": "infrastructureCountAtLeast", "targetId": "serverRoom", "conditionValue": 1 },
-      "firstRuleBot": { "category": "automation", "displayOrder": 44, "reward": { "cash": 30000 }, "conditionModel": "unitCountAtLeast", "targetId": "ruleBasedBot", "conditionValue": 1 },
-      "firstAutomationUpgrade": { "category": "automation", "displayOrder": 45, "reward": { "cash": 75000 }, "conditionModel": "upgradesPurchasedInGroupAtLeast", "targetId": "automation", "conditionValue": 1 },
-      "unlockTechnologySector": { "category": "marketsSectors", "displayOrder": 46, "reward": { "cash": 2500 }, "conditionModel": "sectorUnlocked", "targetId": "technology" },
-      "technologyFocus": { "category": "marketsSectors", "displayOrder": 47, "reward": { "cash": 4000 }, "conditionModel": "sectorIncomeAtLeast", "targetId": "technology", "conditionValue": 250 },
-      "multiSectorPresence": { "category": "marketsSectors", "displayOrder": 48, "reward": { "cash": 3500 }, "conditionModel": "activeAssignedSectorsAtLeast", "conditionValue": 2 },
-      "financeFocus": { "category": "marketsSectors", "displayOrder": 49, "reward": { "cash": 4000 }, "conditionModel": "sectorIncomeAtLeast", "targetId": "finance", "conditionValue": 250 },
-      "firstExtraSector": { "category": "marketsSectors", "displayOrder": 50, "reward": { "researchPoints": 50 }, "conditionModel": "unlockedSectorsAtLeast", "conditionValue": 2 },
-      "unlockEnergySector": { "category": "marketsSectors", "displayOrder": 51, "reward": { "cash": 2500 }, "conditionModel": "sectorUnlocked", "targetId": "energy" },
-      "energyFocus": { "category": "marketsSectors", "displayOrder": 52, "reward": { "cash": 4000 }, "conditionModel": "sectorIncomeAtLeast", "targetId": "energy", "conditionValue": 250 },
-      "firstSeniorScientist": { "category": "research", "displayOrder": 53, "reward": { "researchPoints": 75 }, "conditionModel": "unitCountAtLeast", "targetId": "seniorResearchScientist", "conditionValue": 1 },
-      "unlockLobbying": { "category": "complianceLobbying", "displayOrder": 54, "reward": { "influence": 3 }, "conditionModel": "lobbyingUnlocked" },
-      "firstLobbyingPolicy": { "category": "complianceLobbying", "displayOrder": 55, "reward": { "influence": 2 }, "conditionModel": "purchasedPoliciesAtLeast", "conditionValue": 1 },
-      "firstMandateResearch": { "category": "specialization", "displayOrder": 56, "reward": { "influence": 2 }, "conditionModel": "mandateResearchUnlockedAtLeast", "conditionValue": 1 },
-      "firstMandate": { "category": "specialization", "displayOrder": 57, "reward": { "influence": 2 }, "conditionModel": "mandatedInstitutionsAtLeast", "conditionValue": 1 },
-      "alignedInstitution": { "category": "specialization", "displayOrder": 58, "reward": { "cash": 25000 }, "conditionModel": "correctMandateAssignmentsAtLeast", "conditionValue": 1 },
-      "institutionPortfolio": { "category": "institutions", "displayOrder": 59, "reward": { "influence": 4 }, "conditionModel": "mixedUnitThresholds", "thresholds": { "propDesk": 1, "institutionalDesk": 1, "hedgeFund": 1 } },
-      "firstHedgeFund": { "category": "institutions", "displayOrder": 60, "reward": { "cash": 250000 }, "conditionModel": "unitCountAtLeast", "targetId": "hedgeFund", "conditionValue": 1 },
-      "firstInvestmentFirm": { "category": "institutions", "displayOrder": 61, "reward": { "cash": 1000000 }, "conditionModel": "unitCountAtLeast", "targetId": "investmentFirm", "conditionValue": 1 },
-      "machineDesk": { "category": "automation", "displayOrder": 62, "reward": { "cash": 60000 }, "conditionModel": "automationCountAtLeast", "conditionValue": 5 },
-      "firstMLBot": { "category": "automation", "displayOrder": 63, "reward": { "researchPoints": 200 }, "conditionModel": "unitCountAtLeast", "targetId": "mlTradingBot", "conditionValue": 1 },
-      "firstAIBot": { "category": "automation", "displayOrder": 64, "reward": { "researchPoints": 400 }, "conditionModel": "unitCountAtLeast", "targetId": "aiTradingBot", "conditionValue": 1 },
-      "firstDataCentre": { "category": "infrastructure", "displayOrder": 65, "reward": { "cash": 500000 }, "conditionModel": "infrastructureCountAtLeast", "targetId": "dataCenter", "conditionValue": 1 },
-      "firstCloudCompute": { "category": "infrastructure", "displayOrder": 66, "reward": { "cash": 1500000 }, "conditionModel": "infrastructureCountAtLeast", "targetId": "cloudCompute", "conditionValue": 1 },
-      "threePolicies": { "category": "complianceLobbying", "displayOrder": 67, "reward": { "influence": 4 }, "conditionModel": "purchasedPoliciesAtLeast", "conditionValue": 3 },
-      "firstGovernanceUpgrade": { "category": "complianceLobbying", "displayOrder": 68, "reward": { "cash": 100000 }, "conditionModel": "upgradesPurchasedInGroupAtLeast", "targetId": "complianceLobbying", "conditionValue": 1 },
-      "unlockBoosts": { "category": "boosts", "displayOrder": 69, "reward": { "cash": 75000 }, "conditionModel": "anyTimedBoostUnlocked" },
-      "firstTimedBoost": { "category": "boosts", "displayOrder": 70, "reward": { "cash": 75000 }, "conditionModel": "timedBoostActivationsAtLeast", "conditionValue": 1 },
-      "firstGlobalBoost": { "category": "boosts", "displayOrder": 71, "reward": { "influence": 2 }, "conditionModel": "ownedGlobalBoostsAtLeast", "conditionValue": 1 },
-      "boostAutomationUnlocked": { "category": "boosts", "displayOrder": 72, "reward": { "researchPoints": 150 }, "conditionModel": "researchTechPurchased", "targetId": "boostAutomationProtocols" },
-      "firstPrestige": { "category": "prestige", "displayOrder": 73, "reward": { "reputation": 1 }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 1 },
-      "firstReputationSpend": { "category": "prestige", "displayOrder": 74, "reward": { "cash": 100000 }, "conditionModel": "reputationSpentAtLeast", "conditionValue": 1 },
-      "firstPrestigeGoalRank": { "category": "prestige", "displayOrder": 75, "reward": { "cash": 250000 }, "conditionModel": "prestigeRanksPurchasedAtLeast", "conditionValue": 1 },
-      "bronzePrestige": { "category": "prestige", "displayOrder": 76, "reward": { "reputation": 2 }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 2 },
-      "silverPrestige": { "category": "prestige", "displayOrder": 77, "reward": { "reputation": 2 }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 3 },
-      "goldPrestige": { "category": "prestige", "displayOrder": 78, "reward": { "reputation": 3 }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 4 },
-      "tenPrestigeRanks": { "category": "prestige", "displayOrder": 79, "reward": { "reputation": 2 }, "conditionModel": "prestigeRanksPurchasedAtLeast", "conditionValue": 10 },
-      "onyxLegacy": { "category": "prestige", "displayOrder": 80, "reward": { "reputation": 5, "note": "This is a top-end capstone milestone." }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 10 },
-      "unlockOptimisations": { "category": "optimisations", "displayOrder": 81, "reward": { "cash": 50000 }, "conditionModel": "prestigeCountAtLeast", "conditionValue": 1 },
-      "firstOptimisation": { "category": "optimisations", "displayOrder": 82, "reward": { "cash": 50000 }, "conditionModel": "optimisationRanksAtLeast", "conditionValue": 1 },
-      "firstDeskOptimization": { "category": "tradingDesk", "displayOrder": 83, "reward": { "cash": 5000, "note": "Visible after Optimisations unlock later." }, "conditionModel": "optimisationRanksByFamilyAtLeast", "targetId": "desk", "conditionValue": 1 },
-      "firstResearchOptimization": { "category": "research", "displayOrder": 84, "reward": { "researchPoints": 100, "note": "Visible after Optimisations unlock later." }, "conditionModel": "optimisationRanksByFamilyAtLeast", "targetId": "research", "conditionValue": 1 },
-      "firstAutomationOptimization": { "category": "automation", "displayOrder": 85, "reward": { "researchPoints": 150, "note": "Visible after Optimisations unlock later." }, "conditionModel": "optimisationRanksByFamilyAtLeast", "targetId": "automation", "conditionValue": 1 },
-      "firstGovernanceOptimization": { "category": "complianceLobbying", "displayOrder": 86, "reward": { "influence": 3, "note": "Visible after Optimisations unlock later." }, "conditionModel": "optimisationRanksByFamilyAtLeast", "targetId": "governance", "conditionValue": 1 },
-      "tenOptimisationRanks": { "category": "optimisations", "displayOrder": 87, "reward": { "researchPoints": 150 }, "conditionModel": "optimisationRanksAtLeast", "conditionValue": 10 },
-      "fiftyOptimisationRanks": { "category": "optimisations", "displayOrder": 88, "reward": { "influence": 5 }, "conditionModel": "optimisationRanksAtLeast", "conditionValue": 50 },
-      "hundredOptimisationRanks": { "category": "optimisations", "displayOrder": 89, "reward": { "reputation": 1 }, "conditionModel": "optimisationRanksAtLeast", "conditionValue": 100 }
+      "firstTrade": {
+        "category": "gettingStarted",
+        "displayOrder": 1,
+        "reward": {
+          "cash": 10
+        },
+        "conditionModel": "manualTradesAtLeast",
+        "conditionValue": 1,
+        "name": "First Trade",
+        "description": "Make your first manual trade.",
+        "achievementKey": "first_trade"
+      },
+      "firstUpgrade": {
+        "category": "gettingStarted",
+        "displayOrder": 2,
+        "reward": {
+          "cash": 25
+        },
+        "conditionModel": "oneTimeUpgradesPurchasedAtLeast",
+        "conditionValue": 1,
+        "name": "First Upgrade",
+        "description": "Purchase your first one-time upgrade."
+      },
+      "activeDesk": {
+        "category": "gettingStarted",
+        "displayOrder": 3,
+        "reward": {
+          "cash": 25
+        },
+        "conditionModel": "manualTradesAtLeast",
+        "conditionValue": 25,
+        "name": "Active Desk",
+        "description": "Make 25 manual trades."
+      },
+      "firstIntern": {
+        "category": "gettingStarted",
+        "displayOrder": 4,
+        "reward": {
+          "cash": 30
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "intern",
+        "conditionValue": 1,
+        "name": "First Intern",
+        "description": "Hire your first Intern.",
+        "achievementKey": "first_intern"
+      },
+      "smallTeam": {
+        "category": "gettingStarted",
+        "displayOrder": 5,
+        "reward": {
+          "deskSlots": 10
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "intern",
+        "conditionValue": 5,
+        "name": "Small Team",
+        "description": "Hire 5 Interns."
+      },
+      "firstJuniorTrader": {
+        "category": "gettingStarted",
+        "displayOrder": 6,
+        "reward": {
+          "cash": 50
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "juniorTrader",
+        "conditionValue": 1,
+        "name": "First Junior Trader",
+        "description": "Hire your first Junior Trader.",
+        "achievementKey": "first_junior_trader"
+      },
+      "firstDeskSpace": {
+        "category": "gettingStarted",
+        "displayOrder": 7,
+        "reward": {
+          "cash": 75
+        },
+        "conditionModel": "infrastructureCountAtLeast",
+        "targetId": "deskSpace",
+        "conditionValue": 1,
+        "name": "Extra Seat",
+        "description": "Buy 1 Desk Space."
+      },
+      "fourUpgrades": {
+        "category": "gettingStarted",
+        "displayOrder": 8,
+        "reward": {
+          "cash": 150
+        },
+        "conditionModel": "oneTimeUpgradesPurchasedAtLeast",
+        "conditionValue": 3,
+        "name": "Built to Spec",
+        "description": "Purchase at least 3 one-time upgrades."
+      },
+      "juniorDesk": {
+        "category": "gettingStarted",
+        "displayOrder": 9,
+        "reward": {
+          "cash": 75
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "juniorTrader",
+        "conditionValue": 5,
+        "name": "Junior Desk",
+        "description": "Hire 5 Junior Traders."
+      },
+      "tenInterns": {
+        "category": "tradingDesk",
+        "displayOrder": 10,
+        "reward": {
+          "cash": 500
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "intern",
+        "conditionValue": 10,
+        "name": "Intern Bench",
+        "description": "Hire 10 Interns."
+      },
+      "firstSeniorTrader": {
+        "category": "gettingStarted",
+        "displayOrder": 11,
+        "reward": {
+          "cash": 500
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "seniorTrader",
+        "conditionValue": 1,
+        "name": "First Senior Trader",
+        "description": "Hire your first Senior Trader."
+      },
+      "builtTheDesk": {
+        "category": "gettingStarted",
+        "displayOrder": 12,
+        "reward": {
+          "cash": 700
+        },
+        "conditionModel": "mixedUnitThresholds",
+        "thresholds": {
+          "intern": 3,
+          "juniorTrader": 3,
+          "seniorTrader": 1
+        },
+        "name": "Built the Desk",
+        "description": "Own Interns, Junior Traders, and a Senior Trader at the same time."
+      },
+      "firstCompliancePayment": {
+        "category": "complianceLobbying",
+        "displayOrder": 13,
+        "reward": {
+          "influence": 1
+        },
+        "conditionModel": "firstCompliancePayment",
+        "name": "Pay Your Compliance",
+        "description": "Pay your compliance."
+      },
+      "deskMomentum": {
+        "category": "gettingStarted",
+        "displayOrder": 14,
+        "reward": {
+          "cash": 500
+        },
+        "conditionModel": "deskOrDeskPlusInstitutionIncomeAtLeast",
+        "conditionValue": 100,
+        "name": "Desk Momentum",
+        "description": "Reach $100/sec total income."
+      },
+      "tenJuniors": {
+        "category": "tradingDesk",
+        "displayOrder": 15,
+        "reward": {
+          "cash": 2500
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "juniorTrader",
+        "conditionValue": 10,
+        "name": "Junior Floor",
+        "description": "Hire 10 Junior Traders."
+      },
+      "threeSeniors": {
+        "category": "tradingDesk",
+        "displayOrder": 16,
+        "reward": {
+          "cash": 4000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "seniorTrader",
+        "conditionValue": 3,
+        "name": "Senior Coverage",
+        "description": "Hire 3 Senior Traders."
+      },
+      "humanDeskScaled": {
+        "category": "tradingDesk",
+        "displayOrder": 17,
+        "reward": {
+          "cash": 7500
+        },
+        "conditionModel": "humanCountAtLeast",
+        "conditionValue": 25,
+        "name": "Scaled Human Desk",
+        "description": "Reach 25 total human staff."
+      },
+      "unlockResearch": {
+        "category": "research",
+        "displayOrder": 18,
+        "reward": {
+          "researchPoints": 25
+        },
+        "conditionModel": "researchUnlocked",
+        "name": "Scientific Method",
+        "description": "Unlock Research.",
+        "achievementKey": "unlock_research"
+      },
+      "firstInternScientist": {
+        "category": "research",
+        "displayOrder": 19,
+        "reward": {
+          "researchPoints": 40
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "internResearchScientist",
+        "conditionValue": 1,
+        "name": "First Intern Scientist",
+        "description": "Hire your first Intern Scientist."
+      },
+      "firstResearchNode": {
+        "category": "research",
+        "displayOrder": 20,
+        "reward": {
+          "researchPoints": 20
+        },
+        "conditionModel": "researchNodesPurchasedAtLeast",
+        "conditionValue": 1,
+        "name": "First Breakthrough",
+        "description": "Purchase your first research node."
+      },
+      "firstServerRack": {
+        "category": "infrastructure",
+        "displayOrder": 21,
+        "reward": {
+          "cash": 2000
+        },
+        "conditionModel": "effectiveServerRackCountAtLeast",
+        "conditionValue": 1,
+        "name": "First Rack",
+        "description": "Buy your first Server Rack."
+      },
+      "fiveInternScientists": {
+        "category": "research",
+        "displayOrder": 22,
+        "reward": {
+          "researchPoints": 60
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "internResearchScientist",
+        "conditionValue": 5,
+        "name": "Research Bench",
+        "description": "Hire 5 Intern Scientists."
+      },
+      "hundredRP": {
+        "category": "research",
+        "displayOrder": 23,
+        "reward": {
+          "researchPoints": 75
+        },
+        "conditionModel": "lifetimeResearchAtLeast",
+        "conditionValue": 100,
+        "name": "Research Momentum",
+        "description": "Generate 100 total Research Points."
+      },
+      "firstFloorSpace": {
+        "category": "research",
+        "displayOrder": 24,
+        "reward": {
+          "cash": 500
+        },
+        "conditionModel": "infrastructureCountAtLeast",
+        "targetId": "floorSpace",
+        "conditionValue": 1,
+        "name": "Floor Space Online",
+        "description": "Buy your first Floor Space expansion."
+      },
+      "firstComplianceReview": {
+        "category": "complianceLobbying",
+        "displayOrder": 25,
+        "reward": {
+          "influence": 2
+        },
+        "conditionModel": "complianceReviewsAtLeast",
+        "conditionValue": 1,
+        "name": "Under Review",
+        "description": "Trigger your first Compliance Review.",
+        "achievementKey": "first_compliance_review"
+      },
+      "fiveResearchNodes": {
+        "category": "research",
+        "displayOrder": 26,
+        "reward": {
+          "researchPoints": 125
+        },
+        "conditionModel": "researchNodesPurchasedAtLeast",
+        "conditionValue": 5,
+        "name": "Research Portfolio",
+        "description": "Purchase 5 research nodes."
+      },
+      "fiveUpgrades": {
+        "category": "gettingStarted",
+        "displayOrder": 27,
+        "reward": {
+          "cash": 1000
+        },
+        "conditionModel": "oneTimeUpgradesPurchasedAtLeast",
+        "conditionValue": 5,
+        "name": "Built Out Desk",
+        "description": "Purchase 5 one-time upgrades."
+      },
+      "firstPropDesk": {
+        "category": "institutions",
+        "displayOrder": 28,
+        "reward": {
+          "cash": 5000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "propDesk",
+        "conditionValue": 1,
+        "name": "First Prop Desk",
+        "description": "Build your first Prop Desk.",
+        "achievementKey": "first_prop_desk"
+      },
+      "firstSectorAssignment": {
+        "category": "marketsSectors",
+        "displayOrder": 29,
+        "reward": {
+          "cash": 2000
+        },
+        "conditionModel": "assignedUnitsAtLeast",
+        "conditionValue": 1,
+        "name": "First Assignment",
+        "description": "Assign your first staff unit to a sector."
+      },
+      "sectorFloorBuilt": {
+        "category": "marketsSectors",
+        "displayOrder": 30,
+        "reward": {
+          "cash": 6000
+        },
+        "conditionModel": "assignedUnitsAtLeast",
+        "conditionValue": 10,
+        "name": "Fully Deployed",
+        "description": "Assign at least 10 total staff to sectors."
+      },
+      "firstSpecialistTrainingResearch": {
+        "category": "specialization",
+        "displayOrder": 31,
+        "reward": {
+          "researchPoints": 80
+        },
+        "conditionModel": "specialistResearchUnlockedAtLeast",
+        "conditionValue": 1,
+        "name": "Training Curriculum",
+        "description": "Unlock your first specialist training research node."
+      },
+      "firstSpecialist": {
+        "category": "specialization",
+        "displayOrder": 32,
+        "reward": {
+          "researchPoints": 80
+        },
+        "conditionModel": "specialistsAtLeast",
+        "conditionValue": 1,
+        "name": "First Specialist",
+        "description": "Train your first specialist.",
+        "achievementKey": "first_specialist"
+      },
+      "correctPlacement": {
+        "category": "specialization",
+        "displayOrder": 33,
+        "reward": {
+          "cash": 5000
+        },
+        "conditionModel": "correctSpecialistAssignmentsAtLeast",
+        "conditionValue": 1,
+        "name": "Proper Placement",
+        "description": "Assign a specialist to their matching sector."
+      },
+      "specialistDesk": {
+        "category": "specialization",
+        "displayOrder": 34,
+        "reward": {
+          "researchPoints": 120
+        },
+        "conditionModel": "specialistsAtLeast",
+        "conditionValue": 5,
+        "name": "Specialist Desk",
+        "description": "Own 5 total specialists."
+      },
+      "unlockAutomation": {
+        "category": "automation",
+        "displayOrder": 35,
+        "reward": {
+          "researchPoints": 100
+        },
+        "conditionModel": "researchTechPurchased",
+        "targetId": "algorithmicTrading",
+        "name": "Systematic Trading",
+        "description": "Unlock automation."
+      },
+      "firstQuantTrader": {
+        "category": "automation",
+        "displayOrder": 36,
+        "reward": {
+          "cash": 15000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "quantTrader",
+        "conditionValue": 1,
+        "name": "First Quant Trader",
+        "description": "Buy 1 Quant Trader."
+      },
+      "firstStrategyUnlocked": {
+        "category": "automation",
+        "displayOrder": 37,
+        "reward": {
+          "researchPoints": 100
+        },
+        "conditionModel": "automationStrategiesUnlockedAtLeast",
+        "conditionValue": 1,
+        "name": "Strategy Catalog",
+        "description": "Unlock your first automation strategy."
+      },
+      "firstAutomationConfigured": {
+        "category": "automation",
+        "displayOrder": 38,
+        "reward": {
+          "cash": 25000
+        },
+        "conditionModel": "configuredAutomationClassesAtLeast",
+        "conditionValue": 1,
+        "name": "Automation Online",
+        "description": "Set a market target and strategy on an automation unit."
+      },
+      "unlockRuleBot": {
+        "category": "automation",
+        "displayOrder": 39,
+        "reward": {
+          "researchPoints": 120
+        },
+        "conditionModel": "researchTechPurchased",
+        "targetId": "ruleBasedAutomation",
+        "name": "Rule Systems Online",
+        "description": "Unlock Rule-Based Bot."
+      },
+      "firstInfrastructureUpgrade": {
+        "category": "infrastructure",
+        "displayOrder": 40,
+        "reward": {
+          "cash": 60000
+        },
+        "conditionModel": "upgradesPurchasedInGroupAtLeast",
+        "targetId": "infrastructure",
+        "conditionValue": 1,
+        "name": "Facility Standards",
+        "description": "Purchase your first Infrastructure upgrade."
+      },
+      "institutionUpgrade": {
+        "category": "institutions",
+        "displayOrder": 41,
+        "reward": {
+          "cash": 50000
+        },
+        "conditionModel": "upgradesPurchasedInGroupAtLeast",
+        "targetId": "institutions",
+        "conditionValue": 1,
+        "name": "Institutional Standards",
+        "description": "Purchase your first Institution upgrade."
+      },
+      "firstInstitutionalDesk": {
+        "category": "institutions",
+        "displayOrder": 42,
+        "reward": {
+          "cash": 60000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "institutionalDesk",
+        "conditionValue": 1,
+        "name": "Institutional Entry",
+        "description": "Build your first Institutional Desk."
+      },
+      "firstServerRoom": {
+        "category": "infrastructure",
+        "displayOrder": 43,
+        "reward": {
+          "cash": 80000
+        },
+        "conditionModel": "infrastructureCountAtLeast",
+        "targetId": "serverRoom",
+        "conditionValue": 1,
+        "name": "Server Room Online",
+        "description": "Buy your first Server Room."
+      },
+      "firstRuleBot": {
+        "category": "automation",
+        "displayOrder": 44,
+        "reward": {
+          "cash": 30000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "ruleBasedBot",
+        "conditionValue": 1,
+        "name": "First Rule Bot",
+        "description": "Buy 1 Rule-Based Bot.",
+        "achievementKey": "first_rule_bot"
+      },
+      "firstAutomationUpgrade": {
+        "category": "automation",
+        "displayOrder": 45,
+        "reward": {
+          "cash": 75000
+        },
+        "conditionModel": "upgradesPurchasedInGroupAtLeast",
+        "targetId": "automation",
+        "conditionValue": 1,
+        "name": "Machine Tuning",
+        "description": "Purchase your first Automation upgrade."
+      },
+      "unlockTechnologySector": {
+        "category": "marketsSectors",
+        "displayOrder": 46,
+        "reward": {
+          "cash": 2500
+        },
+        "conditionModel": "sectorUnlocked",
+        "targetId": "technology",
+        "name": "Technology Exposure",
+        "description": "Unlock the Technology sector."
+      },
+      "technologyFocus": {
+        "category": "marketsSectors",
+        "displayOrder": 47,
+        "reward": {
+          "cash": 4000
+        },
+        "conditionModel": "sectorIncomeAtLeast",
+        "targetId": "technology",
+        "conditionValue": 250,
+        "name": "Technology Focus",
+        "description": "Reach $250/sec from Technology."
+      },
+      "multiSectorPresence": {
+        "category": "marketsSectors",
+        "displayOrder": 48,
+        "reward": {
+          "cash": 3500
+        },
+        "conditionModel": "activeAssignedSectorsAtLeast",
+        "conditionValue": 2,
+        "name": "Active Rotation",
+        "description": "Assign staff into 2 different sectors."
+      },
+      "financeFocus": {
+        "category": "marketsSectors",
+        "displayOrder": 49,
+        "reward": {
+          "cash": 4000
+        },
+        "conditionModel": "sectorIncomeAtLeast",
+        "targetId": "finance",
+        "conditionValue": 250,
+        "name": "Finance Focus",
+        "description": "Reach $250/sec from Finance."
+      },
+      "firstExtraSector": {
+        "category": "marketsSectors",
+        "displayOrder": 50,
+        "reward": {
+          "researchPoints": 50
+        },
+        "conditionModel": "unlockedSectorsAtLeast",
+        "conditionValue": 2,
+        "name": "New Market",
+        "description": "Unlock your first sector beyond Finance."
+      },
+      "unlockEnergySector": {
+        "category": "marketsSectors",
+        "displayOrder": 51,
+        "reward": {
+          "cash": 2500
+        },
+        "conditionModel": "sectorUnlocked",
+        "targetId": "energy",
+        "name": "Energy Exposure",
+        "description": "Unlock the Energy sector."
+      },
+      "energyFocus": {
+        "category": "marketsSectors",
+        "displayOrder": 52,
+        "reward": {
+          "cash": 4000
+        },
+        "conditionModel": "sectorIncomeAtLeast",
+        "targetId": "energy",
+        "conditionValue": 250,
+        "name": "Energy Focus",
+        "description": "Reach $250/sec from Energy."
+      },
+      "firstSeniorScientist": {
+        "category": "research",
+        "displayOrder": 53,
+        "reward": {
+          "researchPoints": 75
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "seniorResearchScientist",
+        "conditionValue": 1,
+        "name": "First Senior Scientist",
+        "description": "Hire your first Senior Scientist."
+      },
+      "unlockLobbying": {
+        "category": "complianceLobbying",
+        "displayOrder": 54,
+        "reward": {
+          "influence": 3
+        },
+        "conditionModel": "lobbyingUnlockedOrDiscovered",
+        "name": "Regulatory Affairs",
+        "description": "Unlock Lobbying."
+      },
+      "firstLobbyingPolicy": {
+        "category": "complianceLobbying",
+        "displayOrder": 55,
+        "reward": {
+          "influence": 2
+        },
+        "conditionModel": "purchasedPoliciesAtLeast",
+        "conditionValue": 1,
+        "name": "First Policy Win",
+        "description": "Purchase your first lobbying policy.",
+        "achievementKey": "first_lobbying_policy"
+      },
+      "firstMandateResearch": {
+        "category": "specialization",
+        "displayOrder": 56,
+        "reward": {
+          "influence": 2
+        },
+        "conditionModel": "mandateResearchUnlockedAtLeast",
+        "conditionValue": 1,
+        "name": "Institutional Doctrine",
+        "description": "Unlock your first institutional mandate framework."
+      },
+      "firstMandate": {
+        "category": "specialization",
+        "displayOrder": 57,
+        "reward": {
+          "influence": 2
+        },
+        "conditionModel": "mandatedInstitutionsAtLeast",
+        "conditionValue": 1,
+        "name": "First Mandate",
+        "description": "Apply your first institutional mandate."
+      },
+      "alignedInstitution": {
+        "category": "specialization",
+        "displayOrder": 58,
+        "reward": {
+          "cash": 25000
+        },
+        "conditionModel": "correctMandateAssignmentsAtLeast",
+        "conditionValue": 1,
+        "name": "Strategic Alignment",
+        "description": "Assign a mandated institution to its matching sector."
+      },
+      "institutionPortfolio": {
+        "category": "institutions",
+        "displayOrder": 59,
+        "reward": {
+          "influence": 4
+        },
+        "conditionModel": "mixedUnitThresholds",
+        "thresholds": {
+          "propDesk": 1,
+          "institutionalDesk": 1,
+          "hedgeFund": 1
+        },
+        "name": "Multi-Institution Structure",
+        "description": "Own 3 different institution-tier units: 1 Prop Desk, 1 Institutional Desk, and 1 Hedge Fund."
+      },
+      "firstHedgeFund": {
+        "category": "institutions",
+        "displayOrder": 60,
+        "reward": {
+          "cash": 250000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "hedgeFund",
+        "conditionValue": 1,
+        "name": "Fund Launch",
+        "description": "Build your first Hedge Fund."
+      },
+      "firstInvestmentFirm": {
+        "category": "institutions",
+        "displayOrder": 61,
+        "reward": {
+          "cash": 1000000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "investmentFirm",
+        "conditionValue": 1,
+        "name": "Global Platform",
+        "description": "Build your first Investment Firm."
+      },
+      "machineDesk": {
+        "category": "automation",
+        "displayOrder": 62,
+        "reward": {
+          "cash": 60000
+        },
+        "conditionModel": "automationCountAtLeast",
+        "conditionValue": 5,
+        "name": "Machine Desk",
+        "description": "Own 5 total automation units."
+      },
+      "firstMLBot": {
+        "category": "automation",
+        "displayOrder": 63,
+        "reward": {
+          "researchPoints": 200
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "mlTradingBot",
+        "conditionValue": 1,
+        "name": "ML Systems",
+        "description": "Buy your first ML Bot.",
+        "achievementKey": "first_ml_bot"
+      },
+      "firstAIBot": {
+        "category": "automation",
+        "displayOrder": 64,
+        "reward": {
+          "researchPoints": 400
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "aiTradingBot",
+        "conditionValue": 1,
+        "name": "AI Systems",
+        "description": "Buy your first AI Bot."
+      },
+      "firstDataCentre": {
+        "category": "infrastructure",
+        "displayOrder": 65,
+        "reward": {
+          "cash": 500000
+        },
+        "conditionModel": "infrastructureCountAtLeast",
+        "targetId": "dataCenter",
+        "conditionValue": 1,
+        "name": "Data Centre Online",
+        "description": "Buy your first Data Centre."
+      },
+      "firstCloudCompute": {
+        "category": "infrastructure",
+        "displayOrder": 66,
+        "reward": {
+          "cash": 1500000
+        },
+        "conditionModel": "infrastructureCountAtLeast",
+        "targetId": "cloudCompute",
+        "conditionValue": 1,
+        "name": "Cloud Expansion",
+        "description": "Buy your first Cloud Infrastructure unit."
+      },
+      "threePolicies": {
+        "category": "complianceLobbying",
+        "displayOrder": 67,
+        "reward": {
+          "influence": 4
+        },
+        "conditionModel": "purchasedPoliciesAtLeast",
+        "conditionValue": 3,
+        "name": "Political Footing",
+        "description": "Purchase 3 lobbying policies."
+      },
+      "firstGovernanceUpgrade": {
+        "category": "complianceLobbying",
+        "displayOrder": 68,
+        "reward": {
+          "cash": 100000
+        },
+        "conditionModel": "upgradesPurchasedInGroupAtLeast",
+        "targetId": "complianceLobbying",
+        "conditionValue": 1,
+        "name": "Administrative Support",
+        "description": "Purchase your first Compliance & Lobbying upgrade."
+      },
+      "unlockBoosts": {
+        "category": "boosts",
+        "displayOrder": 69,
+        "reward": {
+          "cash": 75000
+        },
+        "conditionModel": "anyTimedBoostUnlocked",
+        "name": "Tactical Tools",
+        "description": "Unlock the Boosts system."
+      },
+      "firstTimedBoost": {
+        "category": "boosts",
+        "displayOrder": 70,
+        "reward": {
+          "cash": 75000
+        },
+        "conditionModel": "timedBoostActivationsAtLeast",
+        "conditionValue": 1,
+        "name": "Tactical Advantage",
+        "description": "Activate your first timed boost."
+      },
+      "firstGlobalBoost": {
+        "category": "boosts",
+        "displayOrder": 71,
+        "reward": {
+          "influence": 2
+        },
+        "conditionModel": "ownedGlobalBoostsAtLeast",
+        "conditionValue": 1,
+        "name": "Permanent Edge",
+        "description": "Own your first Global Boost."
+      },
+      "boostAutomationUnlocked": {
+        "category": "boosts",
+        "displayOrder": 72,
+        "reward": {
+          "researchPoints": 150
+        },
+        "conditionModel": "researchTechPurchased",
+        "targetId": "boostAutomationProtocols",
+        "name": "Automated Timing",
+        "description": "Unlock auto-activation for timed boosts."
+      },
+      "firstPrestige": {
+        "category": "prestige",
+        "displayOrder": 73,
+        "reward": {
+          "reputation": 1
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 1,
+        "name": "First Reset",
+        "description": "Complete Prestige 1.",
+        "achievementKey": "first_prestige"
+      },
+      "firstReputationSpend": {
+        "category": "prestige",
+        "displayOrder": 74,
+        "reward": {
+          "cash": 100000
+        },
+        "conditionModel": "reputationSpentAtLeast",
+        "conditionValue": 1,
+        "name": "Reputation Investor",
+        "description": "Spend your first Reputation point."
+      },
+      "firstPrestigeGoalRank": {
+        "category": "prestige",
+        "displayOrder": 75,
+        "reward": {
+          "cash": 250000
+        },
+        "conditionModel": "prestigeRanksPurchasedAtLeast",
+        "conditionValue": 1,
+        "name": "Legacy Investment",
+        "description": "Rank up your first prestige goal."
+      },
+      "bronzePrestige": {
+        "category": "prestige",
+        "displayOrder": 76,
+        "reward": {
+          "reputation": 2
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 2,
+        "name": "Bronze Legacy",
+        "description": "Reach Prestige 2 (Bronze).",
+        "achievementKey": "bronze_legacy"
+      },
+      "silverPrestige": {
+        "category": "prestige",
+        "displayOrder": 77,
+        "reward": {
+          "reputation": 2
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 3,
+        "name": "Silver Legacy",
+        "description": "Reach Prestige 3 (Silver)."
+      },
+      "goldPrestige": {
+        "category": "prestige",
+        "displayOrder": 78,
+        "reward": {
+          "reputation": 3
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 4,
+        "name": "Gold Legacy",
+        "description": "Reach Prestige 4 (Gold)."
+      },
+      "tenPrestigeRanks": {
+        "category": "prestige",
+        "displayOrder": 79,
+        "reward": {
+          "reputation": 2
+        },
+        "conditionModel": "prestigeRanksPurchasedAtLeast",
+        "conditionValue": 10,
+        "name": "Developing Legacy",
+        "description": "Purchase 10 total prestige goal ranks."
+      },
+      "onyxLegacy": {
+        "category": "prestige",
+        "displayOrder": 80,
+        "reward": {
+          "reputation": 5,
+          "note": "This is a top-end capstone milestone."
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 10,
+        "name": "Onyx Legacy",
+        "description": "Reach Prestige 10 (Onyx).",
+        "achievementKey": "onyx_legacy"
+      },
+      "unlockOptimisations": {
+        "category": "optimisations",
+        "displayOrder": 81,
+        "reward": {
+          "cash": 50000
+        },
+        "conditionModel": "prestigeCountAtLeast",
+        "conditionValue": 1,
+        "name": "Refinement Systems",
+        "description": "Unlock Optimisations after your first Prestige."
+      },
+      "firstOptimisation": {
+        "category": "optimisations",
+        "displayOrder": 82,
+        "reward": {
+          "cash": 50000
+        },
+        "conditionModel": "optimisationRanksAtLeast",
+        "conditionValue": 1,
+        "name": "First Refinement",
+        "description": "Buy your first Optimisation rank."
+      },
+      "firstDeskOptimization": {
+        "category": "tradingDesk",
+        "displayOrder": 83,
+        "reward": {
+          "cash": 5000,
+          "note": "Visible after Optimisations unlock later."
+        },
+        "conditionModel": "optimisationRanksByFamilyAtLeast",
+        "targetId": "desk",
+        "conditionValue": 1,
+        "name": "Refined Execution",
+        "description": "Buy your first Desk Optimisation rank."
+      },
+      "firstResearchOptimization": {
+        "category": "research",
+        "displayOrder": 84,
+        "reward": {
+          "researchPoints": 100,
+          "note": "Visible after Optimisations unlock later."
+        },
+        "conditionModel": "optimisationRanksByFamilyAtLeast",
+        "targetId": "research",
+        "conditionValue": 1,
+        "name": "Throughput Discipline",
+        "description": "Buy your first Research Optimisation rank."
+      },
+      "firstAutomationOptimization": {
+        "category": "automation",
+        "displayOrder": 85,
+        "reward": {
+          "researchPoints": 150,
+          "note": "Visible after Optimisations unlock later."
+        },
+        "conditionModel": "optimisationRanksByFamilyAtLeast",
+        "targetId": "automation",
+        "conditionValue": 1,
+        "name": "Execution Refinement",
+        "description": "Buy your first Automation Optimisation rank."
+      },
+      "firstGovernanceOptimization": {
+        "category": "complianceLobbying",
+        "displayOrder": 86,
+        "reward": {
+          "influence": 3,
+          "note": "Visible after Optimisations unlock later."
+        },
+        "conditionModel": "optimisationRanksByFamilyAtLeast",
+        "targetId": "governance",
+        "conditionValue": 1,
+        "name": "Governance Refinement",
+        "description": "Buy your first Governance Optimisation rank."
+      },
+      "tenOptimisationRanks": {
+        "category": "optimisations",
+        "displayOrder": 87,
+        "reward": {
+          "researchPoints": 150
+        },
+        "conditionModel": "optimisationRanksAtLeast",
+        "conditionValue": 10,
+        "name": "Fine Tuning",
+        "description": "Buy 10 total Optimisation ranks."
+      },
+      "fiftyOptimisationRanks": {
+        "category": "optimisations",
+        "displayOrder": 88,
+        "reward": {
+          "influence": 5
+        },
+        "conditionModel": "optimisationRanksAtLeast",
+        "conditionValue": 50,
+        "name": "Operational Excellence",
+        "description": "Buy 50 total Optimisation ranks."
+      },
+      "hundredOptimisationRanks": {
+        "category": "optimisations",
+        "displayOrder": 89,
+        "reward": {
+          "reputation": 1
+        },
+        "conditionModel": "optimisationRanksAtLeast",
+        "conditionValue": 100,
+        "name": "Systems Mastery",
+        "description": "Buy 100 total Optimisation ranks.",
+        "achievementKey": "systems_mastery"
+      }
     }
   },
   "formulaNotes": {
@@ -1053,8 +3890,18 @@
       ]
     },
     "cashPerSecond": {
-      "passiveChannels": ["generalHuman", "sectorHuman", "generalInstitution", "sectorInstitution"],
-      "uiDisplayedAlsoIncludes": ["quantTraderAverage", "ruleBasedBotAverage", "mlTradingBotAverage", "aiTradingBotAverage"]
+      "passiveChannels": [
+        "generalHuman",
+        "sectorHuman",
+        "generalInstitution",
+        "sectorInstitution"
+      ],
+      "uiDisplayedAlsoIncludes": [
+        "quantTraderAverage",
+        "ruleBasedBotAverage",
+        "mlTradingBotAverage",
+        "aiTradingBotAverage"
+      ]
     },
     "automation": {
       "payoutMultipliers": [
@@ -1073,7 +3920,11 @@
         "globalProfitBoost",
         "globalRecognition"
       ],
-      "durationMultipliers": ["executionRoutingStack", "inferenceBatching", "modelEfficiency"]
+      "durationMultipliers": [
+        "executionRoutingStack",
+        "inferenceBatching",
+        "modelEfficiency"
+      ]
     }
   },
   "knownQuirks": [

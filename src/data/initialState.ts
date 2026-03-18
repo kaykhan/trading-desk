@@ -1,8 +1,8 @@
 import type { GameState } from '../types/game'
+import { mechanics } from '../lib/mechanics'
 import { DEFAULT_AUTOMATION_CONFIG, DEFAULT_AUTOMATION_CYCLE_STATE } from './automation'
 import { DEFAULT_GLOBAL_BOOSTS_OWNED, DEFAULT_TIMED_BOOSTS } from './boosts'
 import { CAPACITY_CONSTANTS } from './capacity'
-import { GAME_CONSTANTS } from './constants'
 import { DEFAULT_UNLOCKED_SECTORS } from './sectors'
 
 export const initialState: GameState = {
@@ -95,7 +95,7 @@ export const initialState: GameState = {
       automation: false,
       institutional: false,
     },
-    shortNumberThreshold: GAME_CONSTANTS.shortNumberThreshold,
+    shortNumberThreshold: mechanics.startingState.settings.shortNumberThreshold,
   },
   ui: {
     activeDeskView: 'trading',

@@ -1,32 +1,31 @@
 import type { SectorDefinition, SectorId } from '../types/game'
+import { mechanics } from '../lib/mechanics'
 
 export const SECTORS: Record<SectorId, SectorDefinition> = {
   finance: {
     id: 'finance',
-    name: 'Finance',
-    baseProfitMultiplier: 1,
-    description: 'Stable baseline market activity for desk-aligned capital.',
+    name: mechanics.sectors.finance.name,
+    baseProfitMultiplier: mechanics.sectors.finance.baseProfitMultiplier,
+    description: mechanics.sectors.finance.description,
   },
   technology: {
     id: 'technology',
-    name: 'Technology',
-    baseProfitMultiplier: 1.2,
-    description: 'Higher-growth deployment lane with the strongest immediate profit premium.',
+    name: mechanics.sectors.technology.name,
+    baseProfitMultiplier: mechanics.sectors.technology.baseProfitMultiplier,
+    description: mechanics.sectors.technology.description,
   },
   energy: {
     id: 'energy',
-    name: 'Energy',
-    baseProfitMultiplier: 1.08,
-    description: 'Steady infrastructure-adjacent market with moderate upside and future power synergy.',
+    name: mechanics.sectors.energy.name,
+    baseProfitMultiplier: mechanics.sectors.energy.baseProfitMultiplier,
+    description: mechanics.sectors.energy.description,
   },
 }
 
 export const SECTOR_IDS = Object.keys(SECTORS) as SectorId[]
 
 export const DEFAULT_UNLOCKED_SECTORS: Record<SectorId, boolean> = {
-  finance: true,
-  technology: false,
-  energy: false,
+  ...mechanics.startingState.unlockedSectors,
 }
 
 export function getSectorDefinition(sectorId: SectorId): SectorDefinition {
