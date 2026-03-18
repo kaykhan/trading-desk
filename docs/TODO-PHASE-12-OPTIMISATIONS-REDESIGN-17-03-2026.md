@@ -1,6 +1,6 @@
 # TODO - Phase 12 Optimisations Redesign - 17-03-2026
 
-This TODO adapts `phase12.md` to the current `Trading Desk` codebase after the prestige redesign, boosts tab, compliance/lobbying systems, and the Phase 11 upgrade replacement.
+This TODO adapts `docs/phase12.md` to the current `Trading Desk` codebase after the prestige redesign, boosts tab, compliance/lobbying systems, and the Phase 11 upgrade replacement.
 
 Status legend:
 

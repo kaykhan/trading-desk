@@ -1,6 +1,6 @@
 # TODO — Phase 5 Automation Strategies and Cycle Execution — 16-03-2026
 
-This TODO adapts `stock_incremental_phase_5_automation_strategies_design_and_implementation.md` to the current `Trading Desk` codebase.
+This TODO adapts `docs/stock_incremental_phase_5_automation_strategies_design_and_implementation.md` to the current `Trading Desk` codebase.
 
 Status legend:
 

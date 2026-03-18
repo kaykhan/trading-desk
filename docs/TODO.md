@@ -1,6 +1,6 @@
 # Stock Incremental Game TODO
 
-This checklist is derived from `GAME_DESIGN_DOC.md` and reflects the implemented Zustand-based game architecture.
+This checklist is derived from `docs/GAME_DESIGN_DOC.md` and reflects the implemented Zustand-based game architecture.
 
 Workflow:
 - Complete one top-level todo before moving to the next.
@@ -424,7 +424,7 @@ Definition of done:
 ## Revision 3
 
 Note:
-- `revision3.md` is implemented as a dedicated `Optimizations` system.
+- `docs/revision3.md` is implemented as a dedicated `Optimizations` system.
 - Keep `Upgrades` as one-time purchases only.
 - Put repeatable scaling purchases in a separate `Optimizations` tab with cash-based and RP-based groups.
 

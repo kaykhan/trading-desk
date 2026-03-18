@@ -1,6 +1,6 @@
 # TODO — Phase 6 Market Events and Event UI — 17-03-2026
 
-This TODO adapts `stock_incremental_phase_6_market_events_design_and_implementation.md` to the current `Trading Desk` codebase.
+This TODO adapts `docs/stock_incremental_phase_6_market_events_design_and_implementation.md` to the current `Trading Desk` codebase.
 
 Status legend:
 

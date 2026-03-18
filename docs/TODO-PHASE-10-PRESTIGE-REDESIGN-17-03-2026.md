@@ -1,6 +1,6 @@
 # TODO - Phase 10 Prestige Redesign - 17-03-2026
 
-This TODO adapts `stock_incremental_phase_10_prestige_redesign_design_and_implementation.md` to the current `Trading Desk` codebase after compliance, lobbying, and boosts work.
+This TODO adapts `docs/stock_incremental_phase_10_prestige_redesign_design_and_implementation.md` to the current `Trading Desk` codebase after compliance, lobbying, and boosts work.
 
 Status legend:
 

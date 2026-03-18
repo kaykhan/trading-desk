@@ -1,6 +1,6 @@
 # TODO — Phase 2 Capacity / Infrastructure — 16-03-2026
 
-This checklist turns `stock_incremental_phase_2_capacity_infrastructure_design_and_code.md` into an implementation plan for the current codebase.
+This checklist turns `docs/stock_incremental_phase_2_capacity_infrastructure_design_and_code.md` into an implementation plan for the current codebase.
 
 The goal is to add the first human-side physical scaling constraint through Desk Slots, office expansion, and floor expansion while preserving the existing Phase 1 staff + sectors flow.
 

@@ -1,6 +1,6 @@
 # TODO — Phase 4B Institutional Mandates — 16-03-2026
 
-This TODO adapts `stock_incremental_phase_4_b_institutional_mandates.md` to the current `Trading Desk` codebase.
+This TODO adapts `docs/stock_incremental_phase_4_b_institutional_mandates.md` to the current `Trading Desk` codebase.
 
 Status legend:
 

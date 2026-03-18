@@ -2,7 +2,7 @@
 
 This TODO is based on the design source of truth:
 
-- `stock_incremental_headless_simulation_design_doc.md`
+- `docs/stock_incremental_headless_simulation_design_doc.md`
 
 Status legend:
 

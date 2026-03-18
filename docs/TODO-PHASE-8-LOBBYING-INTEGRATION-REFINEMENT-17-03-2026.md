@@ -1,6 +1,6 @@
 # TODO - Phase 8 Lobbying Integration Refinement - 17-03-2026
 
-This TODO adapts `stock_incremental_phase_8_lobbying_integration_refinement.md` to the current `Trading Desk` codebase after Phase 7 and Phase 7.1 compliance work.
+This TODO adapts `docs/stock_incremental_phase_8_lobbying_integration_refinement.md` to the current `Trading Desk` codebase after Phase 7 and Phase 7.1 compliance work.
 
 Status legend:
 

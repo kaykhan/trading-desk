@@ -1,6 +1,6 @@
 # TODO - Phase 7 Revised Compliance and Regulation - 17-03-2026
 
-This TODO adapts `stock_incremental_phase_7_revised_compliance_regulation_design_and_implementation.md` to the current `Trading Desk` codebase.
+This TODO adapts `docs/stock_incremental_phase_7_revised_compliance_regulation_design_and_implementation.md` to the current `Trading Desk` codebase.
 
 Status legend:
 

@@ -1,6 +1,6 @@
 # TODO - Phase 9 Boosts Tab / Temporary Abilities - 17-03-2026
 
-This TODO adapts `stock_incremental_phase_9_boosts_tab_design_and_implementation.md` to the current `Trading Desk` codebase after market events, compliance, and lobbying integration.
+This TODO adapts `docs/stock_incremental_phase_9_boosts_tab_design_and_implementation.md` to the current `Trading Desk` codebase after market events, compliance, and lobbying integration.
 
 Status legend:
 

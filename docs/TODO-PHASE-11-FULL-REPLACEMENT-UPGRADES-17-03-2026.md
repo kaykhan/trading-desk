@@ -1,6 +1,6 @@
 # TODO - Phase 11 Full Replacement Upgrade Sheet - 17-03-2026
 
-This TODO adapts `stock_incremental_phase_11_full_replacement_upgrade_sheet.md` to the current `Trading Desk` codebase after prestige redesign, boosts, compliance, and lobbying integration.
+This TODO adapts `docs/stock_incremental_phase_11_full_replacement_upgrade_sheet.md` to the current `Trading Desk` codebase after prestige redesign, boosts, compliance, and lobbying integration.
 
 Status legend:
 

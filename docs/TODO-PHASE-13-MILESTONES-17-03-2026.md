@@ -2,8 +2,8 @@
 
 This TODO adapts both milestone source-of-truth docs to the current `Trading Desk` repo:
 
-- `stock_incremental_phase_13_milestones_design_and_implementation.md`
-- `stock_incremental_phase_13_milestones_full_spec_sheet.md`
+- `docs/stock_incremental_phase_13_milestones_design_and_implementation.md`
+- `docs/stock_incremental_phase_13_milestones_full_spec_sheet.md`
 
 Status legend:
 

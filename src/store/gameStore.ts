@@ -926,10 +926,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }, state))
   },
   payComplianceCategory: (category: CompliancePaymentCategoryId) => {
-    set((state) => withMilestones({
-      ...payComplianceCategoryNow(state, category),
-      totalCompliancePaymentsMade: state.totalCompliancePaymentsMade + 1,
-    }, state))
+    set((state) => {
+      const paymentResult = payComplianceCategoryNow(state, category)
+      const paymentMade = paymentResult.cash < state.cash
+
+      return withMilestones({
+        ...paymentResult,
+        totalCompliancePaymentsMade: state.totalCompliancePaymentsMade + (paymentMade ? 1 : 0),
+      }, state)
+    })
   },
   setComplianceAutoPayEnabled: (category: CompliancePaymentCategoryId, enabled) => {
     set((state) => ({

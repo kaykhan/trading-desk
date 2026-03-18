@@ -141,6 +141,8 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'firstIntern': return state.internCount >= 1
     case 'smallTeam': return state.internCount >= 5
     case 'firstJuniorTrader': return state.juniorTraderCount >= 1
+    case 'firstDeskSpace': return state.deskSpaceCount >= 1
+    case 'fourUpgrades': return getPurchasedUpgradeCount(state) >= 3
     case 'juniorDesk': return state.juniorTraderCount >= 5
     case 'firstSeniorTrader': return state.seniorTraderCount >= 1
     case 'builtTheDesk': return state.internCount >= 3 && state.juniorTraderCount >= 3 && state.seniorTraderCount >= 1
@@ -153,10 +155,12 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'humanDeskScaled': return state.internCount + state.juniorTraderCount + state.seniorTraderCount >= 25
     case 'unlockResearch': return getResearchUnlocked(state)
     case 'firstInternScientist': return state.internResearchScientistCount >= 1
+    case 'fiveInternScientists': return state.internResearchScientistCount >= 5
     case 'firstFloorSpace': return state.floorSpaceCount >= 1
     case 'firstSeniorScientist': return state.seniorResearchScientistCount >= 1
     case 'firstResearchNode': return getPurchasedResearchNodeCount(state) >= 1
     case 'hundredRP': return state.lifetimeResearchPointsEarned >= 100
+    case 'fiveUpgrades': return getPurchasedUpgradeCount(state) >= 5
     case 'fiveResearchNodes': return getPurchasedResearchNodeCount(state) >= 5
     case 'firstResearchOptimization': return getOptimisationRanksByFamily(state, 'research') >= 1
     case 'firstExtraSector': return getUnlockedSectorCount(state) >= 2
@@ -198,8 +202,7 @@ function getMilestoneCondition(state: GameState, milestoneId: MilestoneId): bool
     case 'firstCloudCompute': return state.cloudComputeCount >= 1
     case 'firstInfrastructureUpgrade': return getPurchasedUpgradeCountByGroup(state, 'infrastructure') >= 1
     case 'firstComplianceReview': return state.totalComplianceReviewsTriggered >= 1
-    case 'firstCompliancePayment': return state.totalCompliancePaymentsMade >= 1
-    case 'firstComplianceTabVisit': return state.complianceTabOpened === true
+    case 'firstCompliancePayment': return state.totalCompliancePaymentsMade >= 1 || state.lastCompliancePayment > 0
     case 'unlockLobbying': return isLobbyingUnlocked(state) || state.discoveredLobbying
     case 'firstLobbyingPolicy': return getTotalPurchasedPolicies(state) >= 1
     case 'threePolicies': return getTotalPurchasedPolicies(state) >= 3
@@ -335,8 +338,12 @@ export function getMilestoneProgressLabel(state: GameState, milestoneId: Milesto
   switch (milestoneId) {
     case 'activeDesk': return `${state.lifetimeManualTrades}/25 trades`
     case 'smallTeam': return `${state.internCount}/5 interns`
+    case 'firstDeskSpace': return `${state.deskSpaceCount}/1 desk space`
+    case 'fourUpgrades': return `${getPurchasedUpgradeCount(state)}/3 upgrades`
     case 'juniorDesk': return `${state.juniorTraderCount}/5 juniors`
+    case 'fiveInternScientists': return `${state.internResearchScientistCount}/5 intern scientists`
     case 'firstFloorSpace': return `${state.floorSpaceCount}/1 floor space`
+    case 'fiveUpgrades': return `${getPurchasedUpgradeCount(state)}/5 upgrades`
     case 'tenInterns': return `${state.internCount}/10 interns`
     case 'tenJuniors': return `${state.juniorTraderCount}/10 juniors`
     case 'threeSeniors': return `${state.seniorTraderCount}/3 seniors`
