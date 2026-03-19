@@ -1,5 +1,6 @@
 import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import type { GameState, InstitutionalMandateId, InstitutionalMandateUnitId, SectorId } from '../types/game'
+import { mechanics } from '../lib/mechanics'
 
 const MANDATE_IDS: InstitutionalMandateId[] = ['finance', 'technology', 'energy']
 
@@ -37,19 +38,14 @@ export function getInstitutionMandateBonus(state: GameState, unitId: Institution
     return 1
   }
 
-  const base = unitId === 'propDesk' ? 1.05 : unitId === 'institutionalDesk' ? 1.075 : unitId === 'hedgeFund' ? 1.1 : 1.125
+  const base = mechanics.mandates.matchingSectorBaseBonus[unitId]
   return base * getRepeatableUpgradeMultiplier(state, 'trainingMethodology')
 }
 
 export function getInstitutionMandateResearchUnlockId(mandateId: InstitutionalMandateId): 'financeMandateFramework' | 'techGrowthMandateFramework' | 'energyExposureFramework' {
-  if (mandateId === 'finance') return 'financeMandateFramework'
-  if (mandateId === 'technology') return 'techGrowthMandateFramework'
-  return 'energyExposureFramework'
+  return mechanics.mandates.researchUnlocks[mandateId] as 'financeMandateFramework' | 'techGrowthMandateFramework' | 'energyExposureFramework'
 }
 
 export function getInstitutionMandateApplicationCost(unitId: InstitutionalMandateUnitId): number {
-  if (unitId === 'propDesk') return 5_000
-  if (unitId === 'institutionalDesk') return 12_000
-  if (unitId === 'hedgeFund') return 30_000
-  return 75_000
+  return mechanics.mandates.applicationCostCash[unitId]
 }

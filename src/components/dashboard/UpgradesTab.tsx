@@ -1,4 +1,5 @@
-import { AUTOMATION_UPGRADES, COMPLIANCE_LOBBYING_UPGRADES, INFRASTRUCTURE_UPGRADES, INSTITUTION_UPGRADES, RESEARCH_SYSTEM_UPGRADES, TRADING_DESK_UPGRADES } from '@/data/tabContent'
+import { UPGRADE_GROUPS } from '@/data/tabContent'
+import { UPGRADE_GROUP_DESCRIPTIONS, UPGRADE_GROUP_LABELS } from '@/data/upgrades'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import { formatCurrency } from '@/utils/formatting'
@@ -6,39 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { ActionRow } from './DashboardPrimitives'
-
-const UPGRADE_SECTIONS = [
-  {
-    title: 'Trading Desk Upgrades',
-    description: 'Manual trading, trader output, and broad desk-side scaling.',
-    upgrades: TRADING_DESK_UPGRADES,
-  },
-  {
-    title: 'Research Upgrades',
-    description: 'Improve Research Point output and research-side support.',
-    upgrades: RESEARCH_SYSTEM_UPGRADES,
-  },
-  {
-    title: 'Institution Upgrades',
-    description: 'Permanent output upgrades for Prop Desks, Institutional Desks, Hedge Funds, and Investment Firms.',
-    upgrades: INSTITUTION_UPGRADES,
-  },
-  {
-    title: 'Automation Upgrades',
-    description: 'Improve automation cycle payout, execution efficiency, and machine trading performance.',
-    upgrades: AUTOMATION_UPGRADES,
-  },
-  {
-    title: 'Infrastructure Upgrades',
-    description: 'Increase capacity and reduce machine load across infrastructure systems.',
-    upgrades: INFRASTRUCTURE_UPGRADES,
-  },
-  {
-    title: 'Compliance & Lobbying Upgrades',
-    description: 'Permanent support improvements for influence generation and compliance-side efficiency.',
-    upgrades: COMPLIANCE_LOBBYING_UPGRADES,
-  },
-] as const
 
 function getUpgradeLockedReason(upgradeId: string, state: ReturnType<typeof useGameStore.getState>) {
   switch (upgradeId) {
@@ -128,12 +96,12 @@ export function UpgradesTab() {
       <CardContent className="flex h-full min-h-0 flex-col gap-2">
         <ScrollArea className="h-full min-h-0 pr-2">
           <div className="space-y-3">
-            {UPGRADE_SECTIONS.map((section, index) => {
+            {UPGRADE_GROUPS.map((section, index) => {
               return (
-                <div key={section.title} className="space-y-2">
+                <div key={section.group} className="space-y-2">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary">{section.title}</p>
-                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{section.description}</p>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary">{UPGRADE_GROUP_LABELS[section.group]}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{UPGRADE_GROUP_DESCRIPTIONS[section.group]}</p>
                   </div>
                   {section.upgrades.length > 0 ? section.upgrades.map((upgrade) => {
                     const isPurchased = selectors.isUpgradePurchased(upgrade.id)(gameState)
@@ -156,7 +124,7 @@ export function UpgradesTab() {
                       />
                     )
                   }) : <div className="rounded-xl border border-border/70 bg-background/45 p-2 text-[11px] text-muted-foreground">No upgrades visible yet for this system.</div>}
-                  {index < UPGRADE_SECTIONS.length - 1 ? <Separator className="bg-border/60" /> : null}
+                  {index < UPGRADE_GROUPS.length - 1 ? <Separator className="bg-border/60" /> : null}
                 </div>
               )
             })}

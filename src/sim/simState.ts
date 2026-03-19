@@ -4,13 +4,25 @@ import { MILESTONES } from '../data/milestones'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
 import type { GameState, LobbyingPolicyId, MilestoneId, PrestigeUpgradeId, ResearchTechId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
 
-export type SimPolicyId = 'unlockChasing' | 'roi' | 'prestigeAware'
+export type SimPolicyId = 'unlockChasing' | 'roi' | 'prestigeAware' | 'milestoneGuided'
 
 export type UnlockRecord = {
   milestoneId: MilestoneId
   name: string
   elapsedSeconds: number
   run: number
+  cash: number
+  researchPoints: number
+  influence: number
+  lifetimeCash: number
+  internCount: number
+  juniorTraderCount: number
+  seniorTraderCount: number
+  internResearchScientistCount: number
+  juniorResearchScientistCount: number
+  seniorResearchScientistCount: number
+  propDeskCount: number
+  quantTraderCount: number
 }
 
 export type SimMetrics = {
@@ -59,6 +71,21 @@ export type SimResult = {
   stalled: boolean
 }
 
+export type SimCheckpointSnapshot = {
+  requestedSeconds: number
+  capturedAtSeconds: number
+  run: number
+  game: GameState
+  seenMilestoneIds: MilestoneId[]
+  stalled: boolean
+  stallReason: string | null
+}
+
+export type SimCheckpointResult = {
+  checkpoints: SimCheckpointSnapshot[]
+  result: SimResult
+}
+
 export const RESEARCH_PRIORITY: ResearchTechId[] = [
   'foundationsOfFinanceTraining',
   'juniorTraderProgram',
@@ -69,7 +96,7 @@ export const RESEARCH_PRIORITY: ResearchTechId[] = [
   'propDeskOperations',
   'algorithmicTrading',
   'meanReversionModels',
-  'powerSystemsEngineering',
+  'serverRackSystems',
   'momentumModels',
   'regulatoryAffairs',
   'aggressiveTradingWindowProtocols',
@@ -109,7 +136,7 @@ export const RESEARCH_RUSH_PRIORITY: ResearchTechId[] = [
   'propDeskOperations',
   'algorithmicTrading',
   'meanReversionModels',
-  'powerSystemsEngineering',
+  'serverRackSystems',
   'momentumModels',
   'regulatoryAffairs',
   'ruleBasedAutomation',
@@ -246,7 +273,7 @@ export const PRESTIGE_AWARE_SIM_CONFIG: SimConfig = {
     'seniorRecruitment',
     'algorithmicTrading',
     'meanReversionModels',
-    'powerSystemsEngineering',
+    'serverRackSystems',
     'ruleBasedAutomation',
     'juniorScientists',
     'technologyMarkets',
@@ -300,10 +327,17 @@ export const PRESTIGE_AWARE_SIM_CONFIG: SimConfig = {
   prestigeRequiresRuleBot: true,
 }
 
+export const MILESTONE_GUIDED_SIM_CONFIG: SimConfig = {
+  ...DEFAULT_SIM_CONFIG,
+  policyId: 'milestoneGuided',
+  prestigeMinReputationGain: 1,
+}
+
 export function cloneGameState(state: GameState): GameState {
   return {
     ...state,
     unlockedMilestones: { ...state.unlockedMilestones },
+    unlockedMetaMilestones: { ...state.unlockedMetaMilestones },
     compliancePayments: {
       staff: { ...state.compliancePayments.staff },
       energy: { ...state.compliancePayments.energy },

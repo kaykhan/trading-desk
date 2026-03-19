@@ -62,6 +62,7 @@ function withMilestones(nextState: Partial<GameStore>, baseState: GameStore): Pa
     ...rewardState,
     ...(stateForEvaluation.baseDeskSlots !== baseDeskSlotsBeforeRewards ? { baseDeskSlots: stateForEvaluation.baseDeskSlots } : {}),
     unlockedMilestones: evaluation.unlockedMilestones,
+    unlockedMetaMilestones: evaluation.unlockedMetaMilestones,
     milestoneUnlockQueue: [...baseState.milestoneUnlockQueue, ...evaluation.newlyUnlockedIds],
   }
 }
@@ -102,6 +103,7 @@ function getSnapshot(state: GameStore) {
     researchPoints: state.researchPoints,
     influence: state.influence,
     unlockedMilestones: state.unlockedMilestones,
+    unlockedMetaMilestones: state.unlockedMetaMilestones,
     lifetimeManualTrades: state.lifetimeManualTrades,
     lifetimeResearchPointsEarned: state.lifetimeResearchPointsEarned,
     totalComplianceReviewsTriggered: state.totalComplianceReviewsTriggered,

@@ -101,7 +101,7 @@ export function isAutomationUnlocked(state: GameState): boolean {
 }
 
 export function isPowerInfrastructureUnlocked(state: GameState): boolean {
-  return isResearchGateMet(state, 'powerSystemsEngineering')
+  return isResearchGateMet(state, 'serverRackSystems')
 }
 
 export function isLobbyingUnlocked(state: GameState): boolean {

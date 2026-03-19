@@ -1,13 +1,14 @@
 import { TIMED_BOOSTS } from '../data/boosts'
 import { CAPACITY_INFRASTRUCTURE } from '../data/capacity'
 import { getLobbyingPolicyDefinition } from '../data/lobbyingPolicies'
+import { MILESTONES } from '../data/milestones'
 import { POWER_INFRASTRUCTURE } from '../data/powerInfrastructure'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
 import { getRepeatableUpgradeCost, getRepeatableUpgradeDefinition, REPEATABLE_UPGRADES } from '../data/repeatableUpgrades'
 import { getResearchTechDefinition, RESEARCH_TECH } from '../data/researchTech'
 import { getUpgradeDefinition } from '../data/upgrades'
-import { isAutomationStrategyDefinitionUnlocked } from '../lib/mechanics'
-import type { AutomationStrategyId, AutomationUnitId, CompliancePaymentCategoryId, GameState, LobbyingPolicyId, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, SectorId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
+import { isAutomationStrategyDefinitionUnlocked, mechanics } from '../lib/mechanics'
+import type { AutomationStrategyId, AutomationUnitId, CompliancePaymentCategoryId, GameState, LobbyingPolicyId, MilestoneDefinition, MilestoneRequirement, PowerInfrastructureId, PrestigeUpgradeId, RepeatableUpgradeId, SectorId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
 import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getTotalDeskSlots, getUsedDeskSlots, isCapacityInfrastructureVisible } from '../utils/capacity'
 import { payComplianceCategoryNow } from '../utils/compliance'
 import { getAutomationBulkCost } from '../utils/automation'
@@ -21,7 +22,6 @@ import type { SimConfig, SimState } from './simState'
 
 const POWER_IDS: PowerInfrastructureId[] = ['serverRack', 'serverRoom', 'dataCenter', 'cloudCompute']
 const COMPLIANCE_CATEGORIES: CompliancePaymentCategoryId[] = ['staff', 'energy', 'automation', 'institutional']
-
 function buyUpgrade(game: GameState, upgradeId: UpgradeId): boolean {
   const upgrade = getUpgradeDefinition(upgradeId)
 
@@ -561,6 +561,16 @@ function getOwnedCount(game: GameState, unitId: UnitId): number {
   return game.juniorPoliticianCount
 }
 
+function getOwnedInfrastructureCount(game: GameState, infrastructureId: 'deskSpace' | 'floorSpace' | 'office' | PowerInfrastructureId): number {
+  if (infrastructureId === 'deskSpace') return game.deskSpaceCount
+  if (infrastructureId === 'floorSpace') return game.floorSpaceCount
+  if (infrastructureId === 'office') return game.officeCount
+  if (infrastructureId === 'serverRack') return game.serverRackCount
+  if (infrastructureId === 'serverRoom') return game.serverRoomCount
+  if (infrastructureId === 'dataCenter') return game.dataCenterCount
+  return game.cloudComputeCount
+}
+
 function getNextUnitCost(game: GameState, unitId: UnitId): number | null {
   if (!isUnitUnlocked(game, unitId)) {
     return null
@@ -616,7 +626,7 @@ function getProgressionBottleneckTargets(game: GameState): { tech: Set<string>; 
   if (game.seniorTraderCount < 5) unit.add('seniorTrader')
   if (!game.purchasedResearchTech.algorithmicTrading) tech.add('algorithmicTrading')
   if (game.quantTraderCount < 1) unit.add('quantTrader')
-  if (!game.purchasedResearchTech.powerSystemsEngineering) tech.add('powerSystemsEngineering')
+  if (!game.purchasedResearchTech.serverRackSystems) tech.add('serverRackSystems')
   if (!game.purchasedResearchTech.ruleBasedAutomation) tech.add('ruleBasedAutomation')
   if (game.ruleBasedBotCount < 5) unit.add('ruleBasedBot')
   if (!game.purchasedResearchTech.regulatoryAffairs) tech.add('regulatoryAffairs')
@@ -753,6 +763,417 @@ function canAffordSoon(game: GameState, cost: number, secondsWindow = 300): bool
 
   const cps = getCashPerSecond(game)
   return cps > 0 && game.cash + cps * secondsWindow >= cost
+}
+
+function getTargetedMilestone(state: SimState) {
+  return MILESTONES.find((milestone) => milestone.scope === 'run' && state.game.unlockedMilestones[milestone.id] !== true && (milestone.requiresMilestones ?? []).every((requiredId) => state.game.unlockedMilestones[requiredId] === true || state.game.unlockedMetaMilestones[requiredId] === true)) ?? null
+}
+
+function buyAffordableFromList<T extends string>(items: readonly T[], attempt: (id: T) => boolean): boolean {
+  for (const item of items) {
+    if (attempt(item)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function buyResearchPath(game: GameState, techId: (typeof RESEARCH_TECH)[number]['id'], seen: Set<(typeof RESEARCH_TECH)[number]['id']> = new Set()): boolean {
+  if (seen.has(techId) || game.purchasedResearchTech[techId]) {
+    return false
+  }
+
+  seen.add(techId)
+
+  const definition = getResearchTechDefinition(techId)
+  if (!definition) {
+    return false
+  }
+
+  for (const prerequisiteId of definition.prerequisites ?? []) {
+    if (!game.purchasedResearchTech[prerequisiteId] && buyResearchPath(game, prerequisiteId, seen)) {
+      return true
+    }
+  }
+
+  return buyResearchTech(game, techId)
+}
+
+function buyOrUnlockUnit(game: GameState, unitId: UnitId): boolean {
+  if (buyUnit(game, unitId)) {
+    return true
+  }
+
+  const unlockTechId = mechanics.units[unitId].unlockResearchTechId
+  return typeof unlockTechId === 'string' ? buyResearchPath(game, unlockTechId as (typeof RESEARCH_TECH)[number]['id']) : false
+}
+
+function buyOrUnlockInfrastructure(game: GameState, infrastructureId: 'deskSpace' | 'floorSpace' | 'office' | PowerInfrastructureId): boolean {
+  if (infrastructureId === 'deskSpace' || infrastructureId === 'floorSpace' || infrastructureId === 'office') {
+    if (buyCapacityInfrastructure(game, infrastructureId)) {
+      return true
+    }
+
+    const unlockTechId = mechanics.capacityInfrastructure[infrastructureId].unlockResearchTechId
+    return typeof unlockTechId === 'string' ? buyResearchPath(game, unlockTechId as (typeof RESEARCH_TECH)[number]['id']) : false
+  }
+
+  if (buyPowerInfrastructure(game, infrastructureId)) {
+    return true
+  }
+
+  const unlockTechId = mechanics.powerInfrastructure[infrastructureId].unlockResearchTechId
+  return typeof unlockTechId === 'string' ? buyResearchPath(game, unlockTechId as (typeof RESEARCH_TECH)[number]['id']) : false
+}
+
+function buyBestAvailableResearchInPriority(game: GameState, config: SimConfig, predicate?: (techId: (typeof RESEARCH_TECH)[number]['id']) => boolean): boolean {
+  for (const techId of config.researchPriority) {
+    if (predicate && !predicate(techId)) {
+      continue
+    }
+
+    if (buyResearchPath(game, techId)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function buyBestAvailableUnitInPriority(game: GameState, config: SimConfig, predicate?: (unitId: UnitId) => boolean): boolean {
+  for (const unitId of config.unitPriority) {
+    if (predicate && !predicate(unitId)) {
+      continue
+    }
+
+    if (buyOrUnlockUnit(game, unitId)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function buyBestAvailableUpgradeInPriority(game: GameState, config: SimConfig, predicate?: (upgradeId: UpgradeId) => boolean): boolean {
+  for (const upgradeId of config.upgradePriority) {
+    if (predicate && !predicate(upgradeId)) {
+      continue
+    }
+
+    if (buyUpgrade(game, upgradeId)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function buyBestAvailablePolicyInPriority(game: GameState, config: SimConfig): boolean {
+  for (const policyId of config.policyPriority) {
+    if (buyLobbyingPolicy(game, policyId)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function ensureCapacityAndPower(game: GameState): boolean {
+  let acted = false
+
+  if (getUsedDeskSlots(game) >= getTotalDeskSlots(game)) {
+    acted = buyCapacityInfrastructure(game, 'deskSpace') || acted
+    acted = buyCapacityInfrastructure(game, 'floorSpace') || acted
+    acted = buyCapacityInfrastructure(game, 'office') || acted
+  }
+
+  while (getPowerUsage(game) > getPowerCapacity(game) && buyBestPowerInfrastructure(game)) {
+    acted = true
+  }
+
+  return acted
+}
+
+function applyPassiveSimManagement(game: GameState, config: SimConfig, milestone: MilestoneDefinition | null): boolean {
+  let acted = false
+  acted = ensureCapacityAndPower(game) || acted
+  setAutomationConfig(game)
+  rebalanceSectors(game)
+
+  if (milestone?.category === 'specialization') {
+    trainSpecialists(game)
+    applyMandates(game)
+  }
+
+  payCompliance(game)
+
+  if (milestone?.category === 'boosts' || milestone?.conditionModel === 'timedBoostActivationsAtLeast') {
+    for (const boostId of config.timedBoostPriority) {
+      acted = activateTimedBoost(game, boostId) || acted
+    }
+  }
+
+  return acted
+}
+
+function buyBoostSupport(game: GameState): boolean {
+  return buyAffordableFromList(
+    ['researchSprintProtocols', 'aggressiveTradingWindowProtocols', 'deployReserveCapitalProtocols'] as const,
+    (techId) => buyResearchPath(game, techId),
+  )
+}
+
+
+function buyThresholdUnitsForMilestone(game: GameState, milestone: MilestoneDefinition): boolean {
+  if (milestone.id === 'firstIntern' || milestone.id === 'smallTeam' || milestone.id === 'tenInterns') {
+    return buyOrUnlockUnit(game, 'intern')
+  }
+
+  if (milestone.id === 'firstJuniorTrader' || milestone.id === 'juniorDesk' || milestone.id === 'tenJuniors') {
+    return buyOrUnlockUnit(game, 'juniorTrader')
+  }
+
+  if (milestone.id === 'firstSeniorTrader' || milestone.id === 'threeSeniors') {
+    return buyOrUnlockUnit(game, 'seniorTrader')
+  }
+
+  if (milestone.id === 'firstInternScientist' || milestone.id === 'fiveInternScientists') {
+    return buyOrUnlockUnit(game, 'internResearchScientist')
+  }
+
+  if (milestone.conditionModel === 'unitCountAtLeast' && typeof milestone.targetId === 'string') {
+    const targetUnitId = milestone.targetId as UnitId
+    const targetCount = milestone.conditionValue ?? 0
+    if (getOwnedCount(game, targetUnitId) < targetCount) {
+      return buyOrUnlockUnit(game, targetUnitId)
+    }
+  }
+
+  if (milestone.conditionModel === 'humanCountAtLeast') {
+    const target = milestone.conditionValue ?? 0
+    const current = game.internCount + game.juniorTraderCount + game.seniorTraderCount
+    if (current < target) {
+      const missing = target - current
+      if (game.internCount < 10) {
+        return buyOrUnlockUnit(game, 'intern')
+      }
+
+      if (game.juniorTraderCount < 10) {
+        return buyOrUnlockUnit(game, 'juniorTrader')
+      }
+
+      if (missing > 0) {
+        return buyOrUnlockUnit(game, 'seniorTrader')
+      }
+    }
+  }
+
+  return false
+}
+
+function satisfyMilestoneRequirement(game: GameState, requirement: MilestoneRequirement): boolean {
+  const targetQuantity = Math.max(1, requirement.quantity ?? 1)
+
+  if (requirement.type === 'researchTech') {
+    return buyResearchPath(game, requirement.id as (typeof RESEARCH_TECH)[number]['id'])
+  }
+
+  if (requirement.type === 'unit') {
+    const unitId = requirement.id as UnitId
+    return getOwnedCount(game, unitId) < targetQuantity ? buyOrUnlockUnit(game, unitId) : false
+  }
+
+  if (requirement.type === 'capacityInfrastructure' || requirement.type === 'powerInfrastructure') {
+    const infrastructureId = requirement.id as 'deskSpace' | 'floorSpace' | 'office' | PowerInfrastructureId
+    return getOwnedInfrastructureCount(game, infrastructureId) < targetQuantity ? buyOrUnlockInfrastructure(game, infrastructureId) : false
+  }
+
+  if (requirement.type === 'upgrade') {
+    return buyUpgrade(game, requirement.id as UpgradeId)
+  }
+
+  return buyLobbyingPolicy(game, requirement.id as LobbyingPolicyId)
+}
+
+function satisfyMilestoneRequirements(game: GameState, milestone: MilestoneDefinition): boolean {
+  for (const requirement of milestone.requirements ?? []) {
+    if (requirement.type === 'researchTech' && game.purchasedResearchTech[requirement.id as (typeof RESEARCH_TECH)[number]['id']] === true) {
+      continue
+    }
+
+    if (requirement.type === 'unit' && getOwnedCount(game, requirement.id as UnitId) >= (requirement.quantity ?? 1)) {
+      continue
+    }
+
+    if ((requirement.type === 'capacityInfrastructure' || requirement.type === 'powerInfrastructure') && getOwnedInfrastructureCount(game, requirement.id as 'deskSpace' | 'floorSpace' | 'office' | PowerInfrastructureId) >= (requirement.quantity ?? 1)) {
+      continue
+    }
+
+    if (requirement.type === 'upgrade' && game.purchasedUpgrades[requirement.id as UpgradeId] === true) {
+      continue
+    }
+
+    if (requirement.type === 'policy' && game.purchasedPolicies[requirement.id as LobbyingPolicyId] === true) {
+      continue
+    }
+
+    return satisfyMilestoneRequirement(game, requirement)
+  }
+
+  return false
+}
+
+function actForMilestone(state: SimState, config: SimConfig): boolean {
+  const game = state.game
+  const milestone = getTargetedMilestone(state)
+
+  if (!milestone) {
+    return false
+  }
+
+  if (satisfyMilestoneRequirements(game, milestone)) {
+    return true
+  }
+
+  switch (milestone.conditionModel) {
+    case 'manualTradesAtLeast':
+    case 'lifetimeResearchAtLeast':
+    case 'complianceReviewsAtLeast':
+    case 'timedBoostActivationsAtLeast':
+    case 'reputationSpentAtLeast':
+    case 'prestigeRanksPurchasedAtLeast':
+    case 'optimisationRanksAtLeast':
+      return false
+    case 'prestigeCountAtLeast':
+      return buyResearchPath(game, 'algorithmicTrading') || buyOrUnlockUnit(game, 'quantTrader') || buyResearchPath(game, 'ruleBasedAutomation') || buyOrUnlockUnit(game, 'ruleBasedBot')
+    case 'researchUnlocked':
+      return buyResearchPath(game, 'foundationsOfFinanceTraining')
+    case 'researchTechPurchased':
+      return typeof milestone.targetId === 'string' ? buyResearchPath(game, milestone.targetId as (typeof RESEARCH_TECH)[number]['id']) : false
+    case 'unitCountAtLeast':
+      return typeof milestone.targetId === 'string' ? buyOrUnlockUnit(game, milestone.targetId as UnitId) : false
+    case 'infrastructureCountAtLeast':
+      if (milestone.targetId === 'deskSpace' || milestone.targetId === 'floorSpace' || milestone.targetId === 'office') {
+        return buyOrUnlockInfrastructure(game, milestone.targetId)
+      }
+
+      if (typeof milestone.targetId === 'string') {
+        return buyOrUnlockInfrastructure(game, milestone.targetId as PowerInfrastructureId)
+      }
+
+      return false
+    case 'oneTimeUpgradesPurchasedAtLeast':
+      return buyBestAvailableUpgradeInPriority(game, config)
+    case 'mixedUnitThresholds': {
+      const thresholds = milestone.thresholds ?? {}
+      for (const unitId of Object.keys(thresholds) as UnitId[]) {
+        const target = thresholds[unitId] ?? 0
+        if (getOwnedCount(game, unitId) < target && buyOrUnlockUnit(game, unitId)) {
+          return true
+        }
+      }
+      return false
+    }
+    case 'deskOrDeskPlusInstitutionIncomeAtLeast':
+      return buyAffordableFromList(
+        ['seniorTrader', 'juniorTrader', 'intern'] as const,
+        (unitId) => buyOrUnlockUnit(game, unitId),
+      )
+    case 'humanCountAtLeast':
+      return buyBestAvailableUnitInPriority(game, config, (unitId) => unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader')
+    case 'researchNodesPurchasedAtLeast':
+      return buyBestAvailableResearchInPriority(game, config)
+    case 'effectiveServerRackCountAtLeast':
+      return buyOrUnlockInfrastructure(game, 'serverRack')
+    case 'assignedUnitsAtLeast':
+    case 'sectorIncomeAtLeast':
+    case 'activeAssignedSectorsAtLeast':
+      rebalanceSectors(game)
+      return false
+    case 'specialistResearchUnlockedAtLeast':
+      return buyAffordableFromList(
+        ['financeSpecialistTraining', 'technologySpecialistTraining', 'energySpecialistTraining'] as const,
+        (techId) => buyResearchPath(game, techId),
+      )
+    case 'specialistsAtLeast':
+    case 'correctSpecialistAssignmentsAtLeast':
+      trainSpecialists(game)
+      return false
+    case 'automationStrategiesUnlockedAtLeast':
+      return buyAffordableFromList(
+        ['meanReversionModels', 'momentumModels', 'arbitrageEngine', 'marketMakingEngine', 'scalpingFramework'] as const,
+        (techId) => buyResearchPath(game, techId),
+      )
+    case 'configuredAutomationClassesAtLeast':
+      setAutomationConfig(game)
+      return false
+    case 'upgradesPurchasedInGroupAtLeast':
+      return buyBestAvailableUpgradeInPriority(game, config, (upgradeId) => getUpgradeDefinition(upgradeId)?.group === milestone.targetId)
+    case 'sectorUnlocked':
+    case 'unlockedSectorsAtLeast':
+      return buyAffordableFromList(
+        ['technologyMarkets', 'energyMarkets'] as const,
+        (techId) => buyResearchPath(game, techId),
+      )
+    case 'lobbyingUnlockedOrDiscovered':
+      return buyResearchPath(game, 'regulatoryAffairs')
+    case 'purchasedPoliciesAtLeast':
+      return buyBestAvailablePolicyInPriority(game, config)
+    case 'mandateResearchUnlockedAtLeast':
+      return buyAffordableFromList(
+        ['financeMandateFramework', 'techGrowthMandateFramework', 'energyExposureFramework'] as const,
+        (techId) => buyResearchPath(game, techId),
+      )
+    case 'mandatedInstitutionsAtLeast':
+    case 'correctMandateAssignmentsAtLeast':
+      applyMandates(game)
+      rebalanceSectors(game)
+      return false
+    case 'automationCountAtLeast':
+      return buyAffordableFromList(
+        ['quantTrader', 'ruleBasedBot', 'mlTradingBot', 'aiTradingBot'] as const,
+        (unitId) => buyOrUnlockUnit(game, unitId),
+      )
+    case 'anyTimedBoostUnlocked':
+      return buyBoostSupport(game)
+    case 'ownedGlobalBoostsAtLeast':
+      return false
+    case 'optimisationRanksByFamilyAtLeast':
+      return false
+    case 'firstCompliancePayment':
+      payCompliance(game)
+      return false
+    default:
+      return false
+  }
+}
+
+export function performMilestoneGuidedActions(state: SimState, config: SimConfig): boolean {
+  let acted = false
+  let actionsTaken = 0
+
+  while (actionsTaken < config.maxActionsPerTick) {
+    const game = state.game
+    const milestone = getTargetedMilestone(state)
+    let changed = false
+
+    changed = actForMilestone(state, config) || changed
+    changed = applyPassiveSimManagement(game, config, milestone) || changed
+
+    if (!changed && milestone) {
+      changed = buyThresholdUnitsForMilestone(game, milestone)
+    }
+
+    if (!changed) {
+      break
+    }
+
+    acted = true
+    actionsTaken += 1
+  }
+
+  return acted
 }
 
 export function getPolicyBottleneckSummary(state: SimState): string[] {

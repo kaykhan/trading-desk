@@ -11,6 +11,7 @@ import type {
   MarketEventId,
   MilestoneCategoryId,
   MilestoneConditionModel,
+  MilestoneScope,
   PowerInfrastructureId,
   PrestigeTierId,
   PrestigeUpgradeId,
@@ -139,6 +140,17 @@ type MechanicsResearchTechDefinition = {
   unlockRequirement?: MechanicsCondition
 }
 
+type MechanicsResearchSubgroupDefinition = {
+  branch: ResearchBranchId
+  title: string
+  subtitle: string
+  techIds: ResearchTechId[]
+  paddingTop?: number
+  paddingBottom?: number
+  paddingX?: number
+  variant?: 'default' | 'office' | 'energy'
+}
+
 type MechanicsPrestigeUpgradeDefinition = {
   name: string
   maxRank: number
@@ -153,6 +165,7 @@ type MechanicsMilestoneItemDefinition = {
   name: string
   description: string
   category: MilestoneCategoryId
+  scope?: MilestoneScope
   displayOrder: number
   reward: {
     cash?: number
@@ -166,6 +179,12 @@ type MechanicsMilestoneItemDefinition = {
   conditionValue?: number
   targetId?: string
   thresholds?: Partial<Record<UnitId, number>>
+  requiresMilestones?: string[]
+  requirements?: Array<{
+    type: 'researchTech' | 'unit' | 'capacityInfrastructure' | 'powerInfrastructure' | 'upgrade' | 'policy'
+    id: string
+    quantity?: number
+  }>
   achievementKey?: string
 }
 
@@ -301,15 +320,26 @@ export type MechanicsJson = {
   }
   powerInfrastructure: Record<PowerInfrastructureId, { name: string; description: string; baseCost: number; costScaling: number; costModel: string; powerCapacity: number; unlockResearchTechId: ResearchTechId }>
   automationStrategies: Record<AutomationStrategyId, { name: string; description: string; unlockResearchTechId: ResearchTechId; targetMultipliers: Record<SectorId | 'none', number> }>
-  upgrades: Record<UpgradeId, MechanicsUpgradeDefinition>
+  upgrades: {
+    groupOrder: UpgradeGroup[]
+    groupLabels: Record<UpgradeGroup, string>
+    groupDescriptions: Record<UpgradeGroup, string>
+    items: Record<UpgradeId, MechanicsUpgradeDefinition>
+  }
   repeatableUpgrades: Record<RepeatableUpgradeId, MechanicsRepeatableUpgradeDefinition>
-  lobbyingPolicies: Record<LobbyingPolicyId, { name: string; track: LobbyingTrack; cost: number }>
+  lobbyingPolicies: {
+    trackOrder: LobbyingTrack[]
+    trackLabels: Record<LobbyingTrack, string>
+    trackDescriptions: Record<LobbyingTrack, string>
+    items: Record<LobbyingPolicyId, { name: string; track: LobbyingTrack; cost: number }>
+  }
   research: {
     branches: {
       order: ResearchBranchId[]
       labels: Record<ResearchBranchId, string>
       descriptions: Record<ResearchBranchId, string>
     }
+    subgroups: Record<string, MechanicsResearchSubgroupDefinition>
     tech: Record<ResearchTechId, MechanicsResearchTechDefinition>
   }
   prestige: {
@@ -320,8 +350,20 @@ export type MechanicsJson = {
     resetKeeps: string[]
     upgrades: Record<PrestigeUpgradeId, MechanicsPrestigeUpgradeDefinition>
   }
-  specialization: Record<string, unknown>
-  mandates: Record<string, unknown>
+  specialization: {
+    traderTrainingCostCash: number
+    eligibleUnits: string[]
+    matchingSectorBaseBonus: number
+    labels: Record<SectorId, string>
+    researchUnlocks: Record<SectorId, ResearchTechId>
+  }
+  mandates: {
+    eligibleUnits: string[]
+    labels: Record<SectorId, string>
+    applicationCostCash: Record<string, number>
+    matchingSectorBaseBonus: Record<string, number>
+    researchUnlocks: Record<SectorId, ResearchTechId>
+  }
   milestones: {
     categoryOrder: MilestoneCategoryId[]
     categoryLabels: Record<MilestoneCategoryId, string>

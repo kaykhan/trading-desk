@@ -14,12 +14,25 @@ import { isAutomationUnlocked, isLobbyingUnlocked } from './research'
 
 type MilestoneEvaluation = {
   unlockedMilestones: Partial<Record<MilestoneId, boolean>>
+  unlockedMetaMilestones: Partial<Record<MilestoneId, boolean>>
   rewards: MilestoneReward
   newlyUnlockedIds: MilestoneId[]
 }
 
 function isMilestoneUnlocked(state: GameState, milestoneId: MilestoneId): boolean {
+  return state.unlockedMilestones[milestoneId] === true || state.unlockedMetaMilestones[milestoneId] === true
+}
+
+function isRunMilestoneUnlocked(state: GameState, milestoneId: MilestoneId): boolean {
   return state.unlockedMilestones[milestoneId] === true
+}
+
+function isMetaMilestoneUnlocked(state: GameState, milestoneId: MilestoneId): boolean {
+  return state.unlockedMetaMilestones[milestoneId] === true
+}
+
+function areRequiredMilestonesUnlocked(state: GameState, milestone: MilestoneDefinition): boolean {
+  return (milestone.requiresMilestones ?? []).every((requiredId) => isMilestoneUnlocked(state, requiredId))
 }
 
 function sumRecordValues(record: Record<string, number | boolean | undefined>): number {
@@ -247,12 +260,24 @@ function evaluateMilestoneCondition(state: GameState, milestone: MilestoneDefini
   }
 }
 
+export function isMilestoneDefinitionMet(state: GameState, milestone: MilestoneDefinition): boolean {
+  return evaluateMilestoneCondition(state, milestone)
+}
+
 export function getUnlockedMilestoneCount(state: GameState): number {
-  return MILESTONES.reduce((total, milestone) => total + (isMilestoneUnlocked(state, milestone.id) ? 1 : 0), 0)
+  return MILESTONES.reduce((total, milestone) => total + (isRunMilestoneUnlocked(state, milestone.id) ? 1 : 0), 0)
+}
+
+export function getUnlockedMetaMilestoneCount(state: GameState): number {
+  return MILESTONES.reduce((total, milestone) => total + (isMetaMilestoneUnlocked(state, milestone.id) ? 1 : 0), 0)
 }
 
 export function getNextRecommendedMilestone(state: GameState): MilestoneDefinition | null {
-  return MILESTONES.find((milestone) => milestone.visibleByDefault && !isMilestoneUnlocked(state, milestone.id)) ?? null
+  return MILESTONES.find((milestone) => milestone.visibleByDefault && milestone.scope === 'run' && !isRunMilestoneUnlocked(state, milestone.id) && areRequiredMilestonesUnlocked(state, milestone)) ?? null
+}
+
+export function getNextRecommendedMetaMilestone(state: GameState): MilestoneDefinition | null {
+  return MILESTONES.find((milestone) => milestone.visibleByDefault && milestone.scope === 'meta' && !isMetaMilestoneUnlocked(state, milestone.id) && areRequiredMilestonesUnlocked(state, milestone)) ?? null
 }
 
 export function getNextRecommendedMilestoneSummary(state: GameState): {
@@ -278,11 +303,24 @@ export function getNextRecommendedMilestoneSummary(state: GameState): {
 }
 
 export function getVisibleMilestones(state: GameState): MilestoneDefinition[] {
-  return MILESTONES.filter((milestone) => milestone.visibleByDefault || isMilestoneUnlocked(state, milestone.id))
+  return MILESTONES.filter((milestone) => milestone.scope === 'run' && (milestone.visibleByDefault || isMilestoneUnlocked(state, milestone.id) || areRequiredMilestonesUnlocked(state, milestone)))
+}
+
+export function getVisibleMetaMilestones(state: GameState): MilestoneDefinition[] {
+  return MILESTONES.filter((milestone) => milestone.scope === 'meta' && (milestone.visibleByDefault || isMilestoneUnlocked(state, milestone.id) || areRequiredMilestonesUnlocked(state, milestone)))
+}
+
+export function getTotalRunMilestoneCount(): number {
+  return MILESTONES.filter((milestone) => milestone.scope === 'run').length
+}
+
+export function getTotalMetaMilestoneCount(): number {
+  return MILESTONES.filter((milestone) => milestone.scope === 'meta').length
 }
 
 export function evaluateMilestones(state: GameState): MilestoneEvaluation {
   const unlockedMilestones: Partial<Record<MilestoneId, boolean>> = { ...state.unlockedMilestones }
+  const unlockedMetaMilestones: Partial<Record<MilestoneId, boolean>> = { ...state.unlockedMetaMilestones }
   const rewards: MilestoneReward = {}
   const newlyUnlockedIds: MilestoneId[] = []
 
@@ -291,11 +329,19 @@ export function evaluateMilestones(state: GameState): MilestoneEvaluation {
       continue
     }
 
+    if (!areRequiredMilestonesUnlocked(state, milestone)) {
+      continue
+    }
+
     if (!evaluateMilestoneCondition(state, milestone)) {
       continue
     }
 
-    unlockedMilestones[milestone.id] = true
+    if (milestone.scope === 'meta') {
+      unlockedMetaMilestones[milestone.id] = true
+    } else {
+      unlockedMilestones[milestone.id] = true
+    }
     newlyUnlockedIds.push(milestone.id)
     rewards.cash = (rewards.cash ?? 0) + (milestone.reward.cash ?? 0)
     rewards.researchPoints = (rewards.researchPoints ?? 0) + (milestone.reward.researchPoints ?? 0)
@@ -306,6 +352,7 @@ export function evaluateMilestones(state: GameState): MilestoneEvaluation {
 
   return {
     unlockedMilestones,
+    unlockedMetaMilestones,
     rewards,
     newlyUnlockedIds,
   }
@@ -329,12 +376,12 @@ export function getMilestoneNotificationLabel(milestoneId: MilestoneId): string 
 }
 
 export function getMilestonePageCount(state: GameState): number {
-  return Math.max(1, Math.ceil(getVisibleMilestones(state).length / 16))
+  return Math.max(1, Math.ceil((getVisibleMilestones(state).length + getVisibleMetaMilestones(state).length) / 16))
 }
 
 export function getMilestonesForPage(state: GameState, page: number): MilestoneDefinition[] {
   const safePage = Math.max(0, page)
-  return getVisibleMilestones(state).slice(safePage * 16, safePage * 16 + 16)
+  return [...getVisibleMilestones(state), ...getVisibleMetaMilestones(state)].slice(safePage * 16, safePage * 16 + 16)
 }
 
 export function getMilestoneRewardSummary(reward: MilestoneReward): string {

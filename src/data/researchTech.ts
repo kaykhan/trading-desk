@@ -7,6 +7,32 @@ export const RESEARCH_BRANCH_LABELS: Record<ResearchBranchId, string> = { ...mec
 
 export const RESEARCH_BRANCH_DESCRIPTIONS: Record<ResearchBranchId, string> = { ...mechanics.research.branches.descriptions }
 
+export const RESEARCH_SUBGROUPS = Object.entries(mechanics.research.subgroups).reduce<Partial<Record<ResearchBranchId, Array<{
+  id: string
+  title: string
+  subtitle: string
+  techIds: ResearchTechId[]
+  paddingTop?: number
+  paddingBottom?: number
+  paddingX?: number
+  variant?: 'default' | 'office' | 'energy'
+}>>>>((acc, [id, subgroup]) => {
+  const branchId = subgroup.branch
+  const entry = {
+    id,
+    title: subgroup.title,
+    subtitle: subgroup.subtitle,
+    techIds: subgroup.techIds as ResearchTechId[],
+    paddingTop: subgroup.paddingTop,
+    paddingBottom: subgroup.paddingBottom,
+    paddingX: subgroup.paddingX,
+    variant: subgroup.variant,
+  }
+
+  acc[branchId] = [...(acc[branchId] ?? []), entry]
+  return acc
+}, {})
+
 export const RESEARCH_TECH: ResearchTechDefinition[] = (Object.entries(mechanics.research.tech) as Array<[ResearchTechId, typeof mechanics.research.tech[ResearchTechId]]>).map(([id, tech]) => ({
   id,
   name: String(tech.name),

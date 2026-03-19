@@ -580,7 +580,7 @@ add Research Point generation per tick
 system unlock selectors
 Patch:
 Trading Bots unlocked from `algorithmicTrading`
-Power unlocked from `powerSystemsEngineering`
+Power unlocked from `serverRackSystems`
 Lobbying unlocked from `regulatoryAffairs`
 `data/prestigeUpgrades.ts`
 Modify:

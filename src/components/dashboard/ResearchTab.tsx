@@ -2,7 +2,7 @@ import { memo, useMemo, useState } from 'react'
 import { Background, Handle, MarkerType, Position, ReactFlow, type Edge, type Node, type NodeProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { BrainCircuit, ChevronDown, ChevronUp, Cpu, Expand, GitBranch, Landmark, TrendingUp, Users } from 'lucide-react'
-import { RESEARCH_BRANCH_DESCRIPTIONS, RESEARCH_BRANCH_LABELS, RESEARCH_BRANCH_ORDER, getResearchTechsByBranch, RESEARCH_TECH } from '@/data/researchTech'
+import { RESEARCH_BRANCH_DESCRIPTIONS, RESEARCH_BRANCH_LABELS, RESEARCH_BRANCH_ORDER, RESEARCH_SUBGROUPS, getResearchTechsByBranch, RESEARCH_TECH } from '@/data/researchTech'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import type { ResearchBranchId, ResearchTechDefinition, ResearchTechId } from '@/types/game'
@@ -33,98 +33,6 @@ type ResearchGroupData = {
 
 const NODE_WIDTH = 210
 const NODE_HEIGHT = 124
-
-const RESEARCH_SUBGROUPS: Partial<Record<ResearchBranchId, Array<{
-  id: string
-  title: string
-  subtitle: string
-  techIds: ResearchTechId[]
-  paddingTop?: number
-  paddingBottom?: number
-  paddingX?: number
-  variant?: 'default' | 'office' | 'energy'
-}>>> = {
-  humanCapital: [
-    {
-      id: 'human-capital-specialist-training',
-      title: 'Specialist Training',
-      subtitle: 'Finance, technology, and energy trader programs',
-      techIds: ['financeSpecialistTraining', 'technologySpecialistTraining', 'energySpecialistTraining'],
-      paddingTop: 92,
-      paddingBottom: 56,
-      paddingX: 36,
-      variant: 'default',
-    },
-  ],
-  infrastructure: [
-    {
-      id: 'infrastructure-office-growth',
-      title: 'Office Growth',
-      subtitle: 'Research planning milestones for larger human workspace expansion',
-      techIds: ['floorSpacePlanning', 'officeExpansionPlanning'],
-      paddingTop: 96,
-      paddingBottom: 68,
-      paddingX: 40,
-      variant: 'office',
-    },
-    {
-      id: 'infrastructure-energy-systems',
-      title: 'Energy Systems',
-      subtitle: 'Machine power infrastructure and late-run compute expansion',
-      techIds: ['powerSystemsEngineering', 'serverRoomSystems', 'dataCenterSystems', 'cloudInfrastructure'],
-      paddingTop: 96,
-      paddingBottom: 68,
-      paddingX: 40,
-      variant: 'energy',
-    },
-  ],
-  regulation: [
-    {
-      id: 'regulation-mandate-frameworks',
-      title: 'Mandate Frameworks',
-      subtitle: 'Institutional sector-focus frameworks for desks, funds, and firms',
-      techIds: ['financeMandateFramework', 'techGrowthMandateFramework', 'energyExposureFramework'],
-      paddingTop: 96,
-      paddingBottom: 64,
-      paddingX: 38,
-      variant: 'energy',
-    },
-  ],
-  automation: [
-    {
-      id: 'automation-unit-ladder',
-      title: 'Automation Units',
-      subtitle: 'Bottom-up execution ladder from foundations through AI systems',
-      techIds: ['algorithmicTrading', 'ruleBasedAutomation', 'machineLearningTrading', 'aiTradingSystems'],
-      paddingTop: 56,
-      paddingBottom: 64,
-      paddingX: 38,
-      variant: 'default',
-    },
-    {
-      id: 'automation-strategy-family',
-      title: 'Strategy Subflow',
-      subtitle: 'Separate strategy progression for shared automation models',
-      techIds: ['meanReversionModels', 'momentumModels', 'arbitrageEngine', 'marketMakingEngine', 'scalpingFramework'],
-      paddingTop: 56,
-      paddingBottom: 64,
-      paddingX: 38,
-      variant: 'energy',
-    },
-  ],
-  boosts: [
-    {
-      id: 'boosts-timed-abilities',
-      title: 'Timed Abilities',
-      subtitle: 'Independent unlocks for tactical boosts and late-run boost automation',
-      techIds: ['aggressiveTradingWindowProtocols', 'deployReserveCapitalProtocols', 'researchSprintProtocols', 'overclockServersProtocols', 'complianceFreezeProtocols', 'boostAutomationProtocols'],
-      paddingTop: 72,
-      paddingBottom: 68,
-      paddingX: 38,
-      variant: 'default',
-    },
-  ],
-}
 
 const BRANCH_THEMES: Record<ResearchBranchId, {
   icon: typeof GitBranch

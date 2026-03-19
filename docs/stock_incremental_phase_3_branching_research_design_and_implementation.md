@@ -279,7 +279,7 @@ export type ResearchTechId =
   | 'energyMarkets'
   | 'foundationsOfFinanceTraining'
   | 'algorithmicTrading'
-  | 'powerSystemsEngineering'
+  | 'serverRackSystems'
   | 'regulatoryAffairs';
 
 type ResearchTechDefinition = {
@@ -329,8 +329,8 @@ export const RESEARCH_TECHS: Record<ResearchTechId, ResearchTechDefinition> = {
     researchCost: 100,
     description: 'Unlock bot-side automation systems.',
   },
-  powerSystemsEngineering: {
-    id: 'powerSystemsEngineering',
+  serverRackSystems: {
+    id: 'serverRackSystems',
     name: 'Power Systems Engineering',
     branch: 'automation',
     researchCost: 150,
@@ -374,7 +374,7 @@ energy sector unlocked if purchasedResearchTech['energyMarkets']
 ### Automation unlocks
 ```ts
 bots unlocked if purchasedResearchTech['algorithmicTrading']
-power infrastructure unlocked if purchasedResearchTech['powerSystemsEngineering']
+power infrastructure unlocked if purchasedResearchTech['serverRackSystems']
 ```
 
 ### Lobbying unlock
@@ -539,7 +539,7 @@ export type ResearchTechId =
   | 'energyMarkets'
   | 'foundationsOfFinanceTraining'
   | 'algorithmicTrading'
-  | 'powerSystemsEngineering'
+  | 'serverRackSystems'
   | 'regulatoryAffairs';
 
 export type ResearchTechDefinition = {
@@ -589,8 +589,8 @@ export const RESEARCH_TECHS: Record<ResearchTechId, ResearchTechDefinition> = {
     researchCost: 100,
     description: 'Unlock bot-side automation systems.',
   },
-  powerSystemsEngineering: {
-    id: 'powerSystemsEngineering',
+  serverRackSystems: {
+    id: 'serverRackSystems',
     name: 'Power Systems Engineering',
     branch: 'automation',
     researchCost: 150,
@@ -681,7 +681,7 @@ export function isAutomationUnlocked(state: GameState): boolean {
 }
 
 export function isPowerInfrastructureUnlocked(state: GameState): boolean {
-  return state.purchasedResearchTech['powerSystemsEngineering'] === true;
+  return state.purchasedResearchTech['serverRackSystems'] === true;
 }
 
 export function isLobbyingUnlocked(state: GameState): boolean {

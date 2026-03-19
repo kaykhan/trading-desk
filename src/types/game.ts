@@ -164,7 +164,7 @@ export type ResearchTechId =
   | 'arbitrageEngine'
   | 'marketMakingEngine'
   | 'scalpingFramework'
-  | 'powerSystemsEngineering'
+  | 'serverRackSystems'
   | 'serverRoomSystems'
   | 'juniorScientists'
   | 'seniorScientists'
@@ -376,6 +376,7 @@ export type GameState = {
   researchPoints: number
   influence: number
   unlockedMilestones: Partial<Record<MilestoneId, boolean>>
+  unlockedMetaMilestones: Partial<Record<MilestoneId, boolean>>
   lifetimeManualTrades: number
   lifetimeResearchPointsEarned: number
   totalComplianceReviewsTriggered: number
@@ -549,6 +550,8 @@ export type MilestoneCategoryId =
 
 export type MilestoneId = string
 
+export type MilestoneScope = 'run' | 'meta'
+
 export type MilestoneReward = {
   cash?: number
   researchPoints?: number
@@ -556,6 +559,12 @@ export type MilestoneReward = {
   reputation?: number
   deskSlots?: number
   note?: string
+}
+
+export type MilestoneRequirement = {
+  type: 'researchTech' | 'unit' | 'capacityInfrastructure' | 'powerInfrastructure' | 'upgrade' | 'policy'
+  id: string
+  quantity?: number
 }
 
 export type MilestoneConditionModel =
@@ -604,6 +613,7 @@ export type MilestoneTargetId = UnitId | CapacityInfrastructureId | PowerInfrast
 export type MilestoneDefinition = {
   id: MilestoneId
   category: MilestoneCategoryId
+  scope: MilestoneScope
   displayOrder: number
   name: string
   description: string
@@ -613,6 +623,8 @@ export type MilestoneDefinition = {
   conditionValue?: number
   targetId?: MilestoneTargetId
   thresholds?: Partial<Record<UnitId, number>>
+  requiresMilestones?: MilestoneId[]
+  requirements?: MilestoneRequirement[]
   achievementKey?: string
 }
 

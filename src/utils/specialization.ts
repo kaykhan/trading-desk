@@ -1,5 +1,6 @@
 import { getRepeatableUpgradeMultiplier } from '../data/repeatableUpgrades'
 import type { GameState, SectorId, TraderSpecialistUnitId, TraderSpecializationId } from '../types/game'
+import { mechanics } from '../lib/mechanics'
 
 const SPECIALIZATION_IDS: TraderSpecializationId[] = ['finance', 'technology', 'energy']
 
@@ -33,15 +34,13 @@ export function getTraderSpecialistSectorBonus(state: GameState, unitId: TraderS
     return 1
   }
 
-  return 1.2 * getRepeatableUpgradeMultiplier(state, 'trainingMethodology')
+  return mechanics.specialization.matchingSectorBaseBonus * getRepeatableUpgradeMultiplier(state, 'trainingMethodology')
 }
 
 export function getSpecializationResearchUnlockId(specializationId: TraderSpecializationId): 'financeSpecialistTraining' | 'technologySpecialistTraining' | 'energySpecialistTraining' {
-  if (specializationId === 'finance') return 'financeSpecialistTraining'
-  if (specializationId === 'technology') return 'technologySpecialistTraining'
-  return 'energySpecialistTraining'
+  return mechanics.specialization.researchUnlocks[specializationId] as 'financeSpecialistTraining' | 'technologySpecialistTraining' | 'energySpecialistTraining'
 }
 
 export function getTraderSpecialistTrainingCost(unitId: TraderSpecialistUnitId): number {
-  return 2_000
+  return mechanics.specialization.traderTrainingCostCash
 }

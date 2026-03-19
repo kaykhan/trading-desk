@@ -1,5 +1,5 @@
 import { isMechanicsConditionMet, mechanics } from '../lib/mechanics'
-import type { GameState, UpgradeDefinition, UpgradeId } from '../types/game'
+import type { GameState, UpgradeDefinition, UpgradeGroup, UpgradeId } from '../types/game'
 
 function buildVisibleWhen(visibleWhen: unknown): UpgradeDefinition['visibleWhen'] {
   if (visibleWhen == null) {
@@ -9,7 +9,13 @@ function buildVisibleWhen(visibleWhen: unknown): UpgradeDefinition['visibleWhen'
   return (state: GameState) => isMechanicsConditionMet(visibleWhen, state)
 }
 
-export const UPGRADES: UpgradeDefinition[] = (Object.entries(mechanics.upgrades) as Array<[UpgradeId, typeof mechanics.upgrades[UpgradeId]]>).map(([id, upgrade]) => ({
+export const UPGRADE_GROUP_ORDER: UpgradeGroup[] = [...mechanics.upgrades.groupOrder]
+
+export const UPGRADE_GROUP_LABELS: Record<UpgradeGroup, string> = { ...mechanics.upgrades.groupLabels }
+
+export const UPGRADE_GROUP_DESCRIPTIONS: Record<UpgradeGroup, string> = { ...mechanics.upgrades.groupDescriptions }
+
+export const UPGRADES: UpgradeDefinition[] = (Object.entries(mechanics.upgrades.items) as Array<[UpgradeId, typeof mechanics.upgrades.items[UpgradeId]]>).map(([id, upgrade]) => ({
   id,
   name: upgrade.name,
   category: upgrade.category,

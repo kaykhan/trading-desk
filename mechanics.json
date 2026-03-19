@@ -397,7 +397,7 @@
   "constants": {
     "baseClickIncome": 1,
     "baseUtilityPowerCapacity": 12,
-    "prestigeUnlockLifetimeCash": 4000000,
+    "prestigeUnlockLifetimeCash": 500000,
     "mlTradingBotRuleBasedRequirement": 5,
     "aiTradingBotMlRequirement": 3,
     "directReputationBonusPerPoint": 0.05,
@@ -834,7 +834,7 @@
       "costModel": "unitExponential",
       "baseCashPerSecondDisplay": 5,
       "cycleDurationSeconds": 4,
-      "cyclePayout": 20,
+      "cyclePayout": 26,
       "deskSlotsUsed": 0,
       "livePowerUse": 0,
       "unlockResearchTechId": "algorithmicTrading",
@@ -977,7 +977,7 @@
       "kind": "research",
       "description": "Entry research assistants who generate a small stream of Research Points.",
       "baseCost": 600,
-      "costScaling": 1.19,
+      "costScaling": 1.15,
       "costModel": "unitExponentialWithHumanDiscount",
       "baseResearchPointsPerSecond": 0.35,
       "deskSlotsUsed": 1,
@@ -992,7 +992,7 @@
       "kind": "research",
       "description": "Core research staff that generates steady Research Points once the science team is formalized.",
       "baseCost": 2400,
-      "costScaling": 1.21,
+      "costScaling": 1.17,
       "costModel": "unitExponentialWithHumanDiscount",
       "baseResearchPointsPerSecond": 1.1,
       "deskSlotsUsed": 1,
@@ -1007,7 +1007,7 @@
       "kind": "research",
       "description": "Advanced research leadership with stronger RP output.",
       "baseCost": 9500,
-      "costScaling": 1.22,
+      "costScaling": 1.18,
       "costModel": "unitExponentialWithHumanDiscount",
       "baseResearchPointsPerSecond": 3.4,
       "deskSlotsUsed": 1,
@@ -1074,7 +1074,7 @@
       "costScaling": 1.14,
       "costModel": "powerExponentialWithPolicyDiscount",
       "powerCapacity": 3,
-      "unlockResearchTechId": "powerSystemsEngineering"
+      "unlockResearchTechId": "serverRackSystems"
     },
     "serverRoom": {
       "name": "Server Room",
@@ -1162,34 +1162,59 @@
     }
   },
   "upgrades": {
-    "betterTerminal": {
-      "name": "Better Terminal",
-      "group": "tradingDesk",
-      "category": "trading",
-      "cost": 20,
-      "description": "Manual trade value increases from $1 to $2 per click.",
-      "visibleWhen": null
+    "groupOrder": [
+      "tradingDesk",
+      "research",
+      "institutions",
+      "automation",
+      "infrastructure",
+      "complianceLobbying"
+    ],
+    "groupLabels": {
+      "tradingDesk": "Trading Desk Upgrades",
+      "research": "Research Upgrades",
+      "institutions": "Institution Upgrades",
+      "automation": "Automation Upgrades",
+      "infrastructure": "Infrastructure Upgrades",
+      "complianceLobbying": "Compliance & Lobbying Upgrades"
     },
-    "tradeShortcuts": {
-      "name": "Trade Shortcuts",
-      "group": "tradingDesk",
-      "category": "trading",
-      "cost": 60,
-      "description": "Manual trades gain +1 flat cash per click.",
-      "visibleWhen": {
-        "internCountAtLeast": 1
-      }
+    "groupDescriptions": {
+      "tradingDesk": "Manual trading, trader output, and broad desk-side scaling.",
+      "research": "Improve Research Point output and research-side support.",
+      "institutions": "Permanent output upgrades for Prop Desks, Institutional Desks, Hedge Funds, and Investment Firms.",
+      "automation": "Improve automation cycle payout, execution efficiency, and machine trading performance.",
+      "infrastructure": "Increase capacity and reduce machine load across infrastructure systems.",
+      "complianceLobbying": "Permanent support improvements for influence generation and compliance-side efficiency."
     },
-    "premiumDataFeed": {
-      "name": "Premium Data Feed",
-      "group": "tradingDesk",
-      "category": "trading",
-      "cost": 350,
-      "description": "Manual trade income +25%. Intern, Junior Trader, and Senior Trader output +10%.",
-      "visibleWhen": {
-        "juniorTraderCountAtLeast": 1
-      }
-    },
+    "items": {
+      "betterTerminal": {
+        "name": "Better Terminal",
+        "group": "tradingDesk",
+        "category": "trading",
+        "cost": 20,
+        "description": "Manual trade value increases from $1 to $2 per click.",
+        "visibleWhen": null
+      },
+      "tradeShortcuts": {
+        "name": "Trade Shortcuts",
+        "group": "tradingDesk",
+        "category": "trading",
+        "cost": 60,
+        "description": "Manual trades gain +1 flat cash per click.",
+        "visibleWhen": {
+          "internCountAtLeast": 1
+        }
+      },
+      "premiumDataFeed": {
+        "name": "Premium Data Feed",
+        "group": "tradingDesk",
+        "category": "trading",
+        "cost": 350,
+        "description": "Manual trade income +25%. Intern, Junior Trader, and Senior Trader output +10%.",
+        "visibleWhen": {
+          "juniorTraderCountAtLeast": 1
+        }
+      },
     "deskAnalytics": {
       "name": "Desk Analytics",
       "group": "tradingDesk",
@@ -1526,15 +1551,16 @@
         "purchasedPoliciesAtLeast": 3
       }
     },
-    "filingAutomation": {
-      "name": "Filing Automation",
-      "group": "complianceLobbying",
-      "category": "operations",
-      "cost": 4000000,
-      "description": "Automation and Institutional Compliance costs -10%.",
-      "visibleWhen": {
-        "complianceVisible": true,
-        "automationPowerUsersAtLeast": 1
+      "filingAutomation": {
+        "name": "Filing Automation",
+        "group": "complianceLobbying",
+        "category": "operations",
+        "cost": 4000000,
+        "description": "Automation and Institutional Compliance costs -10%.",
+        "visibleWhen": {
+          "complianceVisible": true,
+          "automationPowerUsersAtLeast": 1
+        }
       }
     }
   },
@@ -1829,65 +1855,85 @@
     }
   },
   "lobbyingPolicies": {
-    "hiringIncentives": {
-      "name": "Payroll Reporting Reform",
-      "track": "labor",
-      "cost": 12
+    "trackOrder": [
+      "labor",
+      "energy",
+      "market",
+      "technology"
+    ],
+    "trackLabels": {
+      "labor": "Labor",
+      "energy": "Energy",
+      "market": "Market",
+      "technology": "Technology"
     },
-    "deskExpansionCredits": {
-      "name": "Workforce Filing Simplification",
-      "track": "labor",
-      "cost": 20
+    "trackDescriptions": {
+      "labor": "Lower staffing costs and improve human output.",
+      "energy": "Reduce infrastructure energy pressure and support machine-side operations.",
+      "market": "Push wider profit and manual trade policy wins.",
+      "technology": "Accelerate bot deployment and machine efficiency."
     },
-    "executiveCompensationReform": {
-      "name": "Training Accreditation Relief",
-      "track": "labor",
-      "cost": 32
-    },
-    "industrialPowerSubsidies": {
-      "name": "Industrial Energy Relief",
-      "track": "energy",
-      "cost": 16
-    },
-    "priorityGridAccess": {
-      "name": "Grid Stabilization Subsidies",
-      "track": "energy",
-      "cost": 24
-    },
-    "dataCenterEnergyCredits": {
-      "name": "Data Center Utility Credits",
-      "track": "energy",
-      "cost": 36
-    },
-    "capitalGainsRelief": {
-      "name": "Institutional Reporting Relief",
-      "track": "market",
-      "cost": 18
-    },
-    "extendedTradingWindow": {
-      "name": "Market Access Streamlining",
-      "track": "market",
-      "cost": 28
-    },
-    "marketDeregulation": {
-      "name": "Capital Requirements Easing",
-      "track": "market",
-      "cost": 42
-    },
-    "automationTaxCredit": {
-      "name": "Algorithmic Exemptions",
-      "track": "technology",
-      "cost": 20
-    },
-    "fastTrackServerPermits": {
-      "name": "Model Registration Reform",
-      "track": "technology",
-      "cost": 32
-    },
-    "aiInfrastructureIncentives": {
-      "name": "AI Oversight Streamlining",
-      "track": "technology",
-      "cost": 48
+    "items": {
+      "hiringIncentives": {
+        "name": "Payroll Reporting Reform",
+        "track": "labor",
+        "cost": 12
+      },
+      "deskExpansionCredits": {
+        "name": "Workforce Filing Simplification",
+        "track": "labor",
+        "cost": 20
+      },
+      "executiveCompensationReform": {
+        "name": "Training Accreditation Relief",
+        "track": "labor",
+        "cost": 32
+      },
+      "industrialPowerSubsidies": {
+        "name": "Industrial Energy Relief",
+        "track": "energy",
+        "cost": 16
+      },
+      "priorityGridAccess": {
+        "name": "Grid Stabilization Subsidies",
+        "track": "energy",
+        "cost": 24
+      },
+      "dataCenterEnergyCredits": {
+        "name": "Data Center Utility Credits",
+        "track": "energy",
+        "cost": 36
+      },
+      "capitalGainsRelief": {
+        "name": "Institutional Reporting Relief",
+        "track": "market",
+        "cost": 18
+      },
+      "extendedTradingWindow": {
+        "name": "Market Access Streamlining",
+        "track": "market",
+        "cost": 28
+      },
+      "marketDeregulation": {
+        "name": "Capital Requirements Easing",
+        "track": "market",
+        "cost": 42
+      },
+      "automationTaxCredit": {
+        "name": "Algorithmic Exemptions",
+        "track": "technology",
+        "cost": 20
+      },
+      "fastTrackServerPermits": {
+        "name": "Model Registration Reform",
+        "track": "technology",
+        "cost": 32
+      },
+      "aiInfrastructureIncentives": {
+        "name": "AI Oversight Streamlining",
+        "track": "technology",
+        "cost": 48
+      }
     }
   },
   "research": {
@@ -1915,6 +1961,112 @@
         "automation": "Unlock systematic units, strategy families, and machine-side trading logic.",
         "boosts": "Unlock timed tactical abilities and later boost automation controls.",
         "regulation": "Open lobbying and policy-facing institutional systems."
+      }
+    },
+    "subgroups": {
+      "specialistTraining": {
+        "branch": "humanCapital",
+        "title": "Specialist Training",
+        "subtitle": "Finance, technology, and energy trader programs",
+        "techIds": [
+          "financeSpecialistTraining",
+          "technologySpecialistTraining",
+          "energySpecialistTraining"
+        ],
+        "paddingTop": 92,
+        "paddingBottom": 56,
+        "paddingX": 36,
+        "variant": "default"
+      },
+      "officeGrowth": {
+        "branch": "infrastructure",
+        "title": "Office Growth",
+        "subtitle": "Research planning milestones for larger human workspace expansion",
+        "techIds": [
+          "floorSpacePlanning",
+          "officeExpansionPlanning"
+        ],
+        "paddingTop": 96,
+        "paddingBottom": 68,
+        "paddingX": 40,
+        "variant": "office"
+      },
+      "energySystems": {
+        "branch": "infrastructure",
+        "title": "Energy Systems",
+        "subtitle": "Machine power infrastructure and late-run compute expansion",
+        "techIds": [
+          "serverRackSystems",
+          "serverRoomSystems",
+          "dataCenterSystems",
+          "cloudInfrastructure"
+        ],
+        "paddingTop": 96,
+        "paddingBottom": 68,
+        "paddingX": 40,
+        "variant": "energy"
+      },
+      "mandateFrameworks": {
+        "branch": "regulation",
+        "title": "Mandate Frameworks",
+        "subtitle": "Institutional sector-focus frameworks for desks, funds, and firms",
+        "techIds": [
+          "financeMandateFramework",
+          "techGrowthMandateFramework",
+          "energyExposureFramework"
+        ],
+        "paddingTop": 96,
+        "paddingBottom": 64,
+        "paddingX": 38,
+        "variant": "energy"
+      },
+      "automationUnits": {
+        "branch": "automation",
+        "title": "Automation Units",
+        "subtitle": "Bottom-up execution ladder from foundations through AI systems",
+        "techIds": [
+          "algorithmicTrading",
+          "ruleBasedAutomation",
+          "machineLearningTrading",
+          "aiTradingSystems"
+        ],
+        "paddingTop": 56,
+        "paddingBottom": 64,
+        "paddingX": 38,
+        "variant": "default"
+      },
+      "automationStrategies": {
+        "branch": "automation",
+        "title": "Strategy Subflow",
+        "subtitle": "Separate strategy progression for shared automation models",
+        "techIds": [
+          "meanReversionModels",
+          "momentumModels",
+          "arbitrageEngine",
+          "marketMakingEngine",
+          "scalpingFramework"
+        ],
+        "paddingTop": 56,
+        "paddingBottom": 64,
+        "paddingX": 38,
+        "variant": "energy"
+      },
+      "timedAbilities": {
+        "branch": "boosts",
+        "title": "Timed Abilities",
+        "subtitle": "Independent unlocks for tactical boosts and late-run boost automation",
+        "techIds": [
+          "aggressiveTradingWindowProtocols",
+          "deployReserveCapitalProtocols",
+          "researchSprintProtocols",
+          "overclockServersProtocols",
+          "complianceFreezeProtocols",
+          "boostAutomationProtocols"
+        ],
+        "paddingTop": 72,
+        "paddingBottom": 68,
+        "paddingX": 38,
+        "variant": "default"
       }
     },
     "tech": {
@@ -2125,10 +2277,10 @@
           "seniorRecruitment"
         ],
         "visibility": {
-          "seniorTraderCountAtLeast": 5
+          "seniorTraderCountAtLeast": 3
         },
         "unlockRequirement": {
-          "seniorTraderCountAtLeast": 5
+          "seniorTraderCountAtLeast": 3
         },
         "description": "Opens the first institution-tier trading unit through Prop Desk operations."
       },
@@ -2266,7 +2418,7 @@
         "name": "Mean Reversion Models",
         "branch": "automation",
         "currency": "researchPoints",
-        "cost": 60,
+        "cost": 40,
         "prerequisites": [
           "algorithmicTrading"
         ],
@@ -2376,11 +2528,11 @@
         },
         "description": "Unlocks ML Bots and the transition into compute-heavier automated systems."
       },
-      "powerSystemsEngineering": {
+      "serverRackSystems": {
         "name": "Server Rack",
         "branch": "infrastructure",
         "currency": "researchPoints",
-        "cost": 100,
+        "cost": 80,
         "prerequisites": [],
         "description": "Unlocks Server Racks and starts the machine power infrastructure ladder."
       },
@@ -2390,7 +2542,7 @@
         "currency": "researchPoints",
         "cost": 500,
         "prerequisites": [
-          "powerSystemsEngineering"
+          "serverRackSystems"
         ],
         "description": "Unlocks Server Rooms for sustained mid-game machine expansion."
       },
@@ -2547,7 +2699,7 @@
         "currency": "researchPoints",
         "cost": 6000,
         "prerequisites": [
-          "powerSystemsEngineering"
+          "serverRackSystems"
         ],
         "description": "Unlocks lobbying, politicians, and the regulation-side progression layer."
       },
@@ -2773,6 +2925,11 @@
       "seniorTrader"
     ],
     "matchingSectorBaseBonus": 1.2,
+    "labels": {
+      "finance": "Finance",
+      "technology": "Technology",
+      "energy": "Energy"
+    },
     "researchUnlocks": {
       "finance": "financeSpecialistTraining",
       "technology": "technologySpecialistTraining",
@@ -2786,6 +2943,11 @@
       "hedgeFund",
       "investmentFirm"
     ],
+    "labels": {
+      "finance": "Finance Mandate",
+      "technology": "Tech Growth Mandate",
+      "energy": "Energy Exposure"
+    },
     "applicationCostCash": {
       "propDesk": 5000,
       "institutionalDesk": 12000,
@@ -2992,7 +3154,7 @@
       },
       "deskMomentum": {
         "category": "gettingStarted",
-        "displayOrder": 14,
+        "displayOrder": 17,
         "reward": {
           "cash": 500
         },
@@ -3003,7 +3165,7 @@
       },
       "tenJuniors": {
         "category": "tradingDesk",
-        "displayOrder": 15,
+        "displayOrder": 14,
         "reward": {
           "cash": 2500
         },
@@ -3015,19 +3177,19 @@
       },
       "threeSeniors": {
         "category": "tradingDesk",
-        "displayOrder": 16,
+        "displayOrder": 15,
         "reward": {
           "cash": 4000
         },
         "conditionModel": "unitCountAtLeast",
         "targetId": "seniorTrader",
-        "conditionValue": 3,
+        "conditionValue": 5,
         "name": "Senior Coverage",
         "description": "Hire 3 Senior Traders."
       },
       "humanDeskScaled": {
         "category": "tradingDesk",
-        "displayOrder": 17,
+        "displayOrder": 16,
         "reward": {
           "cash": 7500
         },
@@ -3078,6 +3240,17 @@
         },
         "conditionModel": "effectiveServerRackCountAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "serverRackSystems"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "serverRack",
+            "quantity": 1
+          }
+        ],
         "name": "First Rack",
         "description": "Buy your first Server Rack."
       },
@@ -3090,6 +3263,17 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "internResearchScientist",
         "conditionValue": 5,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "foundationsOfFinanceTraining"
+          },
+          {
+            "type": "unit",
+            "id": "internResearchScientist",
+            "quantity": 5
+          }
+        ],
         "name": "Research Bench",
         "description": "Hire 5 Intern Scientists."
       },
@@ -3113,6 +3297,17 @@
         "conditionModel": "infrastructureCountAtLeast",
         "targetId": "floorSpace",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "floorSpacePlanning"
+          },
+          {
+            "type": "capacityInfrastructure",
+            "id": "floorSpace",
+            "quantity": 1
+          }
+        ],
         "name": "Floor Space Online",
         "description": "Buy your first Floor Space expansion."
       },
@@ -3136,6 +3331,12 @@
         },
         "conditionModel": "researchNodesPurchasedAtLeast",
         "conditionValue": 5,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "juniorScientists"
+          }
+        ],
         "name": "Research Portfolio",
         "description": "Purchase 5 research nodes."
       },
@@ -3159,6 +3360,17 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "propDesk",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "propDeskOperations"
+          },
+          {
+            "type": "unit",
+            "id": "propDesk",
+            "quantity": 1
+          }
+        ],
         "name": "First Prop Desk",
         "description": "Build your first Prop Desk.",
         "achievementKey": "first_prop_desk"
@@ -3193,6 +3405,12 @@
         },
         "conditionModel": "specialistResearchUnlockedAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeSpecialistTraining"
+          }
+        ],
         "name": "Training Curriculum",
         "description": "Unlock your first specialist training research node."
       },
@@ -3204,6 +3422,17 @@
         },
         "conditionModel": "specialistsAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeSpecialistTraining"
+          },
+          {
+            "type": "unit",
+            "id": "seniorTrader",
+            "quantity": 1
+          }
+        ],
         "name": "First Specialist",
         "description": "Train your first specialist.",
         "achievementKey": "first_specialist"
@@ -3216,6 +3445,17 @@
         },
         "conditionModel": "correctSpecialistAssignmentsAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeSpecialistTraining"
+          },
+          {
+            "type": "unit",
+            "id": "seniorTrader",
+            "quantity": 1
+          }
+        ],
         "name": "Proper Placement",
         "description": "Assign a specialist to their matching sector."
       },
@@ -3227,6 +3467,17 @@
         },
         "conditionModel": "specialistsAtLeast",
         "conditionValue": 5,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeSpecialistTraining"
+          },
+          {
+            "type": "unit",
+            "id": "seniorTrader",
+            "quantity": 5
+          }
+        ],
         "name": "Specialist Desk",
         "description": "Own 5 total specialists."
       },
@@ -3238,6 +3489,12 @@
         },
         "conditionModel": "researchTechPurchased",
         "targetId": "algorithmicTrading",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "algorithmicTrading"
+          }
+        ],
         "name": "Systematic Trading",
         "description": "Unlock automation."
       },
@@ -3250,6 +3507,17 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "quantTrader",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "algorithmicTrading"
+          },
+          {
+            "type": "unit",
+            "id": "quantTrader",
+            "quantity": 1
+          }
+        ],
         "name": "First Quant Trader",
         "description": "Buy 1 Quant Trader."
       },
@@ -3283,6 +3551,12 @@
         },
         "conditionModel": "researchTechPurchased",
         "targetId": "ruleBasedAutomation",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "ruleBasedAutomation"
+          }
+        ],
         "name": "Rule Systems Online",
         "description": "Unlock Rule-Based Bot."
       },
@@ -3319,6 +3593,22 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "institutionalDesk",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "institutionalDesks"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "serverRoom",
+            "quantity": 1
+          },
+          {
+            "type": "unit",
+            "id": "institutionalDesk",
+            "quantity": 1
+          }
+        ],
         "name": "Institutional Entry",
         "description": "Build your first Institutional Desk."
       },
@@ -3331,6 +3621,17 @@
         "conditionModel": "infrastructureCountAtLeast",
         "targetId": "serverRoom",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "serverRoomSystems"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "serverRoom",
+            "quantity": 1
+          }
+        ],
         "name": "Server Room Online",
         "description": "Buy your first Server Room."
       },
@@ -3343,6 +3644,17 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "ruleBasedBot",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "ruleBasedAutomation"
+          },
+          {
+            "type": "unit",
+            "id": "ruleBasedBot",
+            "quantity": 1
+          }
+        ],
         "name": "First Rule Bot",
         "description": "Buy 1 Rule-Based Bot.",
         "achievementKey": "first_rule_bot"
@@ -3367,6 +3679,12 @@
         },
         "conditionModel": "sectorUnlocked",
         "targetId": "technology",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "technologyMarkets"
+          }
+        ],
         "name": "Technology Exposure",
         "description": "Unlock the Technology sector."
       },
@@ -3424,6 +3742,12 @@
         },
         "conditionModel": "sectorUnlocked",
         "targetId": "energy",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "energyMarkets"
+          }
+        ],
         "name": "Energy Exposure",
         "description": "Unlock the Energy sector."
       },
@@ -3448,6 +3772,17 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "seniorResearchScientist",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "seniorScientists"
+          },
+          {
+            "type": "unit",
+            "id": "seniorResearchScientist",
+            "quantity": 1
+          }
+        ],
         "name": "First Senior Scientist",
         "description": "Hire your first Senior Scientist."
       },
@@ -3458,6 +3793,12 @@
           "influence": 3
         },
         "conditionModel": "lobbyingUnlockedOrDiscovered",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "regulatoryAffairs"
+          }
+        ],
         "name": "Regulatory Affairs",
         "description": "Unlock Lobbying."
       },
@@ -3481,6 +3822,12 @@
         },
         "conditionModel": "mandateResearchUnlockedAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeMandateFramework"
+          }
+        ],
         "name": "Institutional Doctrine",
         "description": "Unlock your first institutional mandate framework."
       },
@@ -3492,6 +3839,17 @@
         },
         "conditionModel": "mandatedInstitutionsAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeMandateFramework"
+          },
+          {
+            "type": "unit",
+            "id": "propDesk",
+            "quantity": 1
+          }
+        ],
         "name": "First Mandate",
         "description": "Apply your first institutional mandate."
       },
@@ -3503,6 +3861,17 @@
         },
         "conditionModel": "correctMandateAssignmentsAtLeast",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "financeMandateFramework"
+          },
+          {
+            "type": "unit",
+            "id": "propDesk",
+            "quantity": 1
+          }
+        ],
         "name": "Strategic Alignment",
         "description": "Assign a mandated institution to its matching sector."
       },
@@ -3530,6 +3899,22 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "hedgeFund",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "hedgeFundStrategies"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "dataCenter",
+            "quantity": 1
+          },
+          {
+            "type": "unit",
+            "id": "hedgeFund",
+            "quantity": 1
+          }
+        ],
         "name": "Fund Launch",
         "description": "Build your first Hedge Fund."
       },
@@ -3542,6 +3927,22 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "investmentFirm",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "investmentFirms"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "cloudCompute",
+            "quantity": 1
+          },
+          {
+            "type": "unit",
+            "id": "investmentFirm",
+            "quantity": 1
+          }
+        ],
         "name": "Global Platform",
         "description": "Build your first Investment Firm."
       },
@@ -3565,6 +3966,22 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "mlTradingBot",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "machineLearningTrading"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "dataCenter",
+            "quantity": 1
+          },
+          {
+            "type": "unit",
+            "id": "mlTradingBot",
+            "quantity": 1
+          }
+        ],
         "name": "ML Systems",
         "description": "Buy your first ML Bot.",
         "achievementKey": "first_ml_bot"
@@ -3578,6 +3995,22 @@
         "conditionModel": "unitCountAtLeast",
         "targetId": "aiTradingBot",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "aiTradingSystems"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "cloudCompute",
+            "quantity": 1
+          },
+          {
+            "type": "unit",
+            "id": "aiTradingBot",
+            "quantity": 1
+          }
+        ],
         "name": "AI Systems",
         "description": "Buy your first AI Bot."
       },
@@ -3590,6 +4023,17 @@
         "conditionModel": "infrastructureCountAtLeast",
         "targetId": "dataCenter",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "dataCenterSystems"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "dataCenter",
+            "quantity": 1
+          }
+        ],
         "name": "Data Centre Online",
         "description": "Buy your first Data Centre."
       },
@@ -3602,6 +4046,17 @@
         "conditionModel": "infrastructureCountAtLeast",
         "targetId": "cloudCompute",
         "conditionValue": 1,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "cloudInfrastructure"
+          },
+          {
+            "type": "powerInfrastructure",
+            "id": "cloudCompute",
+            "quantity": 1
+          }
+        ],
         "name": "Cloud Expansion",
         "description": "Buy your first Cloud Infrastructure unit."
       },
@@ -3668,11 +4123,18 @@
         },
         "conditionModel": "researchTechPurchased",
         "targetId": "boostAutomationProtocols",
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "boostAutomationProtocols"
+          }
+        ],
         "name": "Automated Timing",
         "description": "Unlock auto-activation for timed boosts."
       },
       "firstPrestige": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 73,
         "reward": {
           "reputation": 1
@@ -3685,6 +4147,7 @@
       },
       "firstReputationSpend": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 74,
         "reward": {
           "cash": 100000
@@ -3696,6 +4159,7 @@
       },
       "firstPrestigeGoalRank": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 75,
         "reward": {
           "cash": 250000
@@ -3707,6 +4171,7 @@
       },
       "bronzePrestige": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 76,
         "reward": {
           "reputation": 2
@@ -3719,6 +4184,7 @@
       },
       "silverPrestige": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 77,
         "reward": {
           "reputation": 2
@@ -3730,6 +4196,7 @@
       },
       "goldPrestige": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 78,
         "reward": {
           "reputation": 3
@@ -3741,6 +4208,7 @@
       },
       "tenPrestigeRanks": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 79,
         "reward": {
           "reputation": 2
@@ -3752,6 +4220,7 @@
       },
       "onyxLegacy": {
         "category": "prestige",
+        "scope": "meta",
         "displayOrder": 80,
         "reward": {
           "reputation": 5,
@@ -3765,6 +4234,7 @@
       },
       "unlockOptimisations": {
         "category": "optimisations",
+        "scope": "meta",
         "displayOrder": 81,
         "reward": {
           "cash": 50000
@@ -3776,6 +4246,9 @@
       },
       "firstOptimisation": {
         "category": "optimisations",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 82,
         "reward": {
           "cash": 50000
@@ -3787,6 +4260,9 @@
       },
       "firstDeskOptimization": {
         "category": "tradingDesk",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 83,
         "reward": {
           "cash": 5000,
@@ -3800,6 +4276,9 @@
       },
       "firstResearchOptimization": {
         "category": "research",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 84,
         "reward": {
           "researchPoints": 100,
@@ -3813,6 +4292,9 @@
       },
       "firstAutomationOptimization": {
         "category": "automation",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 85,
         "reward": {
           "researchPoints": 150,
@@ -3826,6 +4308,9 @@
       },
       "firstGovernanceOptimization": {
         "category": "complianceLobbying",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 86,
         "reward": {
           "influence": 3,
@@ -3839,6 +4324,9 @@
       },
       "tenOptimisationRanks": {
         "category": "optimisations",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 87,
         "reward": {
           "researchPoints": 150
@@ -3850,6 +4338,9 @@
       },
       "fiftyOptimisationRanks": {
         "category": "optimisations",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 88,
         "reward": {
           "influence": 5
@@ -3861,6 +4352,9 @@
       },
       "hundredOptimisationRanks": {
         "category": "optimisations",
+        "requiresMilestones": [
+          "unlockOptimisations"
+        ],
         "displayOrder": 89,
         "reward": {
           "reputation": 1

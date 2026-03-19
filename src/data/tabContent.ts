@@ -1,4 +1,4 @@
-import { UPGRADES } from './upgrades'
+import { UPGRADE_GROUP_ORDER, UPGRADES } from './upgrades'
 import { PRESTIGE_UPGRADES } from './prestigeUpgrades'
 import { UNITS } from './units'
 
@@ -19,6 +19,11 @@ export const AUTOMATION_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group ==
 export const INFRASTRUCTURE_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'infrastructure')
 
 export const COMPLIANCE_LOBBYING_UPGRADES = UPGRADES.filter((upgrade) => upgrade.group === 'complianceLobbying')
+
+export const UPGRADE_GROUPS = UPGRADE_GROUP_ORDER.map((group) => ({
+  group,
+  upgrades: UPGRADES.filter((upgrade) => upgrade.group === group),
+}))
 
 export const OPERATIONS_UNITS = [UNITS.intern, UNITS.juniorTrader, UNITS.seniorTrader, UNITS.quantTrader]
 

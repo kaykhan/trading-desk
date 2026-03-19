@@ -18,18 +18,10 @@ import { SectorsTab } from './SectorsTab'
 import { PurchaseCard } from './DashboardPrimitives'
 
 const SPECIALIZATION_IDS: TraderSpecializationId[] = ['finance', 'technology', 'energy']
-const SPECIALIZATION_LABELS: Record<TraderSpecializationId, string> = {
-  finance: 'Finance',
-  technology: 'Technology',
-  energy: 'Energy',
-}
+const SPECIALIZATION_LABELS: Record<TraderSpecializationId, string> = { ...mechanics.specialization.labels }
 
 const MANDATE_IDS: InstitutionalMandateId[] = ['finance', 'technology', 'energy']
-const MANDATE_LABELS: Record<InstitutionalMandateId, string> = {
-  finance: 'Finance Mandate',
-  technology: 'Tech Growth Mandate',
-  energy: 'Energy Exposure',
-}
+const MANDATE_LABELS: Record<InstitutionalMandateId, string> = { ...mechanics.mandates.labels }
 
 const BUY_MODES: BuyMode[] = [1, 5, 10, 'max']
 

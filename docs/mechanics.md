@@ -1088,14 +1088,14 @@ usedDeskSlots = interns
 
 ### Visibility gates
 
-- `Server Rack`: visible by default, but new purchases still require `powerSystemsEngineering`
+- `Server Rack`: visible by default, but new purchases still require `serverRackSystems`
 - `Server Room`: requires `serverRoomSystems`
 - `Data Centre`: requires `dataCenterSystems`
 - `Cloud Infrastructure`: requires `cloudInfrastructure`
 
 ### Purchase unlock gate
 
-All power infrastructure purchases are blocked until `powerSystemsEngineering` is researched, even though the player starts the game with `1` server rack already.
+All power infrastructure purchases are blocked until `serverRackSystems` is researched, even though the player starts the game with `1` server rack already.
 
 ## 9. Sectors, Assignment, Specialization, and Mandates
 

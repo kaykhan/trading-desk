@@ -10,6 +10,7 @@ export const initialState: GameState = {
   researchPoints: 0,
   influence: 0,
   unlockedMilestones: {},
+  unlockedMetaMilestones: {},
   lifetimeManualTrades: 0,
   lifetimeResearchPointsEarned: 0,
   totalComplianceReviewsTriggered: 0,

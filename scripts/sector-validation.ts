@@ -110,7 +110,7 @@ function validateSaveNormalization(): void {
     ...initialState,
     internCount: 4,
     juniorTraderCount: 3,
-    purchasedResearchTech: { algorithmicTrading: true, powerSystemsEngineering: true },
+    purchasedResearchTech: { algorithmicTrading: true, serverRackSystems: true },
     sectorAssignments: {
       intern: { finance: 2, technology: 10, energy: 5 },
       juniorTrader: { finance: 2, technology: 2, energy: 2 },

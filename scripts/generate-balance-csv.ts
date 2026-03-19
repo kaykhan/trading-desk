@@ -344,10 +344,10 @@ const CAPACITY_UNLOCK_RULES: Record<CapacityInfrastructureId, string> = {
 }
 
 const POWER_UNLOCK_RULES: Record<PowerInfrastructureId, string> = {
-  serverRack: 'visible from start; new purchases require purchasedResearchTech.powerSystemsEngineering === true',
-  serverRoom: 'requires purchasedResearchTech.powerSystemsEngineering === true and purchasedResearchTech.serverRoomSystems === true',
-  dataCenter: 'requires purchasedResearchTech.powerSystemsEngineering === true and purchasedResearchTech.dataCenterSystems === true',
-  cloudCompute: 'requires purchasedResearchTech.powerSystemsEngineering === true and purchasedResearchTech.cloudInfrastructure === true',
+  serverRack: 'visible from start; new purchases require purchasedResearchTech.serverRackSystems === true',
+  serverRoom: 'requires purchasedResearchTech.serverRackSystems === true and purchasedResearchTech.serverRoomSystems === true',
+  dataCenter: 'requires purchasedResearchTech.serverRackSystems === true and purchasedResearchTech.dataCenterSystems === true',
+  cloudCompute: 'requires purchasedResearchTech.serverRackSystems === true and purchasedResearchTech.cloudInfrastructure === true',
 }
 
 const POWER_COST_FORMULAS: Record<PowerInfrastructureId, string> = {

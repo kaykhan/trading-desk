@@ -9,6 +9,7 @@ export const MILESTONES: MilestoneDefinition[] = (Object.entries(mechanics.miles
   .map(([id, item]) => ({
     id,
     category: item.category,
+    scope: item.scope ?? 'run',
     displayOrder: item.displayOrder,
     name: item.name,
     description: item.description,
@@ -18,6 +19,8 @@ export const MILESTONES: MilestoneDefinition[] = (Object.entries(mechanics.miles
     conditionValue: item.conditionValue,
     targetId: item.targetId as MilestoneDefinition['targetId'],
     thresholds: item.thresholds,
+    requiresMilestones: item.requiresMilestones as MilestoneDefinition['requiresMilestones'],
+    requirements: item.requirements as MilestoneDefinition['requirements'],
     achievementKey: item.achievementKey,
   }))
   .sort((left, right) => left.displayOrder - right.displayOrder)

@@ -15,6 +15,7 @@
     "build:electron": "tsc -p tsconfig.electron.json",
     "lint": "eslint .",
     "balance:check": "tsx scripts/balance-check.ts",
+    "pacing:benchmark": "tsx scripts/pacing-benchmark.ts",
     "milestone:simulate": "tsx scripts/milestone-simulation.ts",
     "prestige:check": "tsx scripts/prestige-check.ts",
     "sector:check": "tsx scripts/sector-validation.ts",

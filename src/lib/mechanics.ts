@@ -194,7 +194,7 @@ export function getRepeatableDefinition(upgradeId: keyof Mechanics['repeatableUp
 }
 
 export function getUpgradeDefinition(upgradeId: keyof Mechanics['upgrades']) {
-  return mechanics.upgrades[upgradeId]
+  return mechanics.upgrades.items[upgradeId as keyof Mechanics['upgrades']['items']]
 }
 
 export function getResearchTechDefinition(techId: keyof Mechanics['research']['tech']) {

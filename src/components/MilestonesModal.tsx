@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import { MILESTONE_CATEGORY_LABELS } from '@/data/milestones'
-import { getNextRecommendedMilestoneSummary } from '@/utils/milestones'
+import { getNextRecommendedMetaMilestone, getNextRecommendedMilestoneSummary, getTotalMetaMilestoneCount, getUnlockedMetaMilestoneCount } from '@/utils/milestones'
 
 function getCardTone(unlocked: boolean) {
   return unlocked
@@ -18,6 +18,9 @@ export function MilestonesModal() {
   const unlockedMilestoneCount = useGameStore(selectors.unlockedMilestoneCount)
   const totalMilestoneCount = useGameStore(selectors.totalMilestoneCount)
   const nextRecommendedMilestoneSummary = getNextRecommendedMilestoneSummary(gameState)
+  const unlockedMetaMilestoneCount = getUnlockedMetaMilestoneCount(gameState)
+  const totalMetaMilestoneCount = getTotalMetaMilestoneCount()
+  const nextRecommendedMetaMilestone = getNextRecommendedMetaMilestone(gameState)
   const pageCount = useGameStore(selectors.milestonePageCount)
   const [page, setPage] = useState(0)
   const safePage = Math.min(page, Math.max(0, pageCount - 1))
@@ -29,6 +32,9 @@ export function MilestonesModal() {
         <DialogTitle className="text-base uppercase tracking-[0.16em]">Milestones</DialogTitle>
         <DialogDescription className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
           {unlockedMilestoneCount} / {totalMilestoneCount} unlocked
+        </DialogDescription>
+        <DialogDescription className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          {unlockedMetaMilestoneCount} / {totalMetaMilestoneCount} meta unlocked
         </DialogDescription>
       </DialogHeader>
       <div className="max-h-[min(84vh,860px)] overflow-y-auto bg-[linear-gradient(180deg,rgba(24,24,24,0.98),rgba(16,16,16,1))] p-4">
@@ -52,6 +58,11 @@ export function MilestonesModal() {
               {nextRecommendedMilestoneSummary ? <Badge variant="outline" className="rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary">{nextRecommendedMilestoneSummary.categoryLabel}</Badge> : null}
               {nextRecommendedMilestoneSummary?.progressLabel ? <Badge variant="outline" className="rounded-md border-emerald-500/40 bg-emerald-500/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-emerald-300">{nextRecommendedMilestoneSummary.progressLabel}</Badge> : null}
             </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/15 bg-[linear-gradient(180deg,rgba(34,28,16,0.95),rgba(20,16,10,0.98))] p-3">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Recommended meta target</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{nextRecommendedMetaMilestone ? nextRecommendedMetaMilestone.name : 'All meta milestones unlocked.'}</p>
+            {nextRecommendedMetaMilestone ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{nextRecommendedMetaMilestone.description}</p> : null}
           </div>
         </div>
 

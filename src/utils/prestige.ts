@@ -135,6 +135,7 @@ export function createPrestigeResetState(state: GameState, plannedPurchases?: Pa
     ...initialState,
     cash: seedCapitalBonus,
     discoveredLobbying: state.discoveredLobbying,
+    unlockedMetaMilestones: { ...state.unlockedMetaMilestones },
     reputation: nextReputation,
     reputationSpent: state.reputationSpent,
     prestigeCount: Math.min(prestigeCap, state.prestigeCount + 1),

@@ -3,8 +3,8 @@ import { createPrestigeResetState, getReputationGainForNextPrestige } from '../u
 import { getPolicyBottleneckSummary } from './simActions'
 import { applyMilestonesAndRecord, getRemainingMilestones, hasCompletedAllMilestones } from './simMetrics'
 import { runPolicyStep } from './simPolicies'
-import type { SimConfig, SimMetrics, SimResult, SimState } from './simState'
-import { createInitialSimMetrics, createInitialSimState } from './simState'
+import type { SimCheckpointResult, SimCheckpointSnapshot, SimConfig, SimMetrics, SimResult, SimState } from './simState'
+import { cloneGameState, createInitialSimMetrics, createInitialSimState } from './simState'
 import { performManualTrades, tickSimState } from './simTick'
 
 function recordMeaningfulProgress(state: SimState): boolean {
@@ -67,6 +67,15 @@ function tryPrestige(state: SimState, config: SimConfig, metrics: SimMetrics): b
   return true
 }
 
+function getMilestoneGuidedManualTradesPerTick(state: SimState, config: SimConfig): number {
+  if (state.policyId !== 'milestoneGuided' || state.game.seniorTraderCount >= 3) {
+    return config.manualTradesPerTick
+  }
+
+  const activeClicksPerSecond = 3
+  return Math.max(config.manualTradesPerTick, Math.ceil(activeClicksPerSecond * config.tickSeconds))
+}
+
 export function runSimulation(config: SimConfig): SimResult {
   const state = createInitialSimState(config.policyId)
   const metrics = createInitialSimMetrics()
@@ -74,7 +83,8 @@ export function runSimulation(config: SimConfig): SimResult {
   applyMilestonesAndRecord(state, metrics)
 
   while (state.timeSeconds < config.maxSeconds && state.runIndex <= config.maxRuns) {
-    performManualTrades(state, config.manualTradesPerTick)
+    const manualTrades = getMilestoneGuidedManualTradesPerTick(state, config)
+    performManualTrades(state, manualTrades)
     tickSimState(state, config.tickSeconds)
     const acted = runPolicyStep(state, config)
     const newlyUnlocked = applyMilestonesAndRecord(state, metrics)
@@ -108,5 +118,90 @@ export function runSimulation(config: SimConfig): SimResult {
     remainingMilestones: getRemainingMilestones(metrics),
     completedAllMilestones: metrics.seenMilestoneIds.size >= MILESTONES.length,
     stalled: false,
+  }
+}
+
+export function runSimulationWithCheckpoints(config: SimConfig, checkpointSeconds: number[]): SimCheckpointResult {
+  const state = createInitialSimState(config.policyId)
+  const metrics = createInitialSimMetrics()
+  const checkpoints = [...checkpointSeconds].sort((left, right) => left - right)
+  const snapshots: SimCheckpointSnapshot[] = []
+  let checkpointIndex = 0
+
+  const captureCheckpoint = (requestedSeconds: number, stalled: boolean): void => {
+    snapshots.push({
+      requestedSeconds,
+      capturedAtSeconds: state.timeSeconds,
+      run: state.runIndex,
+      game: cloneGameState(state.game),
+      seenMilestoneIds: [...metrics.seenMilestoneIds],
+      stalled,
+      stallReason: metrics.stallReason,
+    })
+  }
+
+  applyMilestonesAndRecord(state, metrics)
+
+  while (state.timeSeconds < config.maxSeconds && state.runIndex <= config.maxRuns) {
+    const manualTrades = getMilestoneGuidedManualTradesPerTick(state, config)
+    performManualTrades(state, manualTrades)
+    tickSimState(state, config.tickSeconds)
+    const acted = runPolicyStep(state, config)
+    const newlyUnlocked = applyMilestonesAndRecord(state, metrics)
+    const gainedEconomyGround = recordMeaningfulProgress(state)
+
+    if (acted || newlyUnlocked.length > 0 || gainedEconomyGround) {
+      state.lastMeaningfulProgressTimeSeconds = state.timeSeconds
+    }
+
+    while (checkpointIndex < checkpoints.length && state.timeSeconds >= checkpoints[checkpointIndex]) {
+      captureCheckpoint(checkpoints[checkpointIndex], false)
+      checkpointIndex += 1
+    }
+
+    if (hasCompletedAllMilestones(metrics)) {
+      break
+    }
+
+    tryPrestige(state, config, metrics)
+
+    if (state.timeSeconds - state.lastMeaningfulProgressTimeSeconds >= config.stallWindowSeconds) {
+      metrics.stallReason = getPolicyBottleneckSummary(state).join('; ') || 'no meaningful progress within stall window'
+      while (checkpointIndex < checkpoints.length) {
+        captureCheckpoint(checkpoints[checkpointIndex], true)
+        checkpointIndex += 1
+      }
+
+      const result: SimResult = {
+        state,
+        metrics,
+        remainingMilestones: getRemainingMilestones(metrics),
+        completedAllMilestones: false,
+        stalled: true,
+      }
+
+      return {
+        checkpoints: snapshots,
+        result,
+      }
+    }
+  }
+
+  while (checkpointIndex < checkpoints.length) {
+    captureCheckpoint(checkpoints[checkpointIndex], false)
+    checkpointIndex += 1
+  }
+
+  const result: SimResult = {
+    state,
+    metrics,
+    remainingMilestones: getRemainingMilestones(metrics),
+    completedAllMilestones: metrics.seenMilestoneIds.size >= MILESTONES.length,
+    stalled: false,
+  }
+
+  return {
+    checkpoints: snapshots,
+    result,
   }
 }

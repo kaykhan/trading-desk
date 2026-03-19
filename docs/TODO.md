@@ -361,7 +361,7 @@ Definition of done:
 - Research is a real production economy powered by repeatable staff rather than only a list of one-off unlocks.
 
 ### 35. Research technologies and unlock routing
-- [x] Create `data/researchTech.ts` and define the first tech ladder: `algorithmicTrading`, `powerSystemsEngineering`, and `regulatoryAffairs`.
+- [x] Create `data/researchTech.ts` and define the first tech ladder: `algorithmicTrading`, `serverRackSystems`, and `regulatoryAffairs`.
 - [x] Add store actions and selectors for purchasing research tech with Research Points.
 - [x] Move advanced unlock responsibility to research tech purchases instead of cash-only or prestige-only assumptions.
 - [x] Derive system visibility/unlock rules for Trading Bots, Power Infrastructure, and Lobbying from research tech state.

@@ -451,7 +451,7 @@ export function normalizeGameState(value: unknown): GameState | null {
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.juniorTraderProgram === true ? { juniorTraderProgram: true } : {}),
     ...(isRecord(value.purchasedUpgrades) && value.purchasedUpgrades.seniorRecruitment === true ? { seniorRecruitment: true } : {}),
     ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.quantTradingSystems === true ? { algorithmicTrading: true } : {}),
-    ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.powerSystemsEngineering === true ? { serverRoomSystems: true } : {}),
+    ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.serverRackSystems === true ? { serverRoomSystems: true } : {}),
     ...(isRecord(value.purchasedResearchTech) && value.purchasedResearchTech.aiTradingSystems === true ? { cloudInfrastructure: true } : {}),
     ...(getNumber(value.serverRoomCount, 0) > 0 ? { serverRoomSystems: true } : {}),
     ...(getNumber(value.cloudComputeCount, 0) > 0 ? { cloudInfrastructure: true } : {}),
@@ -487,12 +487,16 @@ export function normalizeGameState(value: unknown): GameState | null {
   const unlockedMilestones = Object.fromEntries(
     Object.entries(isRecord(value.unlockedMilestones) ? value.unlockedMilestones : {}).filter(([key, entryValue]) => isMilestoneId(key) && entryValue === true),
   ) as GameState['unlockedMilestones']
+  const unlockedMetaMilestones = Object.fromEntries(
+    Object.entries(isRecord(value.unlockedMetaMilestones) ? value.unlockedMetaMilestones : {}).filter(([key, entryValue]) => isMilestoneId(key) && entryValue === true),
+  ) as GameState['unlockedMetaMilestones']
 
   const normalizedStateBase = {
     cash: getNumber(value.cash, initialState.cash),
     researchPoints: getNumber(value.researchPoints, initialState.researchPoints),
     influence: getNumber(value.influence, initialState.influence),
     unlockedMilestones,
+    unlockedMetaMilestones,
     lifetimeManualTrades: Math.max(0, getNumber(value.lifetimeManualTrades, initialState.lifetimeManualTrades)),
     lifetimeResearchPointsEarned: Math.max(0, getNumber(value.lifetimeResearchPointsEarned, getNumber(value.researchPoints, initialState.lifetimeResearchPointsEarned))),
     totalComplianceReviewsTriggered: Math.max(0, getNumber(value.totalComplianceReviewsTriggered, initialState.totalComplianceReviewsTriggered)),
