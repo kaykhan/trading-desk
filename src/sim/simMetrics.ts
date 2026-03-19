@@ -33,6 +33,7 @@ export function applyMilestonesAndRecord(state: SimState, metrics: SimMetrics): 
     metrics.unlockRecords.push({
       milestoneId,
       name: milestone?.name ?? milestoneId,
+      scope: milestone?.scope ?? 'run',
       elapsedSeconds: state.timeSeconds,
       run: state.runIndex,
       cash: state.game.cash,

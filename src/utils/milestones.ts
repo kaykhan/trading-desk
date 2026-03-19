@@ -399,6 +399,14 @@ export function getMilestoneDefinition(milestoneId: MilestoneId): MilestoneDefin
   return MILESTONES.find((milestone) => milestone.id === milestoneId)
 }
 
+export function getNextRunMilestone(state: GameState): MilestoneDefinition | null {
+  return MILESTONES.find((milestone) => milestone.scope === 'run' && !isRunMilestoneUnlocked(state, milestone.id) && areRequiredMilestonesUnlocked(state, milestone)) ?? null
+}
+
+export function getNextMetaMilestone(state: GameState): MilestoneDefinition | null {
+  return MILESTONES.find((milestone) => milestone.scope === 'meta' && !isMetaMilestoneUnlocked(state, milestone.id) && areRequiredMilestonesUnlocked(state, milestone)) ?? null
+}
+
 export function getMilestoneProgressLabel(state: GameState, milestoneId: MilestoneId): string | null {
   const milestone = getMilestoneDefinition(milestoneId)
 

@@ -6,6 +6,7 @@ import { runPolicyStep } from './simPolicies'
 import type { SimCheckpointResult, SimCheckpointSnapshot, SimConfig, SimMetrics, SimResult, SimState } from './simState'
 import { cloneGameState, createInitialSimMetrics, createInitialSimState } from './simState'
 import { performManualTrades, tickSimState } from './simTick'
+import { getMilestoneProgressLabel, getNextMetaMilestone, getNextRunMilestone } from '../utils/milestones'
 
 function recordMeaningfulProgress(state: SimState): boolean {
   let progressed = false
@@ -128,13 +129,43 @@ export function runSimulationWithCheckpoints(config: SimConfig, checkpointSecond
   const snapshots: SimCheckpointSnapshot[] = []
   let checkpointIndex = 0
 
+  const buildTargetInfo = (target: ReturnType<typeof getNextRunMilestone> | ReturnType<typeof getNextMetaMilestone>, scope: 'run' | 'meta') => {
+    if (!target) {
+      return null
+    }
+
+    const lastTargetUnlock = [...metrics.unlockRecords]
+      .filter((record) => record.scope === scope)
+      .at(-1)
+
+    const blockedSeconds = Math.max(0, state.timeSeconds - (lastTargetUnlock?.elapsedSeconds ?? 0))
+
+    return {
+      id: target.id,
+      name: target.name,
+      scope,
+      displayOrder: target.displayOrder,
+      blockedSeconds,
+      progressLabel: getMilestoneProgressLabel(state.game, target.id),
+      requiresMilestones: [...(target.requiresMilestones ?? [])],
+      requirements: [...(target.requirements ?? [])],
+    }
+  }
+
   const captureCheckpoint = (requestedSeconds: number, stalled: boolean): void => {
+    const currentRunTarget = buildTargetInfo(getNextRunMilestone(state.game), 'run')
+    const nextMetaTarget = buildTargetInfo(getNextMetaMilestone(state.game), 'meta')
+    const lastUnlockedMilestone = metrics.unlockRecords.at(-1) ?? null
     snapshots.push({
       requestedSeconds,
       capturedAtSeconds: state.timeSeconds,
       run: state.runIndex,
       game: cloneGameState(state.game),
       seenMilestoneIds: [...metrics.seenMilestoneIds],
+      currentRunTarget,
+      nextMetaTarget,
+      lastUnlockedMilestone,
+      blockedSinceLastUnlockSeconds: lastUnlockedMilestone ? Math.max(0, state.timeSeconds - lastUnlockedMilestone.elapsedSeconds) : null,
       stalled,
       stallReason: metrics.stallReason,
     })
@@ -196,7 +227,7 @@ export function runSimulationWithCheckpoints(config: SimConfig, checkpointSecond
     state,
     metrics,
     remainingMilestones: getRemainingMilestones(metrics),
-    completedAllMilestones: metrics.seenMilestoneIds.size >= MILESTONES.length,
+    completedAllMilestones: hasCompletedAllMilestones(metrics),
     stalled: false,
   }
 

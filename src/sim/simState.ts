@@ -2,13 +2,14 @@ import { initialState } from '../data/initialState'
 import { LOBBYING_POLICIES } from '../data/lobbyingPolicies'
 import { MILESTONES } from '../data/milestones'
 import { PRESTIGE_UPGRADES } from '../data/prestigeUpgrades'
-import type { GameState, LobbyingPolicyId, MilestoneId, PrestigeUpgradeId, ResearchTechId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
+import type { GameState, LobbyingPolicyId, MilestoneId, MilestoneScope, PrestigeUpgradeId, ResearchTechId, TimedBoostId, UnitId, UpgradeId } from '../types/game'
 
 export type SimPolicyId = 'unlockChasing' | 'roi' | 'prestigeAware' | 'milestoneGuided'
 
 export type UnlockRecord = {
   milestoneId: MilestoneId
   name: string
+  scope: MilestoneScope
   elapsedSeconds: number
   run: number
   cash: number
@@ -30,6 +31,17 @@ export type SimMetrics = {
   seenMilestoneIds: Set<MilestoneId>
   stallReason: string | null
   anomalyMessages: string[]
+}
+
+export type SimMilestoneTargetInfo = {
+  id: MilestoneId
+  name: string
+  scope: MilestoneScope
+  displayOrder: number
+  blockedSeconds: number
+  progressLabel: string | null
+  requiresMilestones: MilestoneId[]
+  requirements: Array<{ type: string; id: string; quantity?: number }>
 }
 
 export type SimState = {
@@ -77,6 +89,10 @@ export type SimCheckpointSnapshot = {
   run: number
   game: GameState
   seenMilestoneIds: MilestoneId[]
+  currentRunTarget: SimMilestoneTargetInfo | null
+  nextMetaTarget: SimMilestoneTargetInfo | null
+  lastUnlockedMilestone: UnlockRecord | null
+  blockedSinceLastUnlockSeconds: number | null
   stalled: boolean
   stallReason: string | null
 }

@@ -2288,7 +2288,7 @@
         "name": "Institutional Desks",
         "branch": "humanCapital",
         "currency": "researchPoints",
-        "cost": 1500,
+        "cost": 2600,
         "prerequisites": [
           "propDeskOperations"
         ],
@@ -2493,7 +2493,7 @@
         "name": "Rule-Based Automation",
         "branch": "automation",
         "currency": "researchPoints",
-        "cost": 700,
+        "cost": 1100,
         "prerequisites": [
           "algorithmicTrading"
         ],
@@ -2540,7 +2540,7 @@
         "name": "Server Room Systems",
         "branch": "infrastructure",
         "currency": "researchPoints",
-        "cost": 500,
+        "cost": 900,
         "prerequisites": [
           "serverRackSystems"
         ],
@@ -3584,15 +3584,41 @@
         "name": "Institutional Standards",
         "description": "Purchase your first Institution upgrade."
       },
-      "firstInstitutionalDesk": {
+      "propDeskExpansion": {
         "category": "institutions",
         "displayOrder": 42,
+        "reward": {
+          "cash": 75000
+        },
+        "conditionModel": "unitCountAtLeast",
+        "targetId": "propDesk",
+        "conditionValue": 3,
+        "requirements": [
+          {
+            "type": "researchTech",
+            "id": "propDeskOperations"
+          },
+          {
+            "type": "unit",
+            "id": "propDesk",
+            "quantity": 3
+          }
+        ],
+        "name": "Prop Desk Expansion",
+        "description": "Build 3 Prop Desks to prepare for institutional scale."
+      },
+      "firstInstitutionalDesk": {
+        "category": "institutions",
+        "displayOrder": 43,
         "reward": {
           "cash": 60000
         },
         "conditionModel": "unitCountAtLeast",
         "targetId": "institutionalDesk",
         "conditionValue": 1,
+        "requiresMilestones": [
+          "propDeskExpansion"
+        ],
         "requirements": [
           {
             "type": "researchTech",
@@ -3614,7 +3640,7 @@
       },
       "firstServerRoom": {
         "category": "infrastructure",
-        "displayOrder": 43,
+        "displayOrder": 44,
         "reward": {
           "cash": 80000
         },
@@ -3637,7 +3663,7 @@
       },
       "firstRuleBot": {
         "category": "automation",
-        "displayOrder": 44,
+        "displayOrder": 45,
         "reward": {
           "cash": 30000
         },
@@ -3661,7 +3687,7 @@
       },
       "firstAutomationUpgrade": {
         "category": "automation",
-        "displayOrder": 45,
+        "displayOrder": 46,
         "reward": {
           "cash": 75000
         },
@@ -3673,7 +3699,7 @@
       },
       "unlockTechnologySector": {
         "category": "marketsSectors",
-        "displayOrder": 46,
+        "displayOrder": 47,
         "reward": {
           "cash": 2500
         },
@@ -3690,7 +3716,7 @@
       },
       "technologyFocus": {
         "category": "marketsSectors",
-        "displayOrder": 47,
+        "displayOrder": 48,
         "reward": {
           "cash": 4000
         },
@@ -3702,7 +3728,7 @@
       },
       "multiSectorPresence": {
         "category": "marketsSectors",
-        "displayOrder": 48,
+        "displayOrder": 49,
         "reward": {
           "cash": 3500
         },
@@ -3713,7 +3739,7 @@
       },
       "financeFocus": {
         "category": "marketsSectors",
-        "displayOrder": 49,
+        "displayOrder": 50,
         "reward": {
           "cash": 4000
         },
@@ -3725,7 +3751,7 @@
       },
       "firstExtraSector": {
         "category": "marketsSectors",
-        "displayOrder": 50,
+        "displayOrder": 51,
         "reward": {
           "researchPoints": 50
         },
@@ -3736,7 +3762,7 @@
       },
       "unlockEnergySector": {
         "category": "marketsSectors",
-        "displayOrder": 51,
+        "displayOrder": 52,
         "reward": {
           "cash": 2500
         },
@@ -3753,7 +3779,7 @@
       },
       "energyFocus": {
         "category": "marketsSectors",
-        "displayOrder": 52,
+        "displayOrder": 53,
         "reward": {
           "cash": 4000
         },
@@ -3765,7 +3791,7 @@
       },
       "firstSeniorScientist": {
         "category": "research",
-        "displayOrder": 53,
+        "displayOrder": 54,
         "reward": {
           "researchPoints": 75
         },
@@ -3788,7 +3814,7 @@
       },
       "unlockLobbying": {
         "category": "complianceLobbying",
-        "displayOrder": 54,
+        "displayOrder": 55,
         "reward": {
           "influence": 3
         },
@@ -3804,7 +3830,7 @@
       },
       "firstLobbyingPolicy": {
         "category": "complianceLobbying",
-        "displayOrder": 55,
+        "displayOrder": 56,
         "reward": {
           "influence": 2
         },
@@ -3816,7 +3842,7 @@
       },
       "firstMandateResearch": {
         "category": "specialization",
-        "displayOrder": 56,
+        "displayOrder": 57,
         "reward": {
           "influence": 2
         },
@@ -3833,7 +3859,7 @@
       },
       "firstMandate": {
         "category": "specialization",
-        "displayOrder": 57,
+        "displayOrder": 58,
         "reward": {
           "influence": 2
         },
@@ -3855,7 +3881,7 @@
       },
       "alignedInstitution": {
         "category": "specialization",
-        "displayOrder": 58,
+        "displayOrder": 59,
         "reward": {
           "cash": 25000
         },
@@ -3877,7 +3903,7 @@
       },
       "institutionPortfolio": {
         "category": "institutions",
-        "displayOrder": 59,
+        "displayOrder": 60,
         "reward": {
           "influence": 4
         },
@@ -3892,7 +3918,7 @@
       },
       "firstHedgeFund": {
         "category": "institutions",
-        "displayOrder": 60,
+        "displayOrder": 61,
         "reward": {
           "cash": 250000
         },
@@ -3920,7 +3946,7 @@
       },
       "firstInvestmentFirm": {
         "category": "institutions",
-        "displayOrder": 61,
+        "displayOrder": 62,
         "reward": {
           "cash": 1000000
         },
@@ -3948,7 +3974,7 @@
       },
       "machineDesk": {
         "category": "automation",
-        "displayOrder": 62,
+        "displayOrder": 63,
         "reward": {
           "cash": 60000
         },
@@ -3959,7 +3985,7 @@
       },
       "firstMLBot": {
         "category": "automation",
-        "displayOrder": 63,
+        "displayOrder": 64,
         "reward": {
           "researchPoints": 200
         },
@@ -3988,7 +4014,7 @@
       },
       "firstAIBot": {
         "category": "automation",
-        "displayOrder": 64,
+        "displayOrder": 65,
         "reward": {
           "researchPoints": 400
         },
@@ -4016,7 +4042,7 @@
       },
       "firstDataCentre": {
         "category": "infrastructure",
-        "displayOrder": 65,
+        "displayOrder": 66,
         "reward": {
           "cash": 500000
         },
@@ -4039,7 +4065,7 @@
       },
       "firstCloudCompute": {
         "category": "infrastructure",
-        "displayOrder": 66,
+        "displayOrder": 67,
         "reward": {
           "cash": 1500000
         },
@@ -4062,7 +4088,7 @@
       },
       "threePolicies": {
         "category": "complianceLobbying",
-        "displayOrder": 67,
+        "displayOrder": 68,
         "reward": {
           "influence": 4
         },
@@ -4073,7 +4099,7 @@
       },
       "firstGovernanceUpgrade": {
         "category": "complianceLobbying",
-        "displayOrder": 68,
+        "displayOrder": 69,
         "reward": {
           "cash": 100000
         },
@@ -4085,7 +4111,7 @@
       },
       "unlockBoosts": {
         "category": "boosts",
-        "displayOrder": 69,
+        "displayOrder": 70,
         "reward": {
           "cash": 75000
         },
@@ -4095,7 +4121,7 @@
       },
       "firstTimedBoost": {
         "category": "boosts",
-        "displayOrder": 70,
+        "displayOrder": 71,
         "reward": {
           "cash": 75000
         },
@@ -4106,7 +4132,7 @@
       },
       "firstGlobalBoost": {
         "category": "boosts",
-        "displayOrder": 71,
+        "displayOrder": 72,
         "reward": {
           "influence": 2
         },
@@ -4117,7 +4143,7 @@
       },
       "boostAutomationUnlocked": {
         "category": "boosts",
-        "displayOrder": 72,
+        "displayOrder": 73,
         "reward": {
           "researchPoints": 150
         },
@@ -4135,7 +4161,7 @@
       "firstPrestige": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 73,
+        "displayOrder": 74,
         "reward": {
           "reputation": 1
         },
@@ -4148,7 +4174,7 @@
       "firstReputationSpend": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 74,
+        "displayOrder": 75,
         "reward": {
           "cash": 100000
         },
@@ -4160,7 +4186,7 @@
       "firstPrestigeGoalRank": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 75,
+        "displayOrder": 76,
         "reward": {
           "cash": 250000
         },
@@ -4172,7 +4198,7 @@
       "bronzePrestige": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 76,
+        "displayOrder": 77,
         "reward": {
           "reputation": 2
         },
@@ -4185,7 +4211,7 @@
       "silverPrestige": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 77,
+        "displayOrder": 78,
         "reward": {
           "reputation": 2
         },
@@ -4197,7 +4223,7 @@
       "goldPrestige": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 78,
+        "displayOrder": 79,
         "reward": {
           "reputation": 3
         },
@@ -4209,7 +4235,7 @@
       "tenPrestigeRanks": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 79,
+        "displayOrder": 80,
         "reward": {
           "reputation": 2
         },
@@ -4221,7 +4247,7 @@
       "onyxLegacy": {
         "category": "prestige",
         "scope": "meta",
-        "displayOrder": 80,
+        "displayOrder": 81,
         "reward": {
           "reputation": 5,
           "note": "This is a top-end capstone milestone."
@@ -4235,7 +4261,7 @@
       "unlockOptimisations": {
         "category": "optimisations",
         "scope": "meta",
-        "displayOrder": 81,
+        "displayOrder": 82,
         "reward": {
           "cash": 50000
         },
@@ -4249,7 +4275,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 82,
+        "displayOrder": 83,
         "reward": {
           "cash": 50000
         },
@@ -4263,7 +4289,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 83,
+        "displayOrder": 84,
         "reward": {
           "cash": 5000,
           "note": "Visible after Optimisations unlock later."
@@ -4279,7 +4305,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 84,
+        "displayOrder": 85,
         "reward": {
           "researchPoints": 100,
           "note": "Visible after Optimisations unlock later."
@@ -4295,7 +4321,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 85,
+        "displayOrder": 86,
         "reward": {
           "researchPoints": 150,
           "note": "Visible after Optimisations unlock later."
@@ -4311,7 +4337,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 86,
+        "displayOrder": 87,
         "reward": {
           "influence": 3,
           "note": "Visible after Optimisations unlock later."
@@ -4327,7 +4353,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 87,
+        "displayOrder": 88,
         "reward": {
           "researchPoints": 150
         },
@@ -4341,7 +4367,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 88,
+        "displayOrder": 89,
         "reward": {
           "influence": 5
         },
@@ -4355,7 +4381,7 @@
         "requiresMilestones": [
           "unlockOptimisations"
         ],
-        "displayOrder": 89,
+        "displayOrder": 90,
         "reward": {
           "reputation": 1
         },

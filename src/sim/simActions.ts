@@ -17,6 +17,7 @@ import { getPrestigeGoalNextRankCost } from '../utils/prestige'
 import { areResearchTechPrerequisitesMet, isResearchTechUnlocked } from '../utils/research'
 import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
 import { getGenericTraderCount, getSpecializationResearchUnlockId, getTraderSpecialistTrainingCost } from '../utils/specialization'
+import { isMilestoneDefinitionMet } from '../utils/milestones'
 import { cloneGameState } from './simState'
 import type { SimConfig, SimState } from './simState'
 
@@ -180,18 +181,18 @@ function buyCapacityInfrastructure(game: GameState, infrastructureId: 'deskSpace
   return true
 }
 
-function buyMinimumSupportUnits(game: GameState): boolean {
+function buyMinimumSupportUnits(game: GameState, milestone: MilestoneDefinition | null = null): boolean {
   let changed = false
 
-  if (game.purchasedResearchTech.foundationsOfFinanceTraining && game.internResearchScientistCount < 5) {
+  if (game.purchasedResearchTech.foundationsOfFinanceTraining && game.internResearchScientistCount < 5 && canBuyOptionalHumanUnit(game, 'internResearchScientist', milestone)) {
     changed = buyUnit(game, 'internResearchScientist') || changed
   }
 
-  if (game.purchasedResearchTech.juniorScientists && game.juniorResearchScientistCount < 5) {
+  if (game.purchasedResearchTech.juniorScientists && game.juniorResearchScientistCount < 5 && canBuyOptionalHumanUnit(game, 'juniorResearchScientist', milestone)) {
     changed = buyUnit(game, 'juniorResearchScientist') || changed
   }
 
-  if (game.purchasedResearchTech.seniorScientists && game.seniorResearchScientistCount < 1) {
+  if (game.purchasedResearchTech.seniorScientists && game.seniorResearchScientistCount < 1 && canBuyOptionalHumanUnit(game, 'seniorResearchScientist', milestone)) {
     changed = buyUnit(game, 'seniorResearchScientist') || changed
   }
 
@@ -415,12 +416,16 @@ function applyMandates(game: GameState): void {
   tryApply('hedgeFund', 'energy')
 }
 
-function payCompliance(game: GameState): void {
-  if (!game.complianceVisible && game.purchasedResearchTech.regulatoryAffairs !== true) {
-    return
+function payCompliance(game: GameState): boolean {
+  const hasOutstandingCompliance = COMPLIANCE_CATEGORIES.some((category) => game.compliancePayments[category].overdueAmount > 0)
+  const complianceDueNow = game.complianceReviewRemainingSeconds <= 0
+
+  if (!game.complianceVisible && game.purchasedResearchTech.regulatoryAffairs !== true && !hasOutstandingCompliance && !complianceDueNow) {
+    return false
   }
 
   game.complianceTabOpened = true
+  let paidAny = false
 
   for (const category of COMPLIANCE_CATEGORIES) {
     if (game.compliancePayments[category].overdueAmount <= 0) {
@@ -431,11 +436,14 @@ function payCompliance(game: GameState): void {
     const result = payComplianceCategoryNow(game, category)
     if (result.cash < beforeCash) {
       game.totalCompliancePaymentsMade += 1
+      paidAny = true
     }
     game.cash = result.cash
     game.compliancePayments = result.compliancePayments
     game.lastCompliancePayment = result.lastCompliancePayment
   }
+
+  return paidAny
 }
 
 function buyPrestigeUpgrade(game: GameState, upgradeId: PrestigeUpgradeId): boolean {
@@ -514,7 +522,7 @@ export function performScriptedGrowthActions(state: SimState, config: SimConfig)
     rebalanceSectors(game)
     trainSpecialists(game)
     applyMandates(game)
-    payCompliance(game)
+    changed = payCompliance(game) || changed
 
     for (const policyId of config.policyPriority) {
       changed = buyLobbyingPolicy(game, policyId) || changed
@@ -734,7 +742,7 @@ export function performUnlockChasingActions(state: SimState, config: SimConfig):
   rebalanceSectors(game)
   trainSpecialists(game)
   applyMandates(game)
-  payCompliance(game)
+  acted = payCompliance(game) || acted
 
   for (const policyId of config.policyPriority) {
     if (buyLobbyingPolicy(game, policyId)) {
@@ -766,7 +774,21 @@ function canAffordSoon(game: GameState, cost: number, secondsWindow = 300): bool
 }
 
 function getTargetedMilestone(state: SimState) {
-  return MILESTONES.find((milestone) => milestone.scope === 'run' && state.game.unlockedMilestones[milestone.id] !== true && (milestone.requiresMilestones ?? []).every((requiredId) => state.game.unlockedMilestones[requiredId] === true || state.game.unlockedMetaMilestones[requiredId] === true)) ?? null
+  return MILESTONES.find((milestone) => {
+    if (milestone.scope !== 'run') {
+      return false
+    }
+
+    if (state.game.unlockedMilestones[milestone.id] === true) {
+      return false
+    }
+
+    if ((milestone.requiresMilestones ?? []).some((requiredId) => state.game.unlockedMilestones[requiredId] !== true && state.game.unlockedMetaMilestones[requiredId] !== true)) {
+      return false
+    }
+
+    return !isMilestoneDefinitionMet(state.game, milestone)
+  }) ?? null
 }
 
 function buyAffordableFromList<T extends string>(items: readonly T[], attempt: (id: T) => boolean): boolean {
@@ -807,6 +829,71 @@ function buyOrUnlockUnit(game: GameState, unitId: UnitId): boolean {
 
   const unlockTechId = mechanics.units[unitId].unlockResearchTechId
   return typeof unlockTechId === 'string' ? buyResearchPath(game, unlockTechId as (typeof RESEARCH_TECH)[number]['id']) : false
+}
+
+function canAffordUnit(game: GameState, unitId: UnitId): boolean {
+  const result = unitId === 'quantTrader' || unitId === 'ruleBasedBot' || unitId === 'mlTradingBot' || unitId === 'aiTradingBot'
+    ? getAutomationBulkCost(game, unitId as AutomationUnitId, 1)
+    : getBulkUnitCost(game, unitId, 1)
+
+  return result.quantity > 0 && game.cash >= result.totalCost
+}
+
+function getRequiredDeskSlotsForMilestone(game: GameState, milestone: MilestoneDefinition | null): number {
+  if (!milestone) {
+    return 0
+  }
+
+  let reservedSlots = 0
+
+  const reserveHumanUnit = (unitId: UnitId, quantity: number) => {
+    if (quantity <= 0) {
+      return
+    }
+
+    if (unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader' || unitId === 'internResearchScientist' || unitId === 'juniorResearchScientist' || unitId === 'seniorResearchScientist') {
+      reservedSlots += quantity
+    }
+  }
+
+  if (milestone.conditionModel === 'unitCountAtLeast' && typeof milestone.targetId === 'string') {
+    const targetUnitId = milestone.targetId as UnitId
+    reserveHumanUnit(targetUnitId, Math.max(0, (milestone.conditionValue ?? 0) - getOwnedCount(game, targetUnitId)))
+  }
+
+  if (milestone.conditionModel === 'mixedUnitThresholds') {
+    for (const [unitId, threshold] of Object.entries(milestone.thresholds ?? {})) {
+      reserveHumanUnit(unitId as UnitId, Math.max(0, Number(threshold ?? 0) - getOwnedCount(game, unitId as UnitId)))
+    }
+  }
+
+  for (const requirement of milestone.requirements ?? []) {
+    if (requirement.type !== 'unit') {
+      continue
+    }
+
+    const unitId = requirement.id as UnitId
+    reserveHumanUnit(unitId, Math.max(0, (requirement.quantity ?? 1) - getOwnedCount(game, unitId)))
+  }
+
+  return reservedSlots
+}
+
+function canBuyOptionalHumanUnit(game: GameState, unitId: UnitId, milestone: MilestoneDefinition | null): boolean {
+  if (!(unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader' || unitId === 'internResearchScientist' || unitId === 'juniorResearchScientist' || unitId === 'seniorResearchScientist')) {
+    return true
+  }
+
+  const availableSlots = Math.max(0, getTotalDeskSlots(game) - getUsedDeskSlots(game))
+  const reservedSlots = getRequiredDeskSlotsForMilestone(game, milestone)
+  return availableSlots > reservedSlots
+}
+
+function canAffordResearchTech(game: GameState, techId: (typeof RESEARCH_TECH)[number]['id']): boolean {
+  const tech = getResearchTechDefinition(techId)
+  if (!tech) return false
+  const currencyKey = tech.currency === 'cash' ? 'cash' : 'researchPoints'
+  return game[currencyKey] >= tech.researchCost
 }
 
 function buyOrUnlockInfrastructure(game: GameState, infrastructureId: 'deskSpace' | 'floorSpace' | 'office' | PowerInfrastructureId): boolean {
@@ -895,8 +982,23 @@ function ensureCapacityAndPower(game: GameState): boolean {
   return acted
 }
 
+function maybeReserveDeskCapacityForMilestone(game: GameState, milestone: MilestoneDefinition | null): boolean {
+  const reservedSlots = getRequiredDeskSlotsForMilestone(game, milestone)
+  if (reservedSlots <= 0) {
+    return false
+  }
+
+  const availableSlots = Math.max(0, getTotalDeskSlots(game) - getUsedDeskSlots(game))
+  if (availableSlots >= reservedSlots) {
+    return false
+  }
+
+  return buyCapacityInfrastructure(game, 'deskSpace') || buyCapacityInfrastructure(game, 'floorSpace') || buyCapacityInfrastructure(game, 'office')
+}
+
 function applyPassiveSimManagement(game: GameState, config: SimConfig, milestone: MilestoneDefinition | null): boolean {
   let acted = false
+  acted = maybeReserveDeskCapacityForMilestone(game, milestone) || acted
   acted = ensureCapacityAndPower(game) || acted
   setAutomationConfig(game)
   rebalanceSectors(game)
@@ -906,7 +1008,7 @@ function applyPassiveSimManagement(game: GameState, config: SimConfig, milestone
     applyMandates(game)
   }
 
-  payCompliance(game)
+  acted = payCompliance(game) || acted
 
   if (milestone?.category === 'boosts' || milestone?.conditionModel === 'timedBoostActivationsAtLeast') {
     for (const boostId of config.timedBoostPriority) {
@@ -950,24 +1052,24 @@ function buyThresholdUnitsForMilestone(game: GameState, milestone: MilestoneDefi
     }
   }
 
-  if (milestone.conditionModel === 'humanCountAtLeast') {
-    const target = milestone.conditionValue ?? 0
-    const current = game.internCount + game.juniorTraderCount + game.seniorTraderCount
-    if (current < target) {
-      const missing = target - current
-      if (game.internCount < 10) {
-        return buyOrUnlockUnit(game, 'intern')
-      }
+    if (milestone.conditionModel === 'humanCountAtLeast') {
+      const target = milestone.conditionValue ?? 0
+      const current = game.internCount + game.juniorTraderCount + game.seniorTraderCount
+      if (current < target) {
+        const missing = target - current
+        if (game.internCount < 10 && canBuyOptionalHumanUnit(game, 'intern', milestone)) {
+          return buyOrUnlockUnit(game, 'intern')
+        }
 
-      if (game.juniorTraderCount < 10) {
-        return buyOrUnlockUnit(game, 'juniorTrader')
-      }
+        if (game.juniorTraderCount < 10 && canBuyOptionalHumanUnit(game, 'juniorTrader', milestone)) {
+          return buyOrUnlockUnit(game, 'juniorTrader')
+        }
 
-      if (missing > 0) {
-        return buyOrUnlockUnit(game, 'seniorTrader')
+        if (missing > 0 && canBuyOptionalHumanUnit(game, 'seniorTrader', milestone)) {
+          return buyOrUnlockUnit(game, 'seniorTrader')
+        }
       }
     }
-  }
 
   return false
 }
@@ -1078,10 +1180,10 @@ function actForMilestone(state: SimState, config: SimConfig): boolean {
     case 'deskOrDeskPlusInstitutionIncomeAtLeast':
       return buyAffordableFromList(
         ['seniorTrader', 'juniorTrader', 'intern'] as const,
-        (unitId) => buyOrUnlockUnit(game, unitId),
+        (unitId) => canBuyOptionalHumanUnit(game, unitId, milestone) && buyOrUnlockUnit(game, unitId),
       )
     case 'humanCountAtLeast':
-      return buyBestAvailableUnitInPriority(game, config, (unitId) => unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader')
+      return buyBestAvailableUnitInPriority(game, config, (unitId) => (unitId === 'intern' || unitId === 'juniorTrader' || unitId === 'seniorTrader') && canBuyOptionalHumanUnit(game, unitId, milestone))
     case 'researchNodesPurchasedAtLeast':
       return buyBestAvailableResearchInPriority(game, config)
     case 'effectiveServerRackCountAtLeast':
@@ -1142,8 +1244,7 @@ function actForMilestone(state: SimState, config: SimConfig): boolean {
     case 'optimisationRanksByFamilyAtLeast':
       return false
     case 'firstCompliancePayment':
-      payCompliance(game)
-      return false
+      return payCompliance(game)
     default:
       return false
   }
@@ -1179,9 +1280,36 @@ export function performMilestoneGuidedActions(state: SimState, config: SimConfig
 export function getPolicyBottleneckSummary(state: SimState): string[] {
   const game = state.game
   const blockers: string[] = []
+  const targetedMilestone = getTargetedMilestone(state)
 
-  if (game.lifetimeCashEarned < 4_000_000) {
-    blockers.push(`prestige locked by lifetime cash ${Math.floor(game.lifetimeCashEarned).toLocaleString()}/4,000,000`)
+  if (targetedMilestone?.id === 'firstSeniorTrader') {
+    if (!game.purchasedResearchTech.seniorRecruitment) {
+      const definition = getResearchTechDefinition('seniorRecruitment')
+      const current = game.juniorTraderCount
+      const required = 5
+      if (current < required) {
+        blockers.push(`target ${targetedMilestone.name}: needs ${required} junior traders (${current}/${required}) before senior recruitment is unlockable`)
+      }
+
+      if (definition && !canAffordResearchTech(game, 'seniorRecruitment')) {
+        blockers.push(`target ${targetedMilestone.name}: senior recruitment costs ${Math.floor(definition.researchCost).toLocaleString()} cash, cash is ${Math.floor(game.cash).toLocaleString()}`)
+      }
+    } else if (!canAffordUnit(game, 'seniorTrader')) {
+      const cost = getNextUnitCost(game, 'seniorTrader')
+      blockers.push(`target ${targetedMilestone.name}: next senior trader costs ${Math.floor(cost ?? 0).toLocaleString()}, cash is ${Math.floor(game.cash).toLocaleString()}`)
+    } else {
+      blockers.push(`target ${targetedMilestone.name}: senior trader is affordable and unlocked, but policy step made no purchase`)
+    }
+
+    const reservedSlots = getRequiredDeskSlotsForMilestone(game, targetedMilestone)
+    if (getUsedDeskSlots(game) >= getTotalDeskSlots(game)) {
+      blockers.push(`target ${targetedMilestone.name}: desk capacity capped at ${getUsedDeskSlots(game)}/${getTotalDeskSlots(game)} with ${reservedSlots} slots reserved for current chain`)
+    }
+  }
+
+  const prestigeLifetimeCashRequirement = Number(mechanics.constants.prestigeUnlockLifetimeCash ?? mechanics.prestige.unlockRequirements.lifetimeCashAtLeast ?? 0)
+  if (game.lifetimeCashEarned < prestigeLifetimeCashRequirement) {
+    blockers.push(`prestige locked by lifetime cash ${Math.floor(game.lifetimeCashEarned).toLocaleString()}/${Math.floor(prestigeLifetimeCashRequirement).toLocaleString()}`)
   }
 
   if (game.seniorTraderCount < 5) {
@@ -1306,7 +1434,7 @@ export function performRoiActions(state: SimState, config: SimConfig): boolean {
   rebalanceSectors(game)
   trainSpecialists(game)
   applyMandates(game)
-  payCompliance(game)
+  acted = payCompliance(game) || acted
   for (const boostId of config.timedBoostPriority) {
     acted = activateTimedBoost(game, boostId) || acted
   }

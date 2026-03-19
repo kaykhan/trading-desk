@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond } from '../src/utils/economy'
 import { getTotalDeskSlots, getUsedDeskSlots } from '../src/utils/capacity'
-import { getUnlockedMilestoneCount } from '../src/utils/milestones'
+import { getTotalMetaMilestoneCount, getUnlockedMetaMilestoneCount, getUnlockedMilestoneCount } from '../src/utils/milestones'
 import { runSimulationWithCheckpoints } from '../src/sim/simRunner'
 import { DEFAULT_SIM_CONFIG, MILESTONE_GUIDED_SIM_CONFIG, PRESTIGE_AWARE_SIM_CONFIG, ROI_SIM_CONFIG } from '../src/sim/simState'
 import type { SimCheckpointSnapshot, SimConfig } from '../src/sim/simState'
@@ -132,6 +132,7 @@ function getRunSignals(snapshot: SimCheckpointSnapshot): string[] {
 }
 
 function describeCheckpoint(snapshot: SimCheckpointSnapshot): string[] {
+  const lastMilestone = snapshot.lastUnlockedMilestone
   return [
     `captured at ${formatDuration(snapshot.capturedAtSeconds)} on run ${snapshot.run}`,
     `cash ${Math.floor(snapshot.game.cash).toLocaleString()} | cps ${getCashPerSecond(snapshot.game).toFixed(2)}`,
@@ -143,7 +144,10 @@ function describeCheckpoint(snapshot: SimCheckpointSnapshot): string[] {
     `intern scientists ${snapshot.game.internResearchScientistCount} | junior scientists ${snapshot.game.juniorResearchScientistCount} | senior scientists ${snapshot.game.seniorResearchScientistCount}`,
     `prop desks ${snapshot.game.propDeskCount} | institutional desks ${snapshot.game.institutionalDeskCount} | hedge funds ${snapshot.game.hedgeFundCount} | investment firms ${snapshot.game.investmentFirmCount}`,
     `quant traders ${snapshot.game.quantTraderCount} | rule bots ${snapshot.game.ruleBasedBotCount} | ml bots ${snapshot.game.mlTradingBotCount} | ai bots ${snapshot.game.aiTradingBotCount}`,
-    `milestones unlocked ${getUnlockedMilestoneCount(snapshot.game)} | signals: ${getRunSignals(snapshot).join(', ') || 'none'}`,
+    `run milestones ${getUnlockedMilestoneCount(snapshot.game)} | meta milestones ${getUnlockedMetaMilestoneCount(snapshot.game)}/${getTotalMetaMilestoneCount()} | signals: ${getRunSignals(snapshot).join(', ') || 'none'}`,
+    `current run target: ${snapshot.currentRunTarget ? `${snapshot.currentRunTarget.name} (#${snapshot.currentRunTarget.displayOrder}) | blocked ${formatDuration(snapshot.currentRunTarget.blockedSeconds)} | progress ${snapshot.currentRunTarget.progressLabel ?? 'n/a'}` : 'none'}`,
+    `next meta target: ${snapshot.nextMetaTarget ? `${snapshot.nextMetaTarget.name} (#${snapshot.nextMetaTarget.displayOrder}) | blocked ${formatDuration(snapshot.nextMetaTarget.blockedSeconds)} | progress ${snapshot.nextMetaTarget.progressLabel ?? 'n/a'}` : 'none'}`,
+    `last milestone: ${lastMilestone ? `${lastMilestone.name} [${lastMilestone.scope}] at ${formatDuration(lastMilestone.elapsedSeconds)} on run ${lastMilestone.run}` : 'none'}${snapshot.blockedSinceLastUnlockSeconds !== null ? ` | blocked since then ${formatDuration(snapshot.blockedSinceLastUnlockSeconds)}` : ''}`,
     snapshot.stalled ? `stalled: ${snapshot.stallReason ?? 'yes'}` : 'stalled: no',
   ]
 }
@@ -174,7 +178,7 @@ function buildMarkdownReport(): string {
   lines.push('')
 
   for (const benchmark of BENCHMARK_RUNS) {
-    const checkpointResult = runSimulationWithCheckpoints(benchmark.config, PACING_WINDOWS.map((window) => window.targetSeconds))
+      const checkpointResult = runSimulationWithCheckpoints({ ...benchmark.config, maxSeconds: PACING_WINDOWS[PACING_WINDOWS.length - 1].targetSeconds }, PACING_WINDOWS.map((window) => window.targetSeconds))
     lines.push(`### ${benchmark.label}`)
     lines.push('')
 
