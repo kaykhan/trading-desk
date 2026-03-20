@@ -47,6 +47,28 @@ This model is the main balance target because it represents a player trying to c
 - target: `40+ hours`
 - hard complete means clearing the long-tail content, including all milestones and full optimisation/repeatable completion targets
 
+## Prestige Curve Targets
+
+Prestige timing is a core pacing backbone, not a side metric.
+
+If prestige is too slow, late systems will appear with too little compounded acceleration and the game will feel underpowered even when milestone ordering is correct.
+
+Target prestige counts for the milestone-guided benchmark:
+
+- `0.5h`: `1` prestige or effectively at the threshold
+- `2h`: `2-4` prestiges
+- `5h`: `5-8` prestiges
+- `12h`: `8-12+` prestiges
+- `20h`: `10+` prestiges with major meta progression established
+
+These are not intended to be perfect exact numbers, but they are the right shape for the current top-level goals:
+
+- first prestige around `30m`
+- soft complete around `15-20h`
+- hard complete at `40h+`
+
+If the benchmark is materially behind this prestige curve, late-game walls should be assumed to be partly downstream of weak prestige acceleration, not just isolated end-tier costs.
+
 ## Working-Backward Method
 
 Balance should be done from the end goal backward, not from isolated early-game feelings.
@@ -124,16 +146,23 @@ Runtime code should continue owning formulas and procedural behavior, but it sho
 Current milestone-guided benchmark status:
 
 - the run reaches `Prop Desk` and `Quant Trader` well before `30m`
-- the run misses first prestige at `30m` by a relatively small lifetime-cash gap
-- current `30m` lifetime cash is about `442,970`
+- the run still misses first prestige badly on the current laddered build
+- current `30m` lifetime cash is about `401,142`
 - current prestige threshold is `500,000`
-- current shortfall is about `57,030`
+- current shortfall is about `98,858`
+- current prestige counts are far behind the intended curve:
+  - `0.5h`: actual `0`, target `1 or near-threshold`
+  - `2h`: actual `0`, target `2-4`
+  - `5h`: actual `1`, target `5-8`
+  - `12h`: actual `3`, target `8-12+`
+  - `20h`: actual `5`, target `10+`
 
 Interpretation:
 
-- Run 1 progression structure is close to target
-- the immediate issue is mainly a run-1 cash gap, not a run-1 content unlock problem
-- later pacing is still unfinished because the milestone-guided run stops progressing meaningfully before the intended `15-20h` soft-complete arc
+- Run 1 content scope is much healthier than before, but prestige timing is still far too slow
+- the game is now reaching much deeper milestone ladders, but it is doing so with too little prestige acceleration
+- some late walls are real numeric balance walls, but they should be interpreted in the context of an underpowered prestige curve
+- we should avoid over-nerfing late costs in isolation before the prestige backbone is closer to target
 
 ## Practical Rules For Future Tuning
 

@@ -1039,7 +1039,9 @@ function applyPassiveSimManagement(game: GameState, config: SimConfig, milestone
   acted = maybeReserveDeskCapacityForMilestone(game, milestone) || acted
   acted = ensureCapacityAndPower(game) || acted
   setAutomationConfig(game)
-  rebalanceSectors(game)
+  if (milestone?.conditionModel !== 'sectorIncomeAtLeast') {
+    rebalanceSectors(game)
+  }
 
   if (milestone?.category === 'specialization') {
     trainSpecialists(game)
