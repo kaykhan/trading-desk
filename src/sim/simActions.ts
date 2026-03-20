@@ -12,7 +12,7 @@ import type { AutomationStrategyId, AutomationUnitId, CompliancePaymentCategoryI
 import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getTotalDeskSlots, getUsedDeskSlots, isCapacityInfrastructureVisible } from '../utils/capacity'
 import { payComplianceCategoryNow } from '../utils/compliance'
 import { getAutomationBulkCost } from '../utils/automation'
-import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
+import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond, getSectorCashPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
 import { getPrestigeGoalNextRankCost } from '../utils/prestige'
 import { areResearchTechPrerequisitesMet, isResearchTechUnlocked } from '../utils/research'
 import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
@@ -370,6 +370,44 @@ function rebalanceSectors(game: GameState): void {
 
   assignToSector(game, 'propDesk', 'finance', 1)
   assignAllRemainingToFinance(game)
+}
+
+function focusSectorForMilestone(game: GameState, sectorId: SectorId): void {
+  clearSectorAssignments(game)
+
+  if (!game.unlockedSectors[sectorId]) {
+    if (game.unlockedSectors.finance) {
+      assignAllRemainingToFinance(game)
+    }
+    return
+  }
+
+  assignToSector(game, 'intern', sectorId, game.internCount)
+  assignToSector(game, 'juniorTrader', sectorId, game.juniorTraderCount)
+  assignToSector(game, 'seniorTrader', sectorId, game.seniorTraderCount)
+  assignToSector(game, 'propDesk', sectorId, game.propDeskCount)
+  assignToSector(game, 'institutionalDesk', sectorId, game.institutionalDeskCount)
+  assignToSector(game, 'hedgeFund', sectorId, game.hedgeFundCount)
+  assignToSector(game, 'investmentFirm', sectorId, game.investmentFirmCount)
+}
+
+function pushSectorIncomeMilestone(game: GameState, milestone: MilestoneDefinition): boolean {
+  if (typeof milestone.targetId !== 'string') {
+    return false
+  }
+
+  const sectorId = milestone.targetId as SectorId
+  focusSectorForMilestone(game, sectorId)
+
+  const targetIncome = milestone.conditionValue ?? 0
+  if (getSectorCashPerSecond(game, sectorId) >= targetIncome) {
+    return false
+  }
+
+  return buyAffordableFromList(
+    ['institutionalDesk', 'propDesk', 'seniorTrader', 'juniorTrader', 'intern'] as const,
+    (unitId) => buyOrUnlockUnit(game, unitId),
+  )
 }
 
 function trainSpecialists(game: GameState): void {
@@ -1189,10 +1227,11 @@ function actForMilestone(state: SimState, config: SimConfig): boolean {
     case 'effectiveServerRackCountAtLeast':
       return buyOrUnlockInfrastructure(game, 'serverRack')
     case 'assignedUnitsAtLeast':
-    case 'sectorIncomeAtLeast':
     case 'activeAssignedSectorsAtLeast':
       rebalanceSectors(game)
       return false
+    case 'sectorIncomeAtLeast':
+      return pushSectorIncomeMilestone(game, milestone)
     case 'specialistResearchUnlockedAtLeast':
       return buyAffordableFromList(
         ['financeSpecialistTraining', 'technologySpecialistTraining', 'energySpecialistTraining'] as const,
