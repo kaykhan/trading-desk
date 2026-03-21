@@ -6,6 +6,29 @@ import type { GameState, PrestigeTierId, PrestigeUpgradeId } from '../types/game
 const PRESTIGE_CONSTANTS = mechanics.constants
 const PRESTIGE_UNLOCK_REQUIREMENTS = mechanics.prestige.unlockRequirements
 
+function getPrestigeLifetimeCashThresholds(): number[] {
+  const rawThresholds = PRESTIGE_UNLOCK_REQUIREMENTS.lifetimeCashThresholds
+
+  if (!Array.isArray(rawThresholds)) {
+    return []
+  }
+
+  return rawThresholds
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value > 0)
+}
+
+export function getPrestigeLifetimeCashRequirement(prestigeCount: number): number {
+  const fallbackRequirement = Number(PRESTIGE_UNLOCK_REQUIREMENTS.lifetimeCashAtLeast ?? PRESTIGE_CONSTANTS.prestigeUnlockLifetimeCash ?? 0)
+  const thresholds = getPrestigeLifetimeCashThresholds()
+
+  if (thresholds.length === 0) {
+    return fallbackRequirement
+  }
+
+  return thresholds[prestigeCount] ?? thresholds[thresholds.length - 1] ?? fallbackRequirement
+}
+
 function getPrestigeUpgradeRank(state: GameState, upgradeId: PrestigeUpgradeId): number {
   return state.purchasedPrestigeUpgrades[upgradeId] ?? 0
 }
@@ -32,7 +55,7 @@ export function getNextPrestigeTierLabel(prestigeCount: number): string | null {
 }
 
 export function getPrestigeGain(_lifetimeCashEarned: number, _multiplier = 1, prestigeCount = 0): number {
-  if (_lifetimeCashEarned < Number(PRESTIGE_UNLOCK_REQUIREMENTS.lifetimeCashAtLeast ?? PRESTIGE_CONSTANTS.prestigeUnlockLifetimeCash ?? 0)) {
+  if (_lifetimeCashEarned < getPrestigeLifetimeCashRequirement(prestigeCount)) {
     return 0
   }
 
@@ -129,11 +152,10 @@ export function createPrestigeResetState(state: GameState, plannedPurchases?: Pa
   }
 
   const nextReputation = state.reputation + gainedReputation
-  const seedCapitalBonus = getSeedCapitalBonus(state)
 
   const nextState: GameState = {
     ...initialState,
-    cash: seedCapitalBonus,
+    cash: 0,
     discoveredLobbying: state.discoveredLobbying,
     unlockedMetaMilestones: { ...state.unlockedMetaMilestones },
     reputation: nextReputation,
@@ -144,32 +166,32 @@ export function createPrestigeResetState(state: GameState, plannedPurchases?: Pa
     lastSaveTimestamp: Date.now(),
   }
 
-  if (!plannedPurchases) {
-    return nextState
-  }
+  if (plannedPurchases) {
+    for (const upgradeId of Object.keys(plannedPurchases) as PrestigeUpgradeId[]) {
+      const plannedRanks = plannedPurchases[upgradeId] ?? 0
+      if (plannedRanks <= 0) continue
 
-  for (const upgradeId of Object.keys(plannedPurchases) as PrestigeUpgradeId[]) {
-    const plannedRanks = plannedPurchases[upgradeId] ?? 0
-    if (plannedRanks <= 0) continue
+      const definition = getPrestigeUpgradeDefinition(upgradeId)
+      const currentRank = nextState.purchasedPrestigeUpgrades[upgradeId] ?? 0
+      if (!definition) continue
 
-    const definition = getPrestigeUpgradeDefinition(upgradeId)
-    const currentRank = nextState.purchasedPrestigeUpgrades[upgradeId] ?? 0
-    if (!definition) continue
+      let nextRank = currentRank
+      for (let i = 0; i < plannedRanks; i += 1) {
+        const nextCost = getPrestigeGoalNextRankCost(upgradeId, nextRank)
+        if (nextRank >= definition.maxRank || nextState.reputation < nextCost) {
+          break
+        }
 
-    let nextRank = currentRank
-    for (let i = 0; i < plannedRanks; i += 1) {
-      const nextCost = getPrestigeGoalNextRankCost(upgradeId, nextRank)
-      if (nextRank >= definition.maxRank || nextState.reputation < nextCost) {
-        break
+        nextState.reputation -= nextCost
+        nextState.reputationSpent += nextCost
+        nextRank += 1
       }
 
-      nextState.reputation -= nextCost
-      nextState.reputationSpent += nextCost
-      nextRank += 1
+      nextState.purchasedPrestigeUpgrades[upgradeId] = nextRank
     }
-
-    nextState.purchasedPrestigeUpgrades[upgradeId] = nextRank
   }
+
+  nextState.cash = getSeedCapitalBonus(nextState)
 
   return nextState
 }

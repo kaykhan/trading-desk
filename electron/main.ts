@@ -8,6 +8,11 @@ const __dirname = path.dirname(__filename)
 
 const isDev = !app.isPackaged
 const devServerUrl = process.env.ELECTRON_RENDERER_URL
+const shouldOpenDevTools = process.env.ELECTRON_OPEN_DEVTOOLS === '1'
+
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration()
+}
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -27,7 +32,9 @@ function createWindow(): void {
 
   if (isDev && devServerUrl) {
     void win.loadURL(devServerUrl)
-    win.webContents.openDevTools({ mode: 'detach' })
+    if (shouldOpenDevTools) {
+      win.webContents.openDevTools({ mode: 'detach' })
+    }
     return
   }
 

@@ -1109,6 +1109,7 @@
       "name": "Mean Reversion",
       "description": "Steadier reversion logic that performs best in Finance and remains safe elsewhere.",
       "unlockResearchTechId": "meanReversionModels",
+      "cycleDurationMultiplier": 1.5,
       "targetMultipliers": {
         "finance": 1.12,
         "technology": 1.02,
@@ -1120,6 +1121,7 @@
       "name": "Momentum",
       "description": "Trend-following logic that leans into higher-growth markets, especially Technology.",
       "unlockResearchTechId": "momentumModels",
+      "cycleDurationMultiplier": 1.15,
       "targetMultipliers": {
         "finance": 0.98,
         "technology": 1.16,
@@ -1131,6 +1133,7 @@
       "name": "Arbitrage",
       "description": "Cross-market spread capture with balanced performance and mild upside in Finance.",
       "unlockResearchTechId": "arbitrageEngine",
+      "cycleDurationMultiplier": 1,
       "targetMultipliers": {
         "finance": 1.08,
         "technology": 1.03,
@@ -1142,6 +1145,7 @@
       "name": "Market Making",
       "description": "Liquidity-focused execution with stable baseline output and modest Finance synergy.",
       "unlockResearchTechId": "marketMakingEngine",
+      "cycleDurationMultiplier": 0.9,
       "targetMultipliers": {
         "finance": 1.1,
         "technology": 1.01,
@@ -1153,6 +1157,7 @@
       "name": "Scalping",
       "description": "Fast opportunistic execution that gains more from shorter-cycle market environments.",
       "unlockResearchTechId": "scalpingFramework",
+      "cycleDurationMultiplier": 0.75,
       "targetMultipliers": {
         "finance": 1.04,
         "technology": 1.1,
@@ -1164,10 +1169,10 @@
   "upgrades": {
     "groupOrder": [
       "tradingDesk",
+      "infrastructure",
       "research",
       "institutions",
       "automation",
-      "infrastructure",
       "complianceLobbying"
     ],
     "groupLabels": {
@@ -1183,7 +1188,7 @@
       "research": "Improve Research Point output and research-side support.",
       "institutions": "Permanent output upgrades for Prop Desks, Institutional Desks, Hedge Funds, and Investment Firms.",
       "automation": "Improve automation cycle payout, execution efficiency, and machine trading performance.",
-      "infrastructure": "Increase capacity and reduce machine load across infrastructure systems.",
+      "infrastructure": "Permanent upgrades for power and capacity systems. These are separate from buying Server Racks and other buildable infrastructure in the Desk > Infrastructure view.",
       "complianceLobbying": "Permanent support improvements for influence generation and compliance-side efficiency."
     },
     "items": {
@@ -2402,7 +2407,7 @@
         "name": "Algorithmic Foundations",
         "branch": "automation",
         "currency": "researchPoints",
-        "cost": 150,
+        "cost": 500,
         "prerequisites": [
           "seniorRecruitment"
         ],
@@ -2418,7 +2423,7 @@
         "name": "Mean Reversion Models",
         "branch": "automation",
         "currency": "researchPoints",
-        "cost": 40,
+        "cost": 150,
         "prerequisites": [
           "algorithmicTrading"
         ],
@@ -2819,7 +2824,19 @@
       66
     ],
     "unlockRequirements": {
-      "lifetimeCashAtLeast": 4000000,
+      "lifetimeCashAtLeast": 500000,
+      "lifetimeCashThresholds": [
+        500000,
+        1000000,
+        2000000,
+        3500000,
+        5500000,
+        8000000,
+        11000000,
+        14500000,
+        18500000,
+        23000000
+      ],
       "prestigeCountBelow": 10,
       "requiresAnyUnits": [
         "quantTrader",
@@ -3536,7 +3553,7 @@
         "category": "automation",
         "displayOrder": 38,
         "reward": {
-          "cash": 25000
+          "cash": 5000
         },
         "conditionModel": "configuredAutomationClassesAtLeast",
         "conditionValue": 1,
@@ -3564,13 +3581,13 @@
         "category": "infrastructure",
         "displayOrder": 40,
         "reward": {
-          "cash": 60000
+          "cash": 5000
         },
         "conditionModel": "upgradesPurchasedInGroupAtLeast",
         "targetId": "infrastructure",
         "conditionValue": 1,
         "name": "Facility Standards",
-        "description": "Purchase your first Infrastructure upgrade."
+        "description": "Purchase your first Infrastructure upgrade from the Upgrades tab, such as Rack Stacking after buying a Server Rack."
       },
       "institutionUpgrade": {
         "category": "institutions",
@@ -4088,7 +4105,8 @@
         "category": "automation",
         "displayOrder": 65,
         "reward": {
-          "cash": 60000
+          "cash": 5000,
+          "researchPoints": 100
         },
         "conditionModel": "automationCountAtLeast",
         "conditionValue": 5,
@@ -4339,7 +4357,7 @@
         "scope": "meta",
         "displayOrder": 80,
         "reward": {
-          "cash": 100000
+          "cash": 25000
         },
         "conditionModel": "reputationSpentAtLeast",
         "conditionValue": 1,
@@ -4351,7 +4369,7 @@
         "scope": "meta",
         "displayOrder": 81,
         "reward": {
-          "cash": 250000
+          "cash": 50000
         },
         "conditionModel": "prestigeRanksPurchasedAtLeast",
         "conditionValue": 1,
@@ -4426,7 +4444,7 @@
         "scope": "meta",
         "displayOrder": 87,
         "reward": {
-          "cash": 50000
+          "cash": 25000
         },
         "conditionModel": "prestigeCountAtLeast",
         "conditionValue": 1,

@@ -13,7 +13,7 @@ import { canAffordCapacityPower, getBulkCapacityInfrastructureCost, getTotalDesk
 import { payComplianceCategoryNow } from '../utils/compliance'
 import { getAutomationBulkCost } from '../utils/automation'
 import { getBulkPowerInfrastructureCost, getBulkUnitCost, getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond, getSectorCashPerSecond, isPowerInfrastructureUnlocked, isUnitUnlocked } from '../utils/economy'
-import { getPrestigeGoalNextRankCost } from '../utils/prestige'
+import { canPrestige, getPrestigeGoalNextRankCost, getPrestigeLifetimeCashRequirement } from '../utils/prestige'
 import { areResearchTechPrerequisitesMet, isResearchTechUnlocked } from '../utils/research'
 import { getGenericInstitutionCount, getInstitutionMandateApplicationCost, getInstitutionMandateResearchUnlockId } from '../utils/mandates'
 import { getGenericTraderCount, getSpecializationResearchUnlockId, getTraderSpecialistTrainingCost } from '../utils/specialization'
@@ -507,6 +507,30 @@ function buyPrestigeUpgrade(game: GameState, upgradeId: PrestigeUpgradeId): bool
   game.reputationSpent += nextCost
   game.purchasedPrestigeUpgrades[upgradeId] = currentRank + 1
   return true
+}
+
+export function buildPrestigePurchasePlan(game: GameState, prestigePriority: PrestigeUpgradeId[]): Partial<Record<PrestigeUpgradeId, number>> {
+  const plannedPurchases: Partial<Record<PrestigeUpgradeId, number>> = {}
+  const planningState = cloneGameState(game)
+
+  while (true) {
+    let changed = false
+
+    for (const prestigeId of prestigePriority) {
+      if (!buyPrestigeUpgrade(planningState, prestigeId)) {
+        continue
+      }
+
+      plannedPurchases[prestigeId] = (plannedPurchases[prestigeId] ?? 0) + 1
+      changed = true
+    }
+
+    if (!changed) {
+      break
+    }
+  }
+
+  return plannedPurchases
 }
 
 export function performScriptedGrowthActions(state: SimState, config: SimConfig): boolean {
@@ -1292,6 +1316,10 @@ function actForMilestone(state: SimState, config: SimConfig): boolean {
 }
 
 export function performMilestoneGuidedActions(state: SimState, config: SimConfig): boolean {
+  if (canPrestige(state.game)) {
+    return false
+  }
+
   let acted = false
   let actionsTaken = 0
 
@@ -1348,7 +1376,7 @@ export function getPolicyBottleneckSummary(state: SimState): string[] {
     }
   }
 
-  const prestigeLifetimeCashRequirement = Number(mechanics.constants.prestigeUnlockLifetimeCash ?? mechanics.prestige.unlockRequirements.lifetimeCashAtLeast ?? 0)
+  const prestigeLifetimeCashRequirement = getPrestigeLifetimeCashRequirement(game.prestigeCount)
   if (game.lifetimeCashEarned < prestigeLifetimeCashRequirement) {
     blockers.push(`prestige locked by lifetime cash ${Math.floor(game.lifetimeCashEarned).toLocaleString()}/${Math.floor(prestigeLifetimeCashRequirement).toLocaleString()}`)
   }

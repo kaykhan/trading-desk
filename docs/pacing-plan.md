@@ -47,93 +47,98 @@ Milestone-guided simulation assumes active manual clicking at roughly 3 clicks/s
 
 #### Run 1 checkpoint (0-0.5h)
 - captured at 0h 30m 0s on run 1
-- cash 381,378 | cps 248.43
-- research 1,679 | rps 1.62
+- cash 304,897 | cps 248.43
+- research 1,229 | rps 1.62
 - influence 3 | ips 0.000
-- lifetime cash 401,142 | prestige 0
+- lifetime cash 399,558 | prestige 0
+- reputation 0 | spent 0 | prestige upgrades none
 - desk 30/56 | power 13.5/19.5
 - interns 10 | juniors 10 | seniors 5
 - intern scientists 5 | junior scientists 0 | senior scientists 0
 - prop desks 3 | institutional desks 0 | hedge funds 0 | investment firms 0
 - quant traders 1 | rule bots 0 | ml bots 0 | ai bots 0
 - run milestones 43 | meta milestones 0/9 | signals: research unlocked, intern scientists active, automation branch seen, quant trader active, prop desk active
-- current run target: Institutional Entry (#43) | blocked 0h 16m 3s | progress 0/1 institutionalDesk
+- current run target: Institutional Entry (#43) | blocked 0h 11m 26s | progress 0/1 institutionalDesk
 - next meta target: First Reset (#79) | blocked 0h 30m 0s | progress n/a
-- last milestone: Prop Desk Expansion [run] at 0h 13m 57s on run 1 | blocked since then 0h 16m 3s
+- last milestone: Prop Desk Expansion [run] at 0h 18m 34s on run 1 | blocked since then 0h 11m 26s
 - stalled: no
 
 #### Run 2 checkpoint (0.5-2h)
-- captured at 2h 0m 0s on run 1
-- cash 1,698,315 | cps 234.31
-- research 7,364 | rps 4.38
-- influence 23 | ips 0.010
-- lifetime cash 1,926,074 | prestige 0
-- desk 31/56 | power 21.0/49.5
-- interns 10 | juniors 10 | seniors 5
-- intern scientists 5 | junior scientists 0 | senior scientists 1
-- prop desks 3 | institutional desks 2 | hedge funds 0 | investment firms 0
-- quant traders 1 | rule bots 5 | ml bots 0 | ai bots 0
-- run milestones 63 | meta milestones 0/9 | signals: 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, lobbying seen, politicians active
-- current run target: Data Centre Expansion (#63) | blocked 0h 27m 5s | progress 0/1 dataCenter
-- next meta target: First Reset (#79) | blocked 2h 0m 0s | progress n/a
-- last milestone: Machine Desk [run] at 1h 32m 55s on run 1 | blocked since then 0h 27m 5s
-- stalled: no
-
-#### Midgame checkpoint (2-5h)
-- captured at 5h 0m 0s on run 2
-- cash 1,056,805 | cps 245.91
-- research 2,965 | rps 4.60
-- influence 6 | ips 0.000
-- lifetime cash 1,144,402 | prestige 1
-- desk 31/56 | power 15.0/49.5
+- captured at 2h 0m 0s on run 3
+- cash 439,883 | cps 258.20
+- research 4,855 | rps 5.06
+- influence 3 | ips 0.000
+- lifetime cash 285,288 | prestige 2
+- reputation 8 | spent 5 | prestige upgrades Global Recognition 1, Seed Capital 1, Better Hiring Pipeline 1, Institutional Knowledge 1, Grid Orchestration 1
+- desk 31/51 | power 12.5/52.0
 - interns 10 | juniors 10 | seniors 5
 - intern scientists 5 | junior scientists 0 | senior scientists 1
 - prop desks 3 | institutional desks 1 | hedge funds 0 | investment firms 0
 - quant traders 1 | rule bots 1 | ml bots 0 | ai bots 0
-- run milestones 55 | meta milestones 2/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active
-- current run target: Political Footing (#56) | blocked 2h 16m 48s | progress 0/1 juniorPolitician
-- next meta target: Reputation Investor (#80) | blocked 1h 13m 37s | progress n/a
-- last milestone: Refinement Systems [meta] at 3h 46m 23s on run 2 | blocked since then 1h 13m 37s
+- run milestones 54 | meta milestones 5/9 | signals: prestiged, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active
+- current run target: Regulatory Affairs (#55) | blocked 0h 15m 26s | progress n/a
+- next meta target: Silver Legacy (#83) | blocked 0h 17m 24s | progress n/a
+- last milestone: First Senior Scientist [run] at 1h 44m 34s on run 3 | blocked since then 0h 15m 26s
 - stalled: no
 
-#### Lategame checkpoint (5-12h)
-- captured at 12h 0m 0s on run 4
-- cash 1,066,679 | cps 231.28
-- research 17,894 | rps 4.32
-- influence 53 | ips 0.010
-- lifetime cash 1,213,163 | prestige 3
-- desk 31/51 | power 18.5/269.5
-- interns 10 | juniors 10 | seniors 5
-- intern scientists 5 | junior scientists 0 | senior scientists 1
-- prop desks 3 | institutional desks 2 | hedge funds 0 | investment firms 0
-- quant traders 1 | rule bots 5 | ml bots 0 | ai bots 0
-- run milestones 65 | meta milestones 4/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, lobbying seen, politicians active
-- current run target: Fund Launch (#64) | blocked 9h 16m 48s | progress 0/1 hedgeFund
-- next meta target: Reputation Investor (#80) | blocked 1h 4m 57s | progress n/a
-- last milestone: Silver Legacy [meta] at 10h 55m 3s on run 4 | blocked since then 1h 4m 57s
-- stalled: no
-
-#### Soft Complete checkpoint (15-20h)
-- captured at 20h 0m 0s on run 6
-- cash 1,268,859 | cps 212.72
-- research 35,406 | rps 3.98
-- influence 99 | ips 0.010
-- lifetime cash 2,602,010 | prestige 5
-- desk 31/51 | power 42.5/269.5
+#### Midgame checkpoint (2-5h)
+- captured at 5h 0m 0s on run 4
+- cash 500,613 | cps 252.59
+- research 7,930 | rps 5.15
+- influence 73 | ips 0.011
+- lifetime cash 1,788,666 | prestige 3
+- reputation 13 | spent 13 | prestige upgrades Global Recognition 2, Seed Capital 2, Better Hiring Pipeline 2, Institutional Knowledge 2, Grid Orchestration 2, Compliance Frameworks 1, Policy Capital 1, Market Reputation 1
+- desk 31/51 | power 42.5/296.5
 - interns 10 | juniors 10 | seniors 5
 - intern scientists 5 | junior scientists 0 | senior scientists 1
 - prop desks 3 | institutional desks 2 | hedge funds 1 | investment firms 0
 - quant traders 1 | rule bots 5 | ml bots 3 | ai bots 0
-- run milestones 70 | meta milestones 5/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, hedge fund active, lobbying seen, politicians active, deep automation active
-- current run target: AI Systems (#71) | blocked 17h 16m 48s | progress 0/1 aiTradingBot
-- next meta target: Reputation Investor (#80) | blocked 5h 39m 55s | progress n/a
-- last milestone: Gold Legacy [meta] at 14h 20m 5s on run 5 | blocked since then 5h 39m 55s
+- run milestones 70 | meta milestones 7/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, hedge fund active, lobbying seen, politicians active, deep automation active
+- current run target: AI Systems (#71) | blocked 1h 48m 3s | progress 0/1 aiTradingBot
+- next meta target: Gold Legacy (#84) | blocked 1h 26m 6s | progress n/a
+- last milestone: Developing Legacy [meta] at 3h 33m 54s on run 4 | blocked since then 1h 26m 6s
+- stalled: no
+
+#### Lategame checkpoint (5-12h)
+- captured at 12h 0m 0s on run 6
+- cash 3,105,155 | cps 371.82
+- research 61,919 | rps 7.21
+- influence 115 | ips 0.011
+- lifetime cash 4,262,758 | prestige 5
+- reputation 17 | spent 42 | prestige upgrades Global Recognition 5, Seed Capital 4, Better Hiring Pipeline 4, Institutional Knowledge 4, Grid Orchestration 4, Compliance Frameworks 4, Policy Capital 3, Market Reputation 3, Desk Efficiency 2, Strategic Reserves 2
+- desk 31/51 | power 42.5/323.4
+- interns 10 | juniors 10 | seniors 5
+- intern scientists 5 | junior scientists 0 | senior scientists 1
+- prop desks 3 | institutional desks 2 | hedge funds 1 | investment firms 0
+- quant traders 1 | rule bots 5 | ml bots 3 | ai bots 0
+- run milestones 70 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, hedge fund active, lobbying seen, politicians active, deep automation active
+- current run target: AI Systems (#71) | blocked 8h 48m 3s | progress 0/1 aiTradingBot
+- next meta target: Onyx Legacy (#86) | blocked 5h 40m 28s | progress n/a
+- last milestone: Gold Legacy [meta] at 6h 19m 32s on run 5 | blocked since then 5h 40m 28s
+- stalled: no
+
+#### Soft Complete checkpoint (15-20h)
+- captured at 20h 0m 0s on run 8
+- cash 177,234 | cps 431.31
+- research 18,749 | rps 8.24
+- influence 44 | ips 0.013
+- lifetime cash 1,136,762 | prestige 7
+- reputation 27 | spent 79 | prestige upgrades Global Recognition 7, Seed Capital 6, Better Hiring Pipeline 6, Institutional Knowledge 6, Grid Orchestration 6, Compliance Frameworks 6, Policy Capital 5, Market Reputation 5, Desk Efficiency 4, Strategic Reserves 3
+- desk 31/51 | power 42.5/350.4
+- interns 10 | juniors 10 | seniors 5
+- intern scientists 5 | junior scientists 0 | senior scientists 1
+- prop desks 3 | institutional desks 2 | hedge funds 1 | investment firms 0
+- quant traders 1 | rule bots 5 | ml bots 3 | ai bots 0
+- run milestones 70 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, institutional desk active, hedge fund active, lobbying seen, politicians active, deep automation active
+- current run target: AI Systems (#71) | blocked 6h 11m 23s | progress 0/1 aiTradingBot
+- next meta target: Onyx Legacy (#86) | blocked 13h 40m 28s | progress n/a
+- last milestone: Cloud Expansion [run] at 13h 48m 37s on run 6 | blocked since then 6h 11m 23s
 - stalled: no
 
 - Final result
 - time 20h 0m 0s
-- final run 6
-- milestones seen 75
+- final run 8
+- milestones seen 79
 - stalled no
 
 #### Milestone Timing Breakdown
@@ -243,212 +248,229 @@ Milestone-guided simulation assumes active manual clicking at roughly 3 clicks/s
 - Specialist Desk: 0h 7m 27s total, 0h 0m 2s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 0
 - resources: cash 4,622, RP 447, influence 3, lifetime cash 48,044
-- Systematic Trading: 0h 7m 28s total, 0h 0m 1s since prior milestone
+- Systematic Trading: 0h 7m 59s total, 0h 0m 32s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 42,381, RP 458, influence 3, lifetime cash 48,303
-- First Quant Trader: 0h 7m 28s total, 0h 0m 0s since prior milestone
+- resources: cash 25,411, RP 100, influence 3, lifetime cash 56,332
+- First Quant Trader: 0h 7m 59s total, 0h 0m 0s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 42,381, RP 458, influence 3, lifetime cash 48,303
-- Strategy Catalog: 0h 7m 28s total, 0h 0m 0s since prior milestone
+- resources: cash 25,411, RP 100, influence 3, lifetime cash 56,332
+- Strategy Catalog: 0h 8m 30s total, 0h 0m 31s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 42,381, RP 458, influence 3, lifetime cash 48,303
-- Automation Online: 0h 7m 28s total, 0h 0m 0s since prior milestone
+- resources: cash 38,450, RP 101, influence 3, lifetime cash 64,501
+- Automation Online: 0h 8m 30s total, 0h 0m 0s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 42,381, RP 458, influence 3, lifetime cash 48,303
-- Rule Systems Online: 0h 13m 56s total, 0h 6m 28s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 196,441, RP 120, influence 3, lifetime cash 151,138
-- Facility Standards: 0h 13m 56s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 1, quant traders 1
-- resources: cash 196,441, RP 120, influence 3, lifetime cash 151,138
-- Institutional Standards: 0h 13m 57s total, 0h 0m 1s since prior milestone
+- resources: cash 38,450, RP 101, influence 3, lifetime cash 64,501
+- Rule Systems Online: 0h 18m 34s total, 0h 10m 4s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 134,180, RP 121, influence 3, lifetime cash 151,396
-- Prop Desk Expansion: 0h 13m 57s total, 0h 0m 0s since prior milestone
+- resources: cash 130,338, RP 120, influence 3, lifetime cash 223,201
+- Facility Standards: 0h 18m 34s total, 0h 0m 0s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 134,180, RP 121, influence 3, lifetime cash 151,396
-- Institutional Entry: 0h 48m 46s total, 0h 34m 49s since prior milestone
+- resources: cash 130,338, RP 120, influence 3, lifetime cash 223,201
+- Institutional Standards: 0h 18m 34s total, 0h 0m 0s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 553,700, RP 0, influence 3, lifetime cash 693,160
-- Server Room Online: 0h 48m 46s total, 0h 0m 0s since prior milestone
+- resources: cash 130,338, RP 120, influence 3, lifetime cash 223,201
+- Prop Desk Expansion: 0h 18m 34s total, 0h 0m 0s since prior milestone
 - counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 553,700, RP 0, influence 3, lifetime cash 693,160
-- First Rule Bot: 0h 48m 46s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 553,700, RP 0, influence 3, lifetime cash 693,160
-- Machine Tuning: 0h 48m 46s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 553,700, RP 0, influence 3, lifetime cash 693,160
-- Technology Exposure: 0h 51m 6s total, 0h 2m 20s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 600,392, RP 50, influence 3, lifetime cash 730,418
-- Technology Focus: 0h 51m 6s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 600,392, RP 50, influence 3, lifetime cash 730,418
-- Active Rotation: 0h 51m 6s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 600,392, RP 50, influence 3, lifetime cash 730,418
-- New Market: 0h 51m 6s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 600,392, RP 50, influence 3, lifetime cash 730,418
-- Energy Exposure: 0h 54m 37s total, 0h 3m 31s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 663,612, RP 1, influence 3, lifetime cash 787,704
-- Energy Focus: 0h 54m 37s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
-- resources: cash 663,612, RP 1, influence 3, lifetime cash 787,704
-- First Senior Scientist: 1h 6m 20s total, 0h 11m 43s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 843,520, RP 75, influence 3, lifetime cash 979,376
-- Regulatory Affairs: 1h 27m 50s total, 0h 21m 30s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,176,459, RP 1, influence 10, lifetime cash 1,330,488
-- Political Footing: 1h 27m 50s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,176,459, RP 1, influence 10, lifetime cash 1,330,488
-- First Policy Win: 1h 31m 11s total, 0h 3m 21s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,230,299, RP 923, influence 2, lifetime cash 1,385,147
-- Institutional Doctrine: 1h 32m 55s total, 0h 1m 44s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- First Mandate: 1h 32m 55s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- Strategic Alignment: 1h 32m 55s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- Institutional Desk Expansion: 1h 32m 55s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- Rule Bot Bench: 1h 32m 55s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- Machine Desk: 1h 32m 55s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,192,280, RP 251, influence 7, lifetime cash 1,413,397
-- Data Centre Expansion: 2h 6m 14s total, 0h 33m 19s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,614,718, RP 1, influence 27, lifetime cash 2,043,899
-- Data Centre Online: 2h 6m 14s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,614,718, RP 1, influence 27, lifetime cash 2,043,899
-- Fund Launch: 2h 35m 11s total, 0h 28m 57s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,296,174, RP 2, influence 48, lifetime cash 2,584,785
-- Multi-Institution Structure: 2h 35m 11s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,296,174, RP 2, influence 48, lifetime cash 2,584,785
-- ML Systems: 2h 39m 13s total, 0h 4m 2s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,059,020, RP 554, influence 50, lifetime cash 2,656,901
-- ML Bot Bench: 2h 39m 13s total, 0h 0m 0s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,059,020, RP 554, influence 50, lifetime cash 2,656,901
-- AI Systems Research: 2h 43m 12s total, 0h 3m 59s since prior milestone
-- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
-- resources: cash 1,136,598, RP 253, influence 53, lifetime cash 2,736,140
-- First Reset: 3h 46m 23s total, 1h 3m 11s since prior milestone
+- resources: cash 130,338, RP 120, influence 3, lifetime cash 223,201
+- First Reset: 0h 36m 31s total, 0h 17m 57s since prior milestone
 - counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
-- resources: cash 50,000, RP 0, influence 3, lifetime cash 0
-- Refinement Systems: 3h 46m 23s total, 0h 0m 0s since prior milestone
+- resources: cash 25,000, RP 0, influence 0, lifetime cash 0
+- Refinement Systems: 0h 36m 31s total, 0h 0m 0s since prior milestone
 - counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
-- resources: cash 50,000, RP 0, influence 3, lifetime cash 0
-- Bronze Legacy: 7h 30m 1s total, 3h 43m 38s since prior milestone
+- resources: cash 25,000, RP 0, influence 0, lifetime cash 0
+- Institutional Entry: 1h 26m 42s total, 0h 50m 11s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 558,317, RP 1, influence 3, lifetime cash 748,163
+- Server Room Online: 1h 26m 42s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 558,317, RP 1, influence 3, lifetime cash 748,163
+- First Rule Bot: 1h 26m 42s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 558,317, RP 1, influence 3, lifetime cash 748,163
+- Machine Tuning: 1h 26m 42s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 558,317, RP 1, influence 3, lifetime cash 748,163
+- Technology Exposure: 1h 29m 2s total, 0h 2m 20s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 604,203, RP 51, influence 3, lifetime cash 784,426
+- Technology Focus: 1h 29m 2s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 604,203, RP 51, influence 3, lifetime cash 784,426
+- Active Rotation: 1h 29m 2s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 604,203, RP 51, influence 3, lifetime cash 784,426
+- New Market: 1h 29m 2s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 604,203, RP 51, influence 3, lifetime cash 784,426
+- Energy Exposure: 1h 32m 32s total, 0h 3m 30s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 665,373, RP 0, influence 3, lifetime cash 839,851
+- Energy Focus: 1h 32m 32s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 0, prop desks 3, quant traders 1
+- resources: cash 665,373, RP 0, influence 3, lifetime cash 839,851
+- Reputation Investor: 1h 42m 36s total, 0h 10m 4s since prior milestone
 - counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
-- resources: cash 216,675, RP 820, influence 7, lifetime cash 0
-- Silver Legacy: 10h 55m 3s total, 3h 25m 2s since prior milestone
+- resources: cash 216,925, RP 820, influence 0, lifetime cash 0
+- Legacy Investment: 1h 42m 36s total, 0h 0m 0s since prior milestone
 - counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
-- resources: cash 216,675, RP 820, influence 7, lifetime cash 0
-- Gold Legacy: 14h 20m 5s total, 3h 25m 2s since prior milestone
+- resources: cash 216,925, RP 820, influence 0, lifetime cash 0
+- Bronze Legacy: 1h 42m 36s total, 0h 0m 0s since prior milestone
 - counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
-- resources: cash 216,675, RP 820, influence 7, lifetime cash 0
+- resources: cash 216,925, RP 820, influence 0, lifetime cash 0
+- First Senior Scientist: 1h 44m 34s total, 0h 1m 58s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 184,875, RP 176, influence 3, lifetime cash 27,102
+- Regulatory Affairs: 2h 3m 47s total, 0h 19m 13s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 489,063, RP 2, influence 10, lifetime cash 348,563
+- Political Footing: 2h 3m 47s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 489,063, RP 2, influence 10, lifetime cash 348,563
+- First Policy Win: 2h 7m 8s total, 0h 3m 21s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 544,404, RP 1,016, influence 2, lifetime cash 404,518
+- Institutional Doctrine: 2h 8m 24s total, 0h 1m 16s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- First Mandate: 2h 8m 24s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- Strategic Alignment: 2h 8m 24s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- Institutional Desk Expansion: 2h 8m 24s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- Rule Bot Bench: 2h 8m 24s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- Machine Desk: 2h 8m 24s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 453,407, RP 350, influence 6, lifetime cash 425,716
+- Data Centre Expansion: 2h 38m 29s total, 0h 30m 5s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 800,143, RP 41, influence 24, lifetime cash 979,568
+- Data Centre Online: 2h 38m 29s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 800,143, RP 41, influence 24, lifetime cash 979,568
+- Fund Launch: 3h 4m 40s total, 0h 26m 11s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 472,466, RP 4, influence 44, lifetime cash 1,455,670
+- Multi-Institution Structure: 3h 4m 40s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 472,466, RP 4, influence 44, lifetime cash 1,455,670
+- ML Systems: 3h 8m 19s total, 0h 3m 39s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 227,064, RP 551, influence 46, lifetime cash 1,519,172
+- ML Bot Bench: 3h 8m 19s total, 0h 0m 0s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 227,064, RP 551, influence 46, lifetime cash 1,519,172
+- AI Systems Research: 3h 11m 57s total, 0h 3m 38s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 293,536, RP 253, influence 48, lifetime cash 1,587,306
+- Silver Legacy: 3h 33m 54s total, 0h 21m 57s since prior milestone
+- counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
+- resources: cash 142,175, RP 820, influence 7, lifetime cash 0
+- Developing Legacy: 3h 33m 54s total, 0h 0m 0s since prior milestone
+- counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
+- resources: cash 142,175, RP 820, influence 7, lifetime cash 0
+- Gold Legacy: 6h 19m 32s total, 2h 45m 38s since prior milestone
+- counts: interns 0, juniors 0, seniors 0, intern scientists 0, junior scientists 0, senior scientists 0, prop desks 0, quant traders 0
+- resources: cash 142,425, RP 820, influence 7, lifetime cash 0
+- Cloud Expansion: 13h 48m 37s total, 7h 29m 5s since prior milestone
+- counts: interns 10, juniors 10, seniors 5, intern scientists 5, junior scientists 0, senior scientists 1, prop desks 3, quant traders 1
+- resources: cash 1,500,029, RP 108,834, influence 190, lifetime cash 7,702,930
 
 ### Unlock Chasing
 
 #### Run 1 checkpoint (0-0.5h)
-- captured at 0h 30m 0s on run 1
-- cash 11,702 | cps 247.50
-- research 3,396 | rps 11.19
-- influence 0 | ips 0.090
-- lifetime cash 764,649 | prestige 0
-- desk 56/56 | power 18.0/18.1
-- interns 33 | juniors 7 | seniors 5
+- captured at 0h 30m 0s on run 2
+- cash 16,871 | cps 286.51
+- research 58 | rps 14.27
+- influence 8 | ips 0.020
+- lifetime cash 201,155 | prestige 1
+- reputation 0 | spent 5 | prestige upgrades Global Recognition 2, Seed Capital 1, Better Hiring Pipeline 1, Institutional Knowledge 1
+- desk 48/48 | power 15.5/15.8
+- interns 27 | juniors 5 | seniors 5
 - intern scientists 5 | junior scientists 5 | senior scientists 1
-- prop desks 8 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 18 | rule bots 3 | ml bots 0 | ai bots 0
-- run milestones 60 | meta milestones 0/9 | signals: 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Junior Floor (#14) | blocked 0h 19m 54s | progress 7/10 juniorTrader
-- next meta target: First Reset (#79) | blocked 0h 30m 0s | progress n/a
-- last milestone: Political Footing [run] at 0h 10m 6s on run 1 | blocked since then 0h 19m 54s
+- prop desks 4 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 10 | rule bots 4 | ml bots 0 | ai bots 0
+- run milestones 60 | meta milestones 4/9 | signals: prestiged, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active
+- current run target: Junior Floor (#14) | blocked 0h 7m 22s | progress 5/10 juniorTrader
+- next meta target: Bronze Legacy (#82) | blocked 0h 8m 37s | progress n/a
+- last milestone: Fine Tuning [run] at 0h 22m 38s on run 2 | blocked since then 0h 7m 22s
 - stalled: no
 
 #### Run 2 checkpoint (0.5-2h)
-- captured at 2h 0m 0s on run 1
-- cash 81,449 | cps 298.79
-- research 45,200 | rps 12.00
-- influence 580 | ips 0.175
-- lifetime cash 3,595,522 | prestige 0
-- desk 58/58 | power 18.1/18.1
-- interns 35 | juniors 7 | seniors 5
+- captured at 2h 0m 0s on run 3
+- cash 75,907 | cps 377.52
+- research 1,109 | rps 17.21
+- influence 20 | ips 0.121
+- lifetime cash 1,900,381 | prestige 2
+- reputation 0 | spent 16 | prestige upgrades Global Recognition 4, Seed Capital 3, Better Hiring Pipeline 2, Institutional Knowledge 2, Grid Orchestration 1, Compliance Frameworks 1, Policy Capital 1, Market Reputation 1
+- desk 53/53 | power 16.3/16.5
+- interns 29 | juniors 8 | seniors 5
 - intern scientists 5 | junior scientists 5 | senior scientists 1
-- prop desks 14 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 23 | rule bots 3 | ml bots 0 | ai bots 0
-- run milestones 62 | meta milestones 0/9 | signals: 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Junior Floor (#14) | blocked 0h 57m 29s | progress 7/10 juniorTrader
-- next meta target: First Reset (#79) | blocked 2h 0m 0s | progress n/a
-- last milestone: Automated Timing [run] at 1h 2m 31s on run 1 | blocked since then 0h 57m 29s
+- prop desks 9 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 18 | rule bots 3 | ml bots 0 | ai bots 0
+- run milestones 67 | meta milestones 6/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: Junior Floor (#14) | blocked 0h 51m 7s | progress 8/10 juniorTrader
+- next meta target: Silver Legacy (#83) | blocked 0h 58m 20s | progress n/a
+- last milestone: Systems Mastery [run] at 1h 8m 53s on run 3 | blocked since then 0h 51m 7s
 - stalled: no
 
 #### Midgame checkpoint (2-5h)
-- captured at 5h 0m 0s on run 3
-- cash 20,593 | cps 433.16
-- research 1,087 | rps 19.93
-- influence 24 | ips 0.181
-- lifetime cash 1,875,233 | prestige 2
-- desk 55/55 | power 18.6/19.0
-- interns 34 | juniors 5 | seniors 5
-- intern scientists 5 | junior scientists 5 | senior scientists 1
+- captured at 5h 0m 0s on run 6
+- cash 13,996 | cps 754.62
+- research 782 | rps 32.44
+- influence 51 | ips 0.213
+- lifetime cash 1,295,892 | prestige 5
+- reputation 0 | spent 63 | prestige upgrades Global Recognition 8, Seed Capital 6, Better Hiring Pipeline 5, Institutional Knowledge 5, Grid Orchestration 4, Compliance Frameworks 4, Policy Capital 4, Market Reputation 4, Desk Efficiency 3, Strategic Reserves 2
+- desk 66/66 | power 21.5/21.7
+- interns 36 | juniors 12 | seniors 5
+- intern scientists 7 | junior scientists 5 | senior scientists 1
 - prop desks 11 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 20 | rule bots 5 | ml bots 0 | ai bots 0
-- run milestones 68 | meta milestones 6/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Junior Floor (#14) | blocked 0h 40m 31s | progress 5/10 juniorTrader
-- next meta target: Silver Legacy (#83) | blocked 0h 40m 30s | progress n/a
-- last milestone: Developing Legacy [meta] at 4h 19m 30s on run 3 | blocked since then 0h 40m 30s
+- quant traders 19 | rule bots 3 | ml bots 0 | ai bots 0
+- run milestones 68 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Rack (#21) | blocked 0h 17m 18s | progress n/a
+- next meta target: Onyx Legacy (#86) | blocked 1h 41m 32s | progress n/a
+- last milestone: Junior Floor [run] at 4h 42m 42s on run 6 | blocked since then 0h 17m 18s
 - stalled: no
 
 #### Lategame checkpoint (5-12h)
-- captured at 12h 0m 0s on run 11
-- cash 272,511 | cps 1079.79
-- research 5,658 | rps 50.93
-- influence 119 | ips 0.506
-- lifetime cash 11,664,944 | prestige 10
-- desk 73/73 | power 26.7/27.2
-- interns 41 | juniors 10 | seniors 5
-- intern scientists 11 | junior scientists 5 | senior scientists 1
-- prop desks 21 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 26 | rule bots 5 | ml bots 0 | ai bots 0
-- run milestones 70 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Rack (#21) | blocked 6h 18m 26s | progress n/a
-- next meta target: none
-- last milestone: Onyx Legacy [meta] at 10h 31m 58s on run 11 | blocked since then 1h 28m 2s
+- captured at 12h 0m 0s on run 9
+- cash 134,231 | cps 1000.03
+- research 19,738 | rps 45.25
+- influence 133 | ips 0.485
+- lifetime cash 7,866,374 | prestige 8
+- reputation 1 | spent 143 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 8, Institutional Knowledge 8, Grid Orchestration 7, Compliance Frameworks 7, Policy Capital 7, Market Reputation 7, Desk Efficiency 7, Strategic Reserves 5
+- desk 68/68 | power 24.2/24.5
+- interns 38 | juniors 9 | seniors 5
+- intern scientists 10 | junior scientists 5 | senior scientists 1
+- prop desks 22 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 27 | rule bots 5 | ml bots 0 | ai bots 0
+- run milestones 69 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: Junior Floor (#14) | blocked 2h 13m 24s | progress 9/10 juniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 8h 41m 32s | progress n/a
+- last milestone: Automated Timing [run] at 9h 46m 36s on run 8 | blocked since then 2h 13m 24s
 - stalled: no
 
 #### Soft Complete checkpoint (15-20h)
 - captured at 20h 0m 0s on run 11
-- cash 566,144 | cps 1303.26
-- research 28,734 | rps 72.59
-- influence 426 | ips 0.711
-- lifetime cash 88,002,674 | prestige 10
+- cash 120,278 | cps 1318.42
+- research 12,799 | rps 67.96
+- influence 40 | ips 0.658
+- lifetime cash 29,362,229 | prestige 10
+- reputation 24 | spent 230 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 10, Institutional Knowledge 10, Grid Orchestration 10, Compliance Frameworks 10, Policy Capital 10, Market Reputation 10, Desk Efficiency 10, Strategic Reserves 10
 - desk 85/85 | power 32.5/32.6
-- interns 44 | juniors 14 | seniors 5
-- intern scientists 16 | junior scientists 5 | senior scientists 1
-- prop desks 29 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 33 | rule bots 5 | ml bots 0 | ai bots 0
+- interns 44 | juniors 17 | seniors 5
+- intern scientists 13 | junior scientists 5 | senior scientists 1
+- prop desks 27 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 31 | rule bots 5 | ml bots 0 | ai bots 0
 - run milestones 70 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Rack (#21) | blocked 14h 18m 26s | progress n/a
+- current run target: First Rack (#21) | blocked 10h 13m 24s | progress n/a
 - next meta target: none
-- last milestone: Onyx Legacy [meta] at 10h 31m 58s on run 11 | blocked since then 9h 28m 2s
+- last milestone: Onyx Legacy [meta] at 16h 33m 50s on run 11 | blocked since then 3h 26m 10s
 - stalled: no
 
 - Final result
@@ -460,181 +482,191 @@ Milestone-guided simulation assumes active manual clicking at roughly 3 clicks/s
 ### ROI
 
 #### Run 1 checkpoint (0-0.5h)
-- captured at 0h 30m 0s on run 1
-- cash 82,646 | cps 415.63
-- research 48,143 | rps 23.71
-- influence 336 | ips 0.193
-- lifetime cash 1,186,631 | prestige 0
+- captured at 0h 30m 0s on run 2
+- cash 960 | cps 453.07
+- research 39,656 | rps 32.77
+- influence 220 | ips 0.193
+- lifetime cash 674,852 | prestige 1
+- reputation 0 | spent 6 | prestige upgrades Global Recognition 2, Seed Capital 2, Better Hiring Pipeline 1, Institutional Knowledge 1
 - desk 63/63 | power 21.5/21.7
-- interns 33 | juniors 17 | seniors 0
-- intern scientists 9 | junior scientists 3 | senior scientists 1
-- prop desks 10 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 20 | rule bots 0 | ml bots 0 | ai bots 0
-- run milestones 55 | meta milestones 0/9 | signals: 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 0h 27m 35s | progress 0/1 seniorTrader
-- next meta target: First Reset (#79) | blocked 0h 30m 0s | progress n/a
-- last milestone: Machine Desk [run] at 0h 2m 25s on run 1 | blocked since then 0h 27m 35s
+- interns 31 | juniors 17 | seniors 0
+- intern scientists 9 | junior scientists 5 | senior scientists 1
+- prop desks 8 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 18 | rule bots 0 | ml bots 0 | ai bots 0
+- run milestones 62 | meta milestones 4/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Senior Trader (#11) | blocked 0h 16m 44s | progress 0/1 seniorTrader
+- next meta target: Bronze Legacy (#82) | blocked 0h 16m 45s | progress n/a
+- last milestone: Systems Mastery [run] at 0h 13m 16s on run 2 | blocked since then 0h 16m 44s
 - stalled: no
 
 #### Run 2 checkpoint (0.5-2h)
-- captured at 2h 0m 0s on run 2
-- cash 61,951 | cps 497.30
-- research 44,440 | rps 27.99
-- influence 334 | ips 0.228
-- lifetime cash 1,060,276 | prestige 1
-- desk 63/63 | power 21.5/21.7
-- interns 32 | juniors 17 | seniors 1
-- intern scientists 8 | junior scientists 4 | senior scientists 1
-- prop desks 11 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 20 | rule bots 0 | ml bots 0 | ai bots 0
-- run milestones 64 | meta milestones 4/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Senior Coverage (#15) | blocked 0h 22m 1s | progress 1/5 seniorTrader
-- next meta target: Bronze Legacy (#82) | blocked 0h 22m 31s | progress n/a
-- last milestone: Built the Desk [run] at 1h 37m 59s on run 2 | blocked since then 0h 22m 1s
+- captured at 2h 0m 0s on run 4
+- cash 48,512 | cps 691.06
+- research 46,611 | rps 36.37
+- influence 578 | ips 0.270
+- lifetime cash 2,494,167 | prestige 3
+- reputation 0 | spent 29 | prestige upgrades Global Recognition 5, Seed Capital 4, Better Hiring Pipeline 3, Institutional Knowledge 3, Grid Orchestration 2, Compliance Frameworks 2, Policy Capital 2, Market Reputation 2, Desk Efficiency 2, Strategic Reserves 1
+- desk 67/67 | power 23.5/23.9
+- interns 34 | juniors 17 | seniors 2
+- intern scientists 9 | junior scientists 4 | senior scientists 1
+- prop desks 15 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 22 | rule bots 0 | ml bots 0 | ai bots 0
+- run milestones 65 | meta milestones 7/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: Senior Coverage (#15) | blocked 0h 45m 56s | progress 2/5 seniorTrader
+- next meta target: Gold Legacy (#84) | blocked 0h 41m 42s | progress n/a
+- last milestone: Silver Legacy [meta] at 1h 18m 18s on run 4 | blocked since then 0h 41m 42s
 - stalled: no
 
 #### Midgame checkpoint (2-5h)
-- captured at 5h 0m 0s on run 4
-- cash 25,105 | cps 657.00
-- research 17,386 | rps 36.56
-- influence 7 | ips 0.310
-- lifetime cash 3,508,335 | prestige 3
-- desk 67/67 | power 23.5/23.9
-- interns 35 | juniors 17 | seniors 1
-- intern scientists 9 | junior scientists 4 | senior scientists 1
-- prop desks 16 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 24 | rule bots 0 | ml bots 0 | ai bots 0
-- run milestones 65 | meta milestones 7/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Senior Coverage (#15) | blocked 3h 22m 1s | progress 1/5 seniorTrader
-- next meta target: Gold Legacy (#84) | blocked 0h 54m 52s | progress n/a
-- last milestone: Silver Legacy [meta] at 4h 5m 8s on run 4 | blocked since then 0h 54m 52s
+- captured at 5h 0m 0s on run 6
+- cash 78,492 | cps 830.92
+- research 7,228 | rps 47.99
+- influence 746 | ips 0.381
+- lifetime cash 6,062,923 | prestige 5
+- reputation 0 | spent 64 | prestige upgrades Global Recognition 8, Seed Capital 6, Better Hiring Pipeline 5, Institutional Knowledge 5, Grid Orchestration 4, Compliance Frameworks 4, Policy Capital 4, Market Reputation 4, Desk Efficiency 3, Strategic Reserves 3
+- desk 72/72 | power 26.0/26.1
+- interns 35 | juniors 19 | seniors 2
+- intern scientists 10 | junior scientists 5 | senior scientists 1
+- prop desks 20 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 26 | rule bots 0 | ml bots 0 | ai bots 0
+- run milestones 65 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: Senior Coverage (#15) | blocked 3h 45m 56s | progress 2/5 seniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 2h 42m 9s | progress n/a
+- last milestone: Gold Legacy [meta] at 2h 17m 51s on run 5 | blocked since then 2h 42m 9s
 - stalled: no
 
 #### Lategame checkpoint (5-12h)
-- captured at 12h 0m 0s on run 11
-- cash 515,458 | cps 1293.61
-- research 9,984 | rps 70.60
-- influence 15 | ips 0.720
-- lifetime cash 25,109,231 | prestige 10
-- desk 79/79 | power 32.2/32.6
-- interns 40 | juniors 18 | seniors 4
-- intern scientists 10 | junior scientists 6 | senior scientists 1
-- prop desks 29 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 33 | rule bots 3 | ml bots 0 | ai bots 0
-- run milestones 67 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Senior Coverage (#15) | blocked 3h 48m 34s | progress 4/5 seniorTrader
-- next meta target: none
-- last milestone: Onyx Legacy [meta] at 9h 17m 11s on run 11 | blocked since then 2h 42m 49s
+- captured at 12h 0m 0s on run 9
+- cash 452,073 | cps 1008.45
+- research 22,532 | rps 59.91
+- influence 890 | ips 0.528
+- lifetime cash 10,764,124 | prestige 8
+- reputation 1 | spent 144 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 9, Institutional Knowledge 8, Grid Orchestration 7, Compliance Frameworks 7, Policy Capital 7, Market Reputation 7, Desk Efficiency 6, Strategic Reserves 5
+- desk 76/76 | power 28.9/29.3
+- interns 37 | juniors 20 | seniors 2
+- intern scientists 11 | junior scientists 5 | senior scientists 1
+- prop desks 24 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 29 | rule bots 1 | ml bots 0 | ai bots 0
+- run milestones 66 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: Senior Coverage (#15) | blocked 4h 11m 29s | progress 2/5 seniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 9h 42m 9s | progress n/a
+- last milestone: Floor Space Online [run] at 7h 48m 31s on run 8 | blocked since then 4h 11m 29s
 - stalled: no
 
 #### Soft Complete checkpoint (15-20h)
 - captured at 20h 0m 0s on run 11
-- cash 2,064,708 | cps 1369.27
-- research 17,715 | rps 79.26
-- influence 1,267 | ips 0.904
-- lifetime cash 106,350,238 | prestige 10
+- cash 673,328 | cps 1229.28
+- research 62,119 | rps 73.66
+- influence 1,408 | ips 0.702
+- lifetime cash 26,032,328 | prestige 10
+- reputation 25 | spent 230 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 10, Institutional Knowledge 10, Grid Orchestration 10, Compliance Frameworks 10, Policy Capital 10, Market Reputation 10, Desk Efficiency 10, Strategic Reserves 10
 - desk 79/79 | power 32.1/32.6
-- interns 40 | juniors 18 | seniors 4
-- intern scientists 10 | junior scientists 6 | senior scientists 1
-- prop desks 32 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 36 | rule bots 3 | ml bots 0 | ai bots 0
+- interns 39 | juniors 19 | seniors 3
+- intern scientists 11 | junior scientists 6 | senior scientists 1
+- prop desks 28 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 32 | rule bots 3 | ml bots 0 | ai bots 0
 - run milestones 67 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, junior scientists active, senior scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: Senior Coverage (#15) | blocked 11h 48m 34s | progress 4/5 seniorTrader
+- current run target: Senior Coverage (#15) | blocked 12h 11m 29s | progress 3/5 seniorTrader
 - next meta target: none
-- last milestone: Onyx Legacy [meta] at 9h 17m 11s on run 11 | blocked since then 10h 42m 49s
+- last milestone: Onyx Legacy [meta] at 16h 40m 3s on run 11 | blocked since then 3h 19m 57s
 - stalled: no
 
 - Final result
 - time 20h 0m 0s
 - final run 11
-- milestones seen 78
+- milestones seen 77
 - stalled no
 
 ### Prestige Aware
 
 #### Run 1 checkpoint (0-0.5h)
-- captured at 0h 30m 0s on run 1
-- cash 7,325 | cps 463.29
-- research 15,787 | rps 7.38
-- influence 354 | ips 0.249
-- lifetime cash 1,584,243 | prestige 0
-- desk 68/68 | power 21.2/21.7
-- interns 39 | juniors 20 | seniors 0
-- intern scientists 9 | junior scientists 0 | senior scientists 0
-- prop desks 12 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 21 | rule bots 2 | ml bots 0 | ai bots 0
-- run milestones 56 | meta milestones 0/9 | signals: 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 0h 28m 13s | progress 0/1 seniorTrader
-- next meta target: First Reset (#79) | blocked 0h 30m 0s | progress n/a
-- last milestone: Prop Desk Expansion [run] at 0h 1m 47s on run 1 | blocked since then 0h 28m 13s
+- captured at 0h 30m 0s on run 3
+- cash 75,134 | cps 936.39
+- research 1,892 | rps 6.28
+- influence 26 | ips 0.054
+- lifetime cash 88,718 | prestige 2
+- reputation 0 | spent 17 | prestige upgrades Global Recognition 5, Seed Capital 3, Better Hiring Pipeline 3, Institutional Knowledge 3, Grid Orchestration 1
+- desk 67/67 | power 22.5/22.8
+- interns 45 | juniors 18 | seniors 0
+- intern scientists 4 | junior scientists 0 | senior scientists 0
+- prop desks 3 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 17 | rule bots 4 | ml bots 0 | ai bots 0
+- run milestones 60 | meta milestones 6/9 | signals: prestiged, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Senior Trader (#11) | blocked 0h 20m 21s | progress 0/1 seniorTrader
+- next meta target: Silver Legacy (#83) | blocked 0h 0m 59s | progress n/a
+- last milestone: Developing Legacy [meta] at 0h 29m 1s on run 3 | blocked since then 0h 0m 59s
 - stalled: no
 
 #### Run 2 checkpoint (0.5-2h)
-- captured at 2h 0m 0s on run 2
-- cash 219,544 | cps 497.52
-- research 17,458 | rps 5.21
-- influence 680 | ips 0.312
-- lifetime cash 2,995,900 | prestige 1
-- desk 65/65 | power 21.5/21.7
+- captured at 2h 0m 0s on run 5
+- cash 916 | cps 1079.41
+- research 2,157 | rps 9.05
+- influence 29 | ips 0.095
+- lifetime cash 170,428 | prestige 4
+- reputation 0 | spent 46 | prestige upgrades Global Recognition 9, Seed Capital 5, Better Hiring Pipeline 5, Institutional Knowledge 5, Grid Orchestration 3, Compliance Frameworks 1, Policy Capital 1, Market Reputation 1
+- desk 64/64 | power 24.6/25.0
 - interns 41 | juniors 18 | seniors 0
-- intern scientists 6 | junior scientists 0 | senior scientists 0
-- prop desks 15 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 24 | rule bots 4 | ml bots 0 | ai bots 0
-- run milestones 64 | meta milestones 4/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 0h 44m 37s | progress 0/1 seniorTrader
-- next meta target: Bronze Legacy (#82) | blocked 0h 44m 38s | progress n/a
-- last milestone: Systems Mastery [run] at 1h 15m 23s on run 2 | blocked since then 0h 44m 37s
+- intern scientists 5 | junior scientists 0 | senior scientists 0
+- prop desks 5 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 18 | rule bots 3 | ml bots 0 | ai bots 0
+- run milestones 62 | meta milestones 8/9 | signals: prestiged, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Senior Trader (#11) | blocked 0h 22m 42s | progress 0/1 seniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 0h 1m 41s | progress n/a
+- last milestone: Gold Legacy [meta] at 1h 58m 19s on run 5 | blocked since then 0h 1m 41s
 - stalled: no
 
 #### Midgame checkpoint (2-5h)
-- captured at 5h 0m 0s on run 6
-- cash 133,978 | cps 758.52
-- research 7,617 | rps 4.25
-- influence 365 | ips 0.343
-- lifetime cash 2,350,834 | prestige 5
-- desk 63/63 | power 25.8/26.1
-- interns 42 | juniors 18 | seniors 0
-- intern scientists 3 | junior scientists 0 | senior scientists 0
-- prop desks 15 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 22 | rule bots 5 | ml bots 0 | ai bots 0
+- captured at 5h 0m 0s on run 7
+- cash 26,000 | cps 810.85
+- research 6,514 | rps 6.84
+- influence 134 | ips 0.249
+- lifetime cash 1,038,668 | prestige 6
+- reputation 0 | spent 86 | prestige upgrades Global Recognition 10, Seed Capital 8, Better Hiring Pipeline 7, Institutional Knowledge 7, Grid Orchestration 5, Compliance Frameworks 4, Policy Capital 3, Market Reputation 3, Desk Efficiency 3, Strategic Reserves 3
+- desk 69/69 | power 27.1/27.2
+- interns 43 | juniors 21 | seniors 0
+- intern scientists 5 | junior scientists 0 | senior scientists 0
+- prop desks 12 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 19 | rule bots 3 | ml bots 0 | ai bots 0
 - run milestones 62 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 2h 42m 59s | progress 0/1 seniorTrader
-- next meta target: Onyx Legacy (#86) | blocked 1h 2m 25s | progress n/a
-- last milestone: Gold Legacy [meta] at 3h 57m 35s on run 5 | blocked since then 1h 2m 25s
+- current run target: First Senior Trader (#11) | blocked 3h 22m 42s | progress 0/1 seniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 3h 1m 41s | progress n/a
+- last milestone: Gold Legacy [meta] at 1h 58m 19s on run 5 | blocked since then 3h 1m 41s
 - stalled: no
 
 #### Lategame checkpoint (5-12h)
-- captured at 12h 0m 0s on run 11
-- cash 1,824,802 | cps 1100.12
-- research 10,323 | rps 7.08
-- influence 199 | ips 0.943
-- lifetime cash 49,472,824 | prestige 10
-- desk 73/73 | power 32.6/32.6
-- interns 47 | juniors 22 | seniors 0
-- intern scientists 4 | junior scientists 0 | senior scientists 0
-- prop desks 32 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 36 | rule bots 7 | ml bots 0 | ai bots 0
-- run milestones 63 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 5h 5m 35s | progress 0/1 seniorTrader
-- next meta target: none
-- last milestone: Onyx Legacy [meta] at 7h 19m 16s on run 11 | blocked since then 4h 40m 44s
+- captured at 12h 0m 0s on run 9
+- cash 104,513 | cps 899.08
+- research 119,262 | rps 11.27
+- influence 804 | ips 0.567
+- lifetime cash 16,640,972 | prestige 8
+- reputation 1 | spent 144 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 10, Institutional Knowledge 10, Grid Orchestration 8, Compliance Frameworks 6, Policy Capital 5, Market Reputation 5, Desk Efficiency 5, Strategic Reserves 5
+- desk 75/75 | power 30.1/30.4
+- interns 45 | juniors 23 | seniors 0
+- intern scientists 7 | junior scientists 0 | senior scientists 0
+- prop desks 27 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 31 | rule bots 3 | ml bots 0 | ai bots 0
+- run milestones 63 | meta milestones 8/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Senior Trader (#11) | blocked 10h 22m 42s | progress 0/1 seniorTrader
+- next meta target: Onyx Legacy (#86) | blocked 10h 1m 41s | progress n/a
+- last milestone: Gold Legacy [meta] at 1h 58m 19s on run 5 | blocked since then 10h 1m 41s
 - stalled: no
 
 #### Soft Complete checkpoint (15-20h)
 - captured at 20h 0m 0s on run 11
-- cash 3,559,446 | cps 1136.36
-- research 112,272 | rps 7.12
-- influence 1,225 | ips 0.983
-- lifetime cash 140,517,301 | prestige 10
-- desk 73/73 | power 32.6/32.6
-- interns 47 | juniors 22 | seniors 0
-- intern scientists 4 | junior scientists 0 | senior scientists 0
-- prop desks 34 | institutional desks 0 | hedge funds 0 | investment firms 0
-- quant traders 38 | rule bots 7 | ml bots 0 | ai bots 0
-- run milestones 63 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
-- current run target: First Senior Trader (#11) | blocked 13h 5m 35s | progress 0/1 seniorTrader
+- cash 837,266 | cps 1070.55
+- research 89,022 | rps 11.32
+- influence 365 | ips 0.741
+- lifetime cash 37,704,768 | prestige 10
+- reputation 25 | spent 230 | prestige upgrades Global Recognition 10, Seed Capital 10, Better Hiring Pipeline 10, Institutional Knowledge 10, Grid Orchestration 10, Compliance Frameworks 10, Policy Capital 10, Market Reputation 10, Desk Efficiency 10, Strategic Reserves 10
+- desk 76/76 | power 32.3/32.6
+- interns 46 | juniors 23 | seniors 0
+- intern scientists 7 | junior scientists 0 | senior scientists 0
+- prop desks 29 | institutional desks 0 | hedge funds 0 | investment firms 0
+- quant traders 33 | rule bots 5 | ml bots 0 | ai bots 0
+- run milestones 64 | meta milestones 9/9 | signals: prestiged, 500k lifetime cash reached, research unlocked, intern scientists active, extra sector unlocked, automation branch seen, quant trader active, rule bot active, prop desk active, lobbying seen, politicians active, boost systems touched
+- current run target: First Senior Trader (#11) | blocked 7h 40m 23s | progress 0/1 seniorTrader
 - next meta target: none
-- last milestone: Onyx Legacy [meta] at 7h 19m 16s on run 11 | blocked since then 12h 40m 44s
+- last milestone: Onyx Legacy [meta] at 15h 16m 43s on run 11 | blocked since then 4h 43m 17s
 - stalled: no
 
 - Final result

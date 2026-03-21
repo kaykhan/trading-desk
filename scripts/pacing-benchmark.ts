@@ -1,11 +1,12 @@
 import { writeFileSync } from 'node:fs'
 import { getCashPerSecond, getInfluencePerSecond, getPowerCapacity, getPowerUsage, getResearchPointsPerSecond } from '../src/utils/economy'
+import { PRESTIGE_UPGRADES } from '../src/data/prestigeUpgrades'
 import { getTotalDeskSlots, getUsedDeskSlots } from '../src/utils/capacity'
 import { getTotalMetaMilestoneCount, getUnlockedMetaMilestoneCount, getUnlockedMilestoneCount } from '../src/utils/milestones'
 import { runSimulationWithCheckpoints } from '../src/sim/simRunner'
 import { DEFAULT_SIM_CONFIG, MILESTONE_GUIDED_SIM_CONFIG, PRESTIGE_AWARE_SIM_CONFIG, ROI_SIM_CONFIG } from '../src/sim/simState'
 import type { SimCheckpointSnapshot, SimConfig } from '../src/sim/simState'
-import type { ResearchTechId } from '../src/types/game'
+import type { PrestigeUpgradeId, ResearchTechId } from '../src/types/game'
 
 type WindowId = 'run1' | 'run2' | 'midgame' | 'lategame' | 'softComplete'
 
@@ -131,6 +132,18 @@ function getRunSignals(snapshot: SimCheckpointSnapshot): string[] {
   return signals
 }
 
+function getPrestigeUpgradeSummary(snapshot: SimCheckpointSnapshot): string {
+  const purchasedRanks = snapshot.game.purchasedPrestigeUpgrades
+  const purchasedSummaries = PRESTIGE_UPGRADES
+    .map((upgrade) => {
+      const rank = purchasedRanks[upgrade.id as PrestigeUpgradeId] ?? 0
+      return rank > 0 ? `${upgrade.name} ${rank}` : null
+    })
+    .filter((summary): summary is string => summary !== null)
+
+  return purchasedSummaries.join(', ') || 'none'
+}
+
 function describeCheckpoint(snapshot: SimCheckpointSnapshot): string[] {
   const lastMilestone = snapshot.lastUnlockedMilestone
   return [
@@ -139,6 +152,7 @@ function describeCheckpoint(snapshot: SimCheckpointSnapshot): string[] {
     `research ${Math.floor(snapshot.game.researchPoints).toLocaleString()} | rps ${getResearchPointsPerSecond(snapshot.game).toFixed(2)}`,
     `influence ${Math.floor(snapshot.game.influence).toLocaleString()} | ips ${getInfluencePerSecond(snapshot.game).toFixed(3)}`,
     `lifetime cash ${Math.floor(snapshot.game.lifetimeCashEarned).toLocaleString()} | prestige ${snapshot.game.prestigeCount}`,
+    `reputation ${Math.floor(snapshot.game.reputation).toLocaleString()} | spent ${Math.floor(snapshot.game.reputationSpent).toLocaleString()} | prestige upgrades ${getPrestigeUpgradeSummary(snapshot)}`,
     `desk ${getUsedDeskSlots(snapshot.game)}/${getTotalDeskSlots(snapshot.game)} | power ${getPowerUsage(snapshot.game).toFixed(1)}/${getPowerCapacity(snapshot.game).toFixed(1)}`,
     `interns ${snapshot.game.internCount} | juniors ${snapshot.game.juniorTraderCount} | seniors ${snapshot.game.seniorTraderCount}`,
     `intern scientists ${snapshot.game.internResearchScientistCount} | junior scientists ${snapshot.game.juniorResearchScientistCount} | senior scientists ${snapshot.game.seniorResearchScientistCount}`,

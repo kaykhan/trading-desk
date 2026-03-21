@@ -35,8 +35,23 @@ function getAutomationCycleDurationMultiplier(state: GameState, unitId: Automati
   return 1
 }
 
+function getAutomationStrategyCycleDurationMultiplier(strategyId: AutomationStrategyId | null): number {
+  if (!strategyId) {
+    return 1
+  }
+
+  return AUTOMATION_STRATEGIES[strategyId].cycleDurationMultiplier
+}
+
 function getAutomationCycleDurationWithModifiers(state: GameState, unitId: AutomationUnitId): number {
-  return getAutomationCycleDuration(unitId) * getAutomationCycleDurationMultiplier(state, unitId) * getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+  return getAutomationCycleDuration(unitId)
+    * getAutomationCycleDurationMultiplier(state, unitId)
+    * getAutomationStrategyCycleDurationMultiplier(state.automationConfig[unitId].strategy)
+    * getRepeatableUpgradeMultiplier(state, 'modelEfficiency')
+}
+
+export function getAutomationDisplayedCycleDuration(state: GameState, unitId: AutomationUnitId): number {
+  return getAutomationCycleDurationWithModifiers(state, unitId)
 }
 
 export function getAutomationOwnedCount(state: GameState, unitId: AutomationUnitId): number {

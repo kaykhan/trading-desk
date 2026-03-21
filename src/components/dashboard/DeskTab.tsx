@@ -386,6 +386,7 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
   const nextPayout = useGameStore(selectors.automationAdjustedPayout(unitId))
   const averageIncome = useGameStore(selectors.automationAverageIncomePerSecond(unitId))
   const timeRemaining = useGameStore(selectors.automationTimeRemaining(unitId))
+  const displayedCycleDuration = useGameStore(selectors.automationDisplayedCycleDuration(unitId))
   const powerUse = useGameStore(selectors.automationPowerUse(unitId))
   const unlockedStrategies = getUnlockedAutomationStrategies(gameState)
   const canAfford = quantity > 0 && gameState.cash >= totalCost
@@ -415,7 +416,7 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
           <h3 className="text-[13px] font-semibold leading-none text-foreground xl:text-sm">{label}</h3>
           <Badge variant="outline" className={unlocked ? 'h-5 rounded-md border-primary/40 bg-primary/10 px-1.5 text-[10px] uppercase tracking-[0.12em] text-primary' : 'h-5 rounded-md border-border/70 bg-background/50 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground'}>{unlocked ? 'Online' : 'Locked'}</Badge>
           <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Owned {owned}</Badge>
-          <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Cycle {AUTOMATION_UNITS[unitId].cycleDurationSeconds}s</Badge>
+          <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Cycle {formatNumber(displayedCycleDuration, { decimalsBelowThreshold: 1 })}s</Badge>
           <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUse * owned, { decimalsBelowThreshold: 1 })} power</Badge>
         </div>
         <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{unlocked ? AUTOMATION_UNITS[unitId].description : lockedReason}</p>
@@ -1033,7 +1034,7 @@ export function DeskTab() {
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">ML {formatNumber(mlTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
               {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">AI {formatNumber(aiTradingBotPowerUsage, { decimalsBelowThreshold: 1 })}</Badge> : null}
             </div>
-            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Office capacity is available from the start and uses baseline utility power. Energy infrastructure is a separate research-gated lane for machine systems and larger electrical expansion.</p>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Office capacity is available from the start and uses baseline utility power. Energy infrastructure is a separate research-gated lane for machine systems and larger electrical expansion. Permanent infrastructure upgrades like Rack Stacking are bought from the Upgrades tab, not this panel.</p>
             {machineEfficiencyMultiplier < 1 ? <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-amber-400">Over capacity - powered output {Math.round(machineEfficiencyMultiplier * 100)}%</p> : null}
           </div>
 
@@ -1090,7 +1091,7 @@ export function DeskTab() {
               <h4 className="text-[12px] font-semibold leading-none text-foreground">Energy</h4>
                {powerResearchUnlocked ? <Badge variant="outline" className="h-5 rounded-md border-border/80 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{formatNumber(powerUsage, { decimalsBelowThreshold: 1 })} / {formatNumber(powerCapacity, { decimalsBelowThreshold: 1 })}</Badge> : null}
             </div>
-            <p className="text-[11px] leading-4 text-muted-foreground">Machine infrastructure powers bots and compute systems. Expand this lane to support higher bot tiers and avoid over-capacity penalties.</p>
+            <p className="text-[11px] leading-4 text-muted-foreground">Machine infrastructure powers bots and compute systems. Expand this lane to support higher bot tiers and avoid over-capacity penalties. Upgrade cards for this lane live in Upgrades - Infrastructure Upgrades.</p>
             <div className="space-y-2">
               {[
               { id: 'serverRack' as const, count: serverRackCount, buyMode: serverRackBuyMode, totalCost: serverRackTotalCost, quantity: serverRackQuantity, nextCost: nextServerRackCost, canAfford: canAffordServerRack, visible: serverRackVisible, lockedReason: 'Requires Power Systems Engineering research.' },

@@ -16,6 +16,7 @@ import { DEFAULT_UNLOCKED_SECTORS, SECTORS } from '../src/data/sectors'
 import { UNITS } from '../src/data/units'
 import { UPGRADES } from '../src/data/upgrades'
 import type { AutomationStrategyId, AutomationUnitId, CapacityInfrastructureId, GlobalBoostId, LobbyingPolicyId, MarketEventId, PowerInfrastructureId, RepeatableUpgradeId, ResearchTechId, TimedBoostId, UnitId, UpgradeId } from '../src/types/game'
+import { getPrestigeLifetimeCashRequirement } from '../src/utils/prestige'
 
 type Row = Record<string, string | number | boolean | null | undefined>
 
@@ -512,7 +513,7 @@ const SYSTEM_FORMULAS = [
   {
     id: 'prestigeUnlockFormula',
     name: 'Prestige Unlock Formula',
-    effect: 'canPrestige = prestigeCount < 10 and lifetimeCashEarned >= 4000000 and (quantTraderCount > 0 or ruleBasedBotCount > 0)',
+    effect: `canPrestige = prestigeCount < 10 and lifetimeCashEarned >= thresholdByPrestigeCount[${PRESTIGE_TIERS.map((_tier, index) => getPrestigeLifetimeCashRequirement(index)).join(', ')}][prestigeCount] and (quantTraderCount > 0 or ruleBasedBotCount > 0)`,
     source: sourceFiles('src/utils/prestige.ts', 'src/data/constants.ts'),
   },
   {
