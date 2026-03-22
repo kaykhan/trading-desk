@@ -1,6 +1,6 @@
 import { MILESTONES } from '../data/milestones'
-import { createPrestigeResetState, getReputationGainForNextPrestige } from '../utils/prestige'
-import { getPolicyBottleneckSummary } from './simActions'
+import { canPrestige, createPrestigeResetState, getReputationGainForNextPrestige } from '../utils/prestige'
+import { buildPrestigePurchasePlan, getPolicyBottleneckSummary } from './simActions'
 import { applyMilestonesAndRecord, getRemainingMilestones, hasCompletedAllMilestones } from './simMetrics'
 import { runPolicyStep } from './simPolicies'
 import type { SimCheckpointResult, SimCheckpointSnapshot, SimConfig, SimMetrics, SimResult, SimState } from './simState'
@@ -43,19 +43,23 @@ function recordMeaningfulProgress(state: SimState): boolean {
   return progressed
 }
 
-function shouldPrestige(state: SimState): boolean {
-  return getReputationGainForNextPrestige(state.game) > 0 && (state.game.quantTraderCount > 0 || state.game.ruleBasedBotCount > 0)
-}
-
-function tryPrestige(state: SimState, config: SimConfig, metrics: SimMetrics): boolean {
+function shouldPrestige(state: SimState, config: SimConfig): boolean {
   const reputationGain = getReputationGainForNextPrestige(state.game)
   const hasMachineGate = config.prestigeRequiresRuleBot ? state.game.ruleBasedBotCount > 0 : (state.game.quantTraderCount > 0 || state.game.ruleBasedBotCount > 0)
 
-  if (!shouldPrestige(state) || state.runIndex >= config.maxRuns || reputationGain < config.prestigeMinReputationGain || !hasMachineGate) {
+  return canPrestige(state.game)
+    && state.runIndex < config.maxRuns
+    && reputationGain >= config.prestigeMinReputationGain
+    && hasMachineGate
+}
+
+function tryPrestige(state: SimState, config: SimConfig, metrics: SimMetrics): boolean {
+  if (!shouldPrestige(state, config)) {
     return false
   }
 
-  state.game = createPrestigeResetState(state.game)
+  const prestigePurchasePlan = buildPrestigePurchasePlan(state.game, config.prestigePriority)
+  state.game = createPrestigeResetState(state.game, prestigePurchasePlan)
   state.runIndex += 1
   state.lastMeaningfulProgressTimeSeconds = state.timeSeconds
   state.bestObservedCash = Math.max(state.bestObservedCash, state.game.cash)
@@ -84,6 +88,10 @@ export function runSimulation(config: SimConfig): SimResult {
   applyMilestonesAndRecord(state, metrics)
 
   while (state.timeSeconds < config.maxSeconds && state.runIndex <= config.maxRuns) {
+    if (tryPrestige(state, config, metrics)) {
+      continue
+    }
+
     const manualTrades = getMilestoneGuidedManualTradesPerTick(state, config)
     performManualTrades(state, manualTrades)
     tickSimState(state, config.tickSeconds)
@@ -95,11 +103,13 @@ export function runSimulation(config: SimConfig): SimResult {
       state.lastMeaningfulProgressTimeSeconds = state.timeSeconds
     }
 
+    if (tryPrestige(state, config, metrics)) {
+      continue
+    }
+
     if (hasCompletedAllMilestones(metrics)) {
       break
     }
-
-    tryPrestige(state, config, metrics)
 
     if (state.timeSeconds - state.lastMeaningfulProgressTimeSeconds >= config.stallWindowSeconds) {
       metrics.stallReason = getPolicyBottleneckSummary(state).join('; ') || 'no meaningful progress within stall window'
@@ -174,6 +184,10 @@ export function runSimulationWithCheckpoints(config: SimConfig, checkpointSecond
   applyMilestonesAndRecord(state, metrics)
 
   while (state.timeSeconds < config.maxSeconds && state.runIndex <= config.maxRuns) {
+    if (tryPrestige(state, config, metrics)) {
+      continue
+    }
+
     const manualTrades = getMilestoneGuidedManualTradesPerTick(state, config)
     performManualTrades(state, manualTrades)
     tickSimState(state, config.tickSeconds)
@@ -185,6 +199,14 @@ export function runSimulationWithCheckpoints(config: SimConfig, checkpointSecond
       state.lastMeaningfulProgressTimeSeconds = state.timeSeconds
     }
 
+    if (tryPrestige(state, config, metrics)) {
+      while (checkpointIndex < checkpoints.length && state.timeSeconds >= checkpoints[checkpointIndex]) {
+        captureCheckpoint(checkpoints[checkpointIndex], false)
+        checkpointIndex += 1
+      }
+      continue
+    }
+
     while (checkpointIndex < checkpoints.length && state.timeSeconds >= checkpoints[checkpointIndex]) {
       captureCheckpoint(checkpoints[checkpointIndex], false)
       checkpointIndex += 1
@@ -193,8 +215,6 @@ export function runSimulationWithCheckpoints(config: SimConfig, checkpointSecond
     if (hasCompletedAllMilestones(metrics)) {
       break
     }
-
-    tryPrestige(state, config, metrics)
 
     if (state.timeSeconds - state.lastMeaningfulProgressTimeSeconds >= config.stallWindowSeconds) {
       metrics.stallReason = getPolicyBottleneckSummary(state).join('; ') || 'no meaningful progress within stall window'

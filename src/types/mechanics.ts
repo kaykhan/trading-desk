@@ -319,7 +319,7 @@ export type MechanicsJson = {
     office: { name: string; description: string; baseCost: number; costScaling: number; costModel: string; slotsGranted: number; powerUsage: number; unlockResearchTechId: ResearchTechId | null }
   }
   powerInfrastructure: Record<PowerInfrastructureId, { name: string; description: string; baseCost: number; costScaling: number; costModel: string; powerCapacity: number; unlockResearchTechId: ResearchTechId }>
-  automationStrategies: Record<AutomationStrategyId, { name: string; description: string; unlockResearchTechId: ResearchTechId; targetMultipliers: Record<SectorId | 'none', number> }>
+  automationStrategies: Record<AutomationStrategyId, { name: string; description: string; unlockResearchTechId: ResearchTechId; cycleDurationMultiplier?: number; targetMultipliers: Record<SectorId | 'none', number> }>
   upgrades: {
     groupOrder: UpgradeGroup[]
     groupLabels: Record<UpgradeGroup, string>

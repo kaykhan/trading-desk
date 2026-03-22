@@ -15,6 +15,7 @@ export type AutomationStrategyDefinition = {
   id: AutomationStrategyId
   name: string
   description: string
+  cycleDurationMultiplier: number
 }
 
 export const AUTOMATION_UNIT_IDS: AutomationUnitId[] = ['quantTrader', 'ruleBasedBot', 'mlTradingBot', 'aiTradingBot']
@@ -65,26 +66,31 @@ export const AUTOMATION_STRATEGIES: Record<AutomationStrategyId, AutomationStrat
     id: 'meanReversion',
     name: String(mechanics.automationStrategies.meanReversion.name),
     description: String(mechanics.automationStrategies.meanReversion.description),
+    cycleDurationMultiplier: Number(mechanics.automationStrategies.meanReversion.cycleDurationMultiplier ?? 1),
   },
   momentum: {
     id: 'momentum',
     name: String(mechanics.automationStrategies.momentum.name),
     description: String(mechanics.automationStrategies.momentum.description),
+    cycleDurationMultiplier: Number(mechanics.automationStrategies.momentum.cycleDurationMultiplier ?? 1),
   },
   arbitrage: {
     id: 'arbitrage',
     name: String(mechanics.automationStrategies.arbitrage.name),
     description: String(mechanics.automationStrategies.arbitrage.description),
+    cycleDurationMultiplier: Number(mechanics.automationStrategies.arbitrage.cycleDurationMultiplier ?? 1),
   },
   marketMaking: {
     id: 'marketMaking',
     name: String(mechanics.automationStrategies.marketMaking.name),
     description: String(mechanics.automationStrategies.marketMaking.description),
+    cycleDurationMultiplier: Number(mechanics.automationStrategies.marketMaking.cycleDurationMultiplier ?? 1),
   },
   scalping: {
     id: 'scalping',
     name: String(mechanics.automationStrategies.scalping.name),
     description: String(mechanics.automationStrategies.scalping.description),
+    cycleDurationMultiplier: Number(mechanics.automationStrategies.scalping.cycleDurationMultiplier ?? 1),
   },
 }
 

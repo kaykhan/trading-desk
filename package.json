@@ -6,7 +6,7 @@
   "type": "module",
   "main": "dist-electron/electron/main.js",
   "scripts": {
-    "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron:build\" \"npm:dev:electron\"",
+    "dev": "node scripts/dev.mjs",
     "dev:renderer": "vite",
     "dev:electron:build": "tsc -p tsconfig.electron.json --watch --preserveWatchOutput",
     "dev:electron": "wait-on tcp:5173 dist-electron/electron/main.js && cross-env ELECTRON_RENDERER_URL=http://127.0.0.1:5173 electron .",

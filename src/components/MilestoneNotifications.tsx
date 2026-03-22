@@ -2,56 +2,8 @@ import { useEffect } from 'react'
 import { Trophy } from 'lucide-react'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
+import { playMilestoneChime } from '@/utils/audio'
 import { getMilestoneNotificationLabel } from '@/utils/milestones'
-
-function playMilestoneChime() {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-
-  if (!AudioContextClass) {
-    return
-  }
-
-  try {
-    const context = new AudioContextClass()
-    const now = context.currentTime
-    const masterGain = context.createGain()
-    masterGain.gain.setValueAtTime(0.0001, now)
-    masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.02)
-    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2)
-    masterGain.connect(context.destination)
-
-    const notes = [523.25, 659.25, 783.99]
-
-    notes.forEach((frequency, index) => {
-      const oscillator = context.createOscillator()
-      const gain = context.createGain()
-      const startTime = now + index * 0.08
-      const endTime = startTime + 0.45
-
-      oscillator.type = index === notes.length - 1 ? 'triangle' : 'sine'
-      oscillator.frequency.setValueAtTime(frequency, startTime)
-
-      gain.gain.setValueAtTime(0.0001, startTime)
-      gain.gain.exponentialRampToValueAtTime(index === notes.length - 1 ? 0.28 : 0.18, startTime + 0.03)
-      gain.gain.exponentialRampToValueAtTime(0.0001, endTime)
-
-      oscillator.connect(gain)
-      gain.connect(masterGain)
-      oscillator.start(startTime)
-      oscillator.stop(endTime)
-    })
-
-    window.setTimeout(() => {
-      void context.close().catch(() => undefined)
-    }, 1400)
-  } catch {
-    // Ignore audio failures; milestone toast should still appear.
-  }
-}
 
 export function MilestoneNotifications() {
   const milestoneUnlockQueue = useGameStore((state) => state.milestoneUnlockQueue)

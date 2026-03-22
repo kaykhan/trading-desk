@@ -433,6 +433,10 @@ export function getMilestoneProgressLabel(state: GameState, milestoneId: Milesto
       return `${getPurchasedResearchNodeCount(state)}/${value} nodes`
     case 'assignedUnitsAtLeast':
       return `${getTotalAssignedUnitsToSectors(state)}/${value} assigned`
+    case 'specialistsAtLeast':
+      return `${getTotalSpecialists(state)}/${value} specialists`
+    case 'correctSpecialistAssignmentsAtLeast':
+      return `${getTotalCorrectSpecialistAssignments(state)}/${value} assigned specialists`
     case 'automationCountAtLeast':
       return `${getTotalAutomationUnits(state)}/${value} units`
     case 'purchasedPoliciesAtLeast':

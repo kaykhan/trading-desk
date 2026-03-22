@@ -1,12 +1,84 @@
 import { UPGRADE_GROUPS } from '@/data/tabContent'
+import { getResearchTechDefinition } from '@/data/researchTech'
 import { UPGRADE_GROUP_DESCRIPTIONS, UPGRADE_GROUP_LABELS } from '@/data/upgrades'
+import { mechanics } from '@/lib/mechanics'
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
+import type { ResearchTechId } from '@/types/game'
 import { formatCurrency } from '@/utils/formatting'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { ActionRow } from './DashboardPrimitives'
+
+function collectResearchTechIds(condition: unknown, ids = new Set<ResearchTechId>()): Set<ResearchTechId> {
+  if (!condition || typeof condition !== 'object') {
+    return ids
+  }
+
+  const value = condition as Record<string, unknown>
+
+  if (Array.isArray(value.researchTechPurchased)) {
+    for (const techId of value.researchTechPurchased) {
+      if (typeof techId === 'string') {
+        ids.add(techId as ResearchTechId)
+      }
+    }
+  }
+
+  if (Array.isArray(value.all)) {
+    for (const nested of value.all) {
+      collectResearchTechIds(nested, ids)
+    }
+  }
+
+  if (Array.isArray(value.any)) {
+    for (const nested of value.any) {
+      collectResearchTechIds(nested, ids)
+    }
+  }
+
+  return ids
+}
+
+function getHiddenUpgradeMessage(upgradeId: string, state: ReturnType<typeof useGameStore.getState>): string {
+  const researchIds = [...collectResearchTechIds(mechanics.upgrades.items[upgradeId as keyof typeof mechanics.upgrades.items]?.visibleWhen)]
+    .filter((techId) => state.purchasedResearchTech[techId] !== true)
+
+  if (researchIds.length > 0) {
+    const researchName = getResearchTechDefinition(researchIds[0])?.name ?? 'Research'
+    return `Research ${researchName} to unlock this upgrade.`
+  }
+
+  return getUpgradeLockedReason(upgradeId, state)
+}
+
+function HiddenUpgradeRow({ message }: { message: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/80 bg-background/65 p-2">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.07),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))]" />
+      <div className="absolute inset-0 backdrop-blur-sm" />
+      <div className="relative grid gap-2 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Locked</Badge>
+          </div>
+          <div className="mt-2 space-y-2 opacity-70">
+            <div className="h-3 w-36 rounded bg-border/60 blur-[2px]" />
+            <div className="h-3 w-52 rounded bg-border/50 blur-[2px]" />
+            <div className="h-3 w-24 rounded bg-border/40 blur-[2px]" />
+          </div>
+          <p className="mt-3 text-[11px] leading-4 text-muted-foreground">{message}</p>
+        </div>
+        <Button size="xs" variant="outline" className="w-full rounded-md lg:w-auto" disabled aria-label="Locked action">
+          <span className="block h-3 w-12 rounded bg-border/50 blur-[1px]" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 function getUpgradeLockedReason(upgradeId: string, state: ReturnType<typeof useGameStore.getState>) {
   switch (upgradeId) {
@@ -109,15 +181,19 @@ export function UpgradesTab() {
                     const shortfall = selectors.upgradeCashShortfall(upgrade.id)(gameState)
                     const lockedReason = !visible ? getUpgradeLockedReason(upgrade.id, gameState) : undefined
 
+                    if (!visible) {
+                      return <HiddenUpgradeRow key={upgrade.id} message={getHiddenUpgradeMessage(upgrade.id, gameState)} />
+                    }
+
                     return (
                       <ActionRow
                         key={upgrade.id}
                         title={upgrade.name}
                         description={upgrade.description}
                         cost={`Cost ${formatCurrency(upgrade.cost)}`}
-                        status={isPurchased ? 'Purchased' : !visible ? 'Locked' : shortfall > 0 ? 'Need cash' : 'Ready'}
-                        statusTone={isPurchased ? 'done' : !visible ? 'locked' : shortfall > 0 ? 'warning' : 'ready'}
-                        actionLabel={isPurchased ? 'Purchased' : !visible ? 'Locked' : 'Upgrade'}
+                        status={isPurchased ? 'Purchased' : shortfall > 0 ? 'Need cash' : 'Ready'}
+                        statusTone={isPurchased ? 'done' : shortfall > 0 ? 'warning' : 'ready'}
+                        actionLabel={isPurchased ? 'Purchased' : 'Upgrade'}
                         disabled={!selectors.canAffordUpgrade(upgrade.id)(gameState)}
                         disabledReason={!isPurchased ? lockedReason ?? (shortfall > 0 ? `Need ${formatCurrency(shortfall)} more cash.` : undefined) : undefined}
                         onClick={() => buyUpgrade(upgrade.id)}
