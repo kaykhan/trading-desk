@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, FlaskConical, Lock, MonitorCog, TrendingUp, Users } from 'lucide-react'
 import { CAPACITY_INFRASTRUCTURE } from '@/data/capacity'
 import { POWER_INFRASTRUCTURE } from '@/data/powerInfrastructure'
+import { getResearchTechDefinition } from '@/data/researchTech'
 import { UNITS } from '@/data/units'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGameStore } from '@/store/gameStore'
@@ -322,6 +323,110 @@ function DeskUnitBuyControls({ unitId, activeMode, onChange }: { unitId: UnitId;
   )
 }
 
+function getUnitUnlockResearchName(unitId: UnitId): string | null {
+  const unlockId = UNITS[unitId].unlockUpgradeId
+  const unlockResearch = getResearchTechDefinition(unlockId as Parameters<typeof getResearchTechDefinition>[0])
+  return unlockResearch?.name ?? null
+}
+
+function isUnitHiddenUntilResearched(unitId: UnitId, purchasedResearchTech: Record<string, boolean | undefined>): boolean {
+  const unlockId = UNITS[unitId].unlockUpgradeId
+  const unlockResearch = getResearchTechDefinition(unlockId as Parameters<typeof getResearchTechDefinition>[0])
+
+  if (!unlockResearch) {
+    return false
+  }
+
+  return purchasedResearchTech[unlockResearch.id] !== true
+}
+
+function HiddenUnitPanel({ unlockLabel }: { unlockLabel: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/80 bg-background/65 p-2">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.07),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))]" />
+      <div className="absolute inset-0 backdrop-blur-sm" />
+      <div className="relative grid gap-2 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Locked</Badge>
+          </div>
+          <div className="mt-2 space-y-2 opacity-70">
+            <div className="h-3 w-32 rounded bg-border/60 blur-[2px]" />
+            <div className="h-3 w-48 rounded bg-border/50 blur-[2px]" />
+            <div className="h-3 w-24 rounded bg-border/40 blur-[2px]" />
+          </div>
+          <p className="mt-3 text-[11px] leading-4 text-muted-foreground">Research <span className="text-primary">{unlockLabel}</span> to unlock this unit.</p>
+        </div>
+        <Button size="xs" variant="outline" className="w-full rounded-md lg:w-auto" disabled aria-label="Locked action">
+          <span className="block h-3 w-12 rounded bg-border/50 blur-[1px]" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function getPowerInfrastructureUnlockResearchName(infrastructureId: keyof typeof POWER_INFRASTRUCTURE): string | null {
+  const unlockResearchId = mechanics.powerInfrastructure[infrastructureId].unlockResearchTechId
+  const unlockResearch = getResearchTechDefinition(unlockResearchId)
+  return unlockResearch?.name ?? null
+}
+
+function getCapacityInfrastructureUnlockResearchName(infrastructureId: keyof typeof CAPACITY_INFRASTRUCTURE): string | null {
+  const unlockResearchId = mechanics.capacityInfrastructure[infrastructureId].unlockResearchTechId
+
+  if (!unlockResearchId) {
+    return null
+  }
+
+  const unlockResearch = getResearchTechDefinition(unlockResearchId)
+  return unlockResearch?.name ?? null
+}
+
+function isCapacityInfrastructureHiddenUntilResearched(infrastructureId: keyof typeof CAPACITY_INFRASTRUCTURE, purchasedResearchTech: Record<string, boolean | undefined>): boolean {
+  const unlockResearchId = mechanics.capacityInfrastructure[infrastructureId].unlockResearchTechId
+
+  if (!unlockResearchId) {
+    return false
+  }
+
+  return purchasedResearchTech[unlockResearchId] !== true
+}
+
+function isPowerInfrastructureHiddenUntilResearched(infrastructureId: keyof typeof POWER_INFRASTRUCTURE, purchasedResearchTech: Record<string, boolean | undefined>): boolean {
+  const unlockResearchId = mechanics.powerInfrastructure[infrastructureId].unlockResearchTechId
+
+  if (!unlockResearchId) {
+    return false
+  }
+
+  return purchasedResearchTech[unlockResearchId] !== true
+}
+
+function HiddenInfrastructurePanel({ unlockLabel }: { unlockLabel: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/80 bg-background/65 p-2">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.07),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))]" />
+      <div className="absolute inset-0 backdrop-blur-sm" />
+      <div className="relative grid gap-2 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="h-5 rounded-md border-border/70 bg-background/60 px-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Locked</Badge>
+          </div>
+          <div className="mt-2 space-y-2 opacity-70">
+            <div className="h-3 w-28 rounded bg-border/60 blur-[2px]" />
+            <div className="h-3 w-44 rounded bg-border/50 blur-[2px]" />
+            <div className="h-3 w-20 rounded bg-border/40 blur-[2px]" />
+          </div>
+          <p className="mt-3 text-[11px] leading-4 text-muted-foreground">Research <span className="text-primary">{unlockLabel}</span> to unlock this infrastructure.</p>
+        </div>
+        <Button size="xs" variant="outline" className="w-full rounded-md lg:w-auto" disabled aria-label="Locked action">
+          <span className="block h-3 w-12 rounded bg-border/50 blur-[1px]" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode, disabled, blockedByDeskCapacity = false, unlocked, titleDescription, onBuy, onModeChange, assignmentSummary, extraContent }: {
   config: UnitPanelConfig
   incomeLabel: string
@@ -338,6 +443,13 @@ function UnitPanel({ config, incomeLabel, totalCost, nextCost, quantity, buyMode
   assignmentSummary?: HumanAssignmentSummary
   extraContent?: ReactNode
 }) {
+  const purchasedResearchTech = useGameStore((state) => state.purchasedResearchTech)
+  const hiddenUntilResearch = isUnitHiddenUntilResearched(config.unitId, purchasedResearchTech)
+
+  if (hiddenUntilResearch) {
+    return <HiddenUnitPanel unlockLabel={getUnitUnlockResearchName(config.unitId) ?? 'Research'} />
+  }
+
   const status = unlocked ? (blockedByDeskCapacity ? 'Need Desk Slots' : disabled ? 'Need cash' : 'Ready') : 'Locked'
   const statusTone = unlocked ? (blockedByDeskCapacity ? 'warning' : disabled ? 'warning' : 'ready') : 'locked'
   const badges = [
@@ -401,6 +513,7 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
           : 'border-rose-400/50 bg-rose-500/10 text-rose-100'
     : null
   const label = AUTOMATION_UNITS[unitId].name
+  const hiddenUntilResearch = isUnitHiddenUntilResearched(unitId as UnitId, gameState.purchasedResearchTech)
   const lockedReason = unitId === 'quantTrader'
     ? `Requires Algorithmic Foundations research (${gameState.purchasedResearchTech.algorithmicTrading ? 'done' : 'not researched'}).`
     : unitId === 'ruleBasedBot'
@@ -408,6 +521,10 @@ function AutomationCard({ unitId }: { unitId: AutomationUnitId }) {
       : unitId === 'mlTradingBot'
         ? `Requires Machine Learning Trading research and at least 1 Data Centre (${gameState.dataCenterCount}/1).`
         : `Requires AI Trading Systems research and at least 1 Cloud Compute (${gameState.cloudComputeCount}/1).`
+
+  if (hiddenUntilResearch) {
+    return <HiddenUnitPanel unlockLabel={getUnitUnlockResearchName(unitId as UnitId) ?? 'Research'} />
+  }
 
   return (
     <div className={!unlocked ? 'opacity-60' : undefined}>
@@ -1052,34 +1169,44 @@ export function DeskTab() {
                 { id: 'floorSpace' as const, count: gameState.floorSpaceCount, buyMode: floorSpaceBuyMode, totalCost: floorSpaceTotalCost, quantity: floorSpaceQuantity, nextCost: floorSpaceCost, slotsGranted: CAPACITY_INFRASTRUCTURE.floorSpace.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage, name: CAPACITY_INFRASTRUCTURE.floorSpace.name, description: CAPACITY_INFRASTRUCTURE.floorSpace.description, canAffordCash: gameState.cash >= (floorSpaceQuantity > 0 ? floorSpaceTotalCost : floorSpaceCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.floorSpace.powerUsage * Math.max(1, floorSpaceQuantity))(gameState), visible: floorSpaceVisible, lockedReason: 'Requires Floor Space Planning research.' },
                 { id: 'office' as const, count: gameState.officeCount, buyMode: officeBuyMode, totalCost: officeTotalCost, quantity: officeQuantity, nextCost: officeCost, slotsGranted: CAPACITY_INFRASTRUCTURE.office.slotsGranted, powerUsage: CAPACITY_INFRASTRUCTURE.office.powerUsage, name: CAPACITY_INFRASTRUCTURE.office.name, description: CAPACITY_INFRASTRUCTURE.office.description, canAffordCash: gameState.cash >= (officeQuantity > 0 ? officeTotalCost : officeCost), canAffordEnergy: selectors.canAffordCapacityPower(CAPACITY_INFRASTRUCTURE.office.powerUsage * Math.max(1, officeQuantity))(gameState), visible: officeVisible, lockedReason: 'Requires Office Expansion Planning research.' },
                 ].map((item) => (
-                <PurchaseCard
-                  key={item.id}
-                  title={item.name}
-                  description={item.visible ? item.description : item.lockedReason}
-                  status={!item.visible ? 'Locked' : item.canAffordCash && item.canAffordEnergy ? 'Ready' : !item.canAffordCash ? 'Need cash' : 'Need energy'}
-                  statusTone={!item.visible ? 'locked' : item.canAffordCash && item.canAffordEnergy ? 'ready' : 'warning'}
-                  actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
-                  disabled={!item.visible || !item.canAffordCash || !item.canAffordEnergy}
-                  disabledReason={!item.visible ? item.lockedReason : !item.canAffordCash ? 'Not enough cash for this expansion.' : !item.canAffordEnergy ? 'Need more total power capacity for this office expansion.' : undefined}
-                  badges={[`${item.count} owned`, `+${item.slotsGranted * Math.max(1, item.quantity)} slots`, `${formatNumber(item.powerUsage * Math.max(1, item.quantity), { decimalsBelowThreshold: 1 })} energy`]}
-                  onClick={() => {
-                    if (!item.visible) return
-                    if (item.id === 'deskSpace') buyDeskSpace(item.buyMode)
-                    if (item.id === 'floorSpace') buyFloorSpace(item.buyMode)
-                    if (item.id === 'office') buyOffice(item.buyMode)
-                  }}
-                  compact
-                  footer={
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Office</span>
-                      {BUY_MODES.map((mode) => (
-                        <Button key={`${item.id}-${String(mode)}`} size="xs" variant={item.buyMode === mode ? 'default' : 'outline'} className="rounded-md uppercase tracking-[0.12em]" onClick={() => setCapacityBuyMode(item.id, mode)}>
-                          {typeof mode === 'number' ? `x${mode}` : 'Max'}
-                        </Button>
-                      ))}
-                    </div>
+                (() => {
+                  const hiddenUntilResearch = isCapacityInfrastructureHiddenUntilResearched(item.id, gameState.purchasedResearchTech)
+
+                  if (hiddenUntilResearch) {
+                    return <HiddenInfrastructurePanel key={item.id} unlockLabel={getCapacityInfrastructureUnlockResearchName(item.id) ?? 'Research'} />
                   }
-                />
+
+                  return (
+                    <PurchaseCard
+                      key={item.id}
+                      title={item.name}
+                      description={item.visible ? item.description : item.lockedReason}
+                      status={!item.visible ? 'Locked' : item.canAffordCash && item.canAffordEnergy ? 'Ready' : !item.canAffordCash ? 'Need cash' : 'Need energy'}
+                      statusTone={!item.visible ? 'locked' : item.canAffordCash && item.canAffordEnergy ? 'ready' : 'warning'}
+                      actionLabel={`Build ${formatCurrency(item.totalCost || item.nextCost)}`}
+                      disabled={!item.visible || !item.canAffordCash || !item.canAffordEnergy}
+                      disabledReason={!item.visible ? item.lockedReason : !item.canAffordCash ? 'Not enough cash for this expansion.' : !item.canAffordEnergy ? 'Need more total power capacity for this office expansion.' : undefined}
+                      badges={[`${item.count} owned`, `+${item.slotsGranted * Math.max(1, item.quantity)} slots`, `${formatNumber(item.powerUsage * Math.max(1, item.quantity), { decimalsBelowThreshold: 1 })} energy`]}
+                      onClick={() => {
+                        if (!item.visible) return
+                        if (item.id === 'deskSpace') buyDeskSpace(item.buyMode)
+                        if (item.id === 'floorSpace') buyFloorSpace(item.buyMode)
+                        if (item.id === 'office') buyOffice(item.buyMode)
+                      }}
+                      compact
+                      footer={
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Office</span>
+                          {BUY_MODES.map((mode) => (
+                            <Button key={`${item.id}-${String(mode)}`} size="xs" variant={item.buyMode === mode ? 'default' : 'outline'} className="rounded-md uppercase tracking-[0.12em]" onClick={() => setCapacityBuyMode(item.id, mode)}>
+                              {typeof mode === 'number' ? `x${mode}` : 'Max'}
+                            </Button>
+                          ))}
+                        </div>
+                      }
+                    />
+                  )
+                })()
               ))}
             </div>
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Office capacity energy load: {formatNumber(capacityPowerUsage, { decimalsBelowThreshold: 1 })}</p>
@@ -1100,8 +1227,14 @@ export function DeskTab() {
                { id: 'cloudCompute' as const, count: cloudComputeCount, buyMode: cloudComputeBuyMode, totalCost: cloudComputeTotalCost, quantity: cloudComputeQuantity, nextCost: nextCloudComputeCost, canAfford: canAffordCloudCompute, visible: cloudComputeVisible, lockedReason: 'Late-run infrastructure. Requires Cloud Infrastructure research.' },
               ].map((item) => {
                 const definition = POWER_INFRASTRUCTURE[item.id]
+                const hiddenUntilResearch = isPowerInfrastructureHiddenUntilResearched(item.id, gameState.purchasedResearchTech)
                  const status = item.visible && powerResearchUnlocked ? (item.canAfford ? 'Ready' : 'Need cash') : 'Locked'
                   const statusTone = item.visible && powerResearchUnlocked ? (item.canAfford ? 'ready' : 'warning') : 'locked'
+
+                if (hiddenUntilResearch) {
+                  return <HiddenInfrastructurePanel key={item.id} unlockLabel={getPowerInfrastructureUnlockResearchName(item.id) ?? 'Research'} />
+                }
+
                 return (
                   <div key={item.id} className={!item.visible ? 'opacity-60' : undefined}>
                     <PurchaseCard

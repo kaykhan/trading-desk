@@ -6,6 +6,7 @@ import { RESEARCH_BRANCH_DESCRIPTIONS, RESEARCH_BRANCH_LABELS, RESEARCH_BRANCH_O
 import { useGameStore } from '@/store/gameStore'
 import { selectors } from '@/store/selectors'
 import type { ResearchBranchId, ResearchTechDefinition, ResearchTechId } from '@/types/game'
+import { playResearchUnlockChime } from '@/utils/audio'
 import { formatCurrency, formatNumber, formatPlainRate } from '@/utils/formatting'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -449,6 +450,7 @@ function ResearchPurchaseDialog({
             disabled={status.disabled}
             onClick={() => {
               buyResearchTech(techId)
+              playResearchUnlockChime()
               onClose()
             }}
           >
